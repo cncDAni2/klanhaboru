@@ -28,8 +28,7 @@ AZON=game_data.player.id+"_"+game_data.world+AZON;
 }catch(e){alert(e);}
 
 function vercheck(){try{
-	if (typeof(CVERZIO)=="undefined") {naplo("Globál","Verzióellenőrzés nem lehetséges. <a href='https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/szem4/SZEM4_VER.js' target='_BLANK'>Kattints ide</a> hogy megnézd mi a legfrisebb változat. A tiéd: "+VERZIO); return;}
-	if (CVERZIO!=VERZIO) naplo("Globál","<b>Új verzió jelent meg!</b> Frissítés ajánlott. Jelenlegi: "+VERZIO+". Új: "+CVERZIO);
+	naplo("Globál","Verzió legfrissebb állaporban, GIT-ről szedve");
 }catch(e){alert2(e);}}
 
 function init(){try{
@@ -54,7 +53,7 @@ function init(){try{
 	document.getElementById("content").innerHTML='<table class="menuitem" width="1024px" align="center" id="naplo" style="display: none"> <tr><td> <h1 align="center">Napló</h1><br> <br> <table align="center" class="vis" id="naploka"><tr><th onclick=\'rendez("datum2",false,this,"naploka",0)\'  style="cursor: pointer;">Dátum</th><th  onclick=\'rendez("szoveg",false,this,"naploka",1)\' style="cursor: pointer;">Script</th><th  onclick=\'rendez("szoveg",false,this,"naploka",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table>  <table class="menuitem" width="1024px" align="center" id="debug" style="display: none"> <tr><td> <h1 align="center">DeBugger</h1><br> <br> <table align="center" class="vis" id="debugger"><tr><th onclick=\'rendez("datum2",false,this,"debugger",0)\' style="cursor: pointer;">Dátum</th><th onclick=\'rendez("szoveg",false,this,"debugger",1)\' style="cursor: pointer;">Script</th><th onclick=\'rendez("szoveg",false,this,"debugger",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table>  <table class="menuitem" width="1024px" align="center" id="hang" style="display: none"> <tr><td> <p align="center"><audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio></p> <h1 align="center">Hangbeállítás</h1><br> <div id="hangok" style="display:table;"> 	<div style="display:table-row;"><div style="display:table-cell; padding:10px;" onmouseover=\'sugo("Ha be van kapcsolva, bot védelem esetén ez a link is megnyitódik, mint figyelmeztetés.")\'><b>Alternatív botriadó? <a href="javascript: altbot()">BEKAPCSOLVA</a><br>Megnyitott URL (egyszer)<br><input type="text" id="altbotURL" size="42" value="http://www.youtube.com/watch?v=k2a30--j37Q"></div>   </div> </div> </td></tr> </table>';
 	document.title="SZEM IV";
 	
-	debug("SZEM 4","Verzió: "+VERZIO);
+	debug("SZEM 4","Verzió: GIT_"+new Date().toLocaleDateString());
 	debug("SZEM 4","Prog.azon: "+AZON);
 	debug("SZEM 4","W-Speed: "+SPEED);
 	debug("SZEM 4","U-Speed: "+UNIT_S);
@@ -62,7 +61,7 @@ function init(){try{
 }catch(e){alert("Hiba indításkor:\n\nError at starting:\n"+e); return false;}}
 
 function pic(file){
-	return "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/szem4/"+file;
+	return "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/"+file;
 }
 
 function altbot(){try{
@@ -86,7 +85,7 @@ function playSound(hang){try{
 	var ison=document.getElementsByName(hang)[0];
 	if (ison==undefined) {debug("hanghiba","Nem definiált hang: "+hang); return}
 	if (ison.checked==false) return;
-	var play="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/szem4/"+hang+".wav";
+	var play="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/"+hang+".wav";
 	document.getElementById("wavhang").src=play;
 	document.getElementById("audio1").load();
 	setTimeout('if (document.getElementById("audio1").paused) document.getElementById("audio1").play()',666);
