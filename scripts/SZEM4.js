@@ -1980,7 +1980,6 @@ $(document).ready(function(){
 	naplo("Indulás","SZEM4 Elindult. Hangteszt...");
 	soundVolume(0.2);
 	playSound("bot2");
-	szunet("farm",this)
 	setTimeout(function(){naplo("Indulás","Hangteszt vége. Ha nem hallotta a sípszót, vélhetőleg nem elérhető a cnc weboldal - használja az alternatív botriadót!"); soundVolume(1.0);},3000);
 	
 	setTimeout('vercheck()',5000);
