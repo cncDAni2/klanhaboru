@@ -998,6 +998,7 @@ function szem4_farmolo_motor(){try{
 var inga=100/((Math.random()*40)+80);
 nexttime=Math.round(nexttime*inga);
 console.info("Heartbeat", nexttime, FARM_LEPES);
+debugger;
 FARMOLO_TIMER = setTimeout(function(){szem4_farmolo_motor()},nexttime);
 return;}
 
