@@ -37,7 +37,7 @@ function init(){try{
 	if (document.getElementById("combined_table"))  var PFA=document.getElementById("combined_table"); else 
 	if (document.getElementById("buildings_table"))  var PFA=document.getElementById("buildings_table"); else 
 	if (document.getElementById("techs_table"))  var PFA=document.getElementById("techs_table"); else 
-	{alert("Ilyen nézetbe való futtatás nem támogatott. Kísérlet az áttekintés betöltésére...\n\nLaunching from this view is not supported. Trying to load overview..."); document.location.href=document.location.href.replace(/screen=[a-zA-Z]+/g,"screen=overview_villages"); return false;}
+	{alert("Ilyen nézetbe való futtatás nem támogatott. Kísérlet az áttekintés betöltésére...\n\nLaunching from this view is not supported. Trying to load overview..."); /*document.location.href=document.location.href.replace(/screen=[a-zA-Z]+/g,"screen=overview_villages");*/ return false;}
 	var patt = new RegExp(/[0-9]+(\|)[0-9]+/);
 	if (patt.test(PFA.rows[1].cells[0].textContent)) var oszl=0; else
 	if (patt.test(PFA.rows[1].cells[1].textContent)) var oszl=1; else
