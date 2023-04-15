@@ -1,4 +1,3 @@
-javascript:
 function stop(){
 var x = setTimeout('',100); for (var i = 0 ; i < x ; i++) clearTimeout(i);}
 stop(); /*Időstop*/
