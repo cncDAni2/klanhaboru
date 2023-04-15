@@ -1,0 +1,118 @@
+<?php $ut=$_SERVER['REQUEST_URI']; $pos = strpos($ut,"alkat="); if ($pos==false) exit("Alkatból kell meghívni"); ?>
+<script>
+function vagas(){try{
+	var FROM=document.getElementById("alap").value;
+	var FROM2=document.getElementById("kieg").value;
+	var OUTP=document.getElementById("ki_opts").getElementsByTagName("input"); //0,1,2
+	var MUV=document.getElementById("vag_opts").getElementsByTagName("input"); //0,1
+	
+	FROM=FROM.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g); 
+	try{FROM2=FROM2.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);}catch(e){FROM2="";}
+	
+	if (FROM2==null) FROM2="";
+	var eredm=new Array();
+	
+	for (var i=0;i<FROM.length;i++){
+		var bele=false;
+		if (!document.getElementById("halmaz").checked) {
+			if (eredm.indexOf(FROM[i])==-1) bele=true; else continue;} else bele=true;
+		if (FROM2!=""){
+			if (FROM2.indexOf(FROM[i])>-1){
+				if (MUV[0].checked) {bele=false;}
+			} else if (MUV[1].checked) {bele=false;}
+		}
+		if (bele) eredm.push(FROM[i]);
+	}
+	
+	var eredm_str=""; var et=document.getElementById("Egyedi").value;
+	for (var i=0;i<eredm.length;i++){
+		if (OUTP[0].checked) eredm_str+=eredm[i]+" "; else
+		if (OUTP[1].checked) eredm_str+=eredm[i]+"\n"; else
+		if (OUTP[2].checked) eredm_str+="[coord]"+eredm[i]+"[/coord]\n"; else
+		if (OUTP[3].checked) {
+			if (et=="") eredm_str+=eredm[i]+" "; else {
+				eredm_str+=et.replace(/\[K\]/g,eredm[i]).replace(/\[N\]/g,"\n").replace(/\[K1\]/g,eredm[i].split("|")[0]).replace(/\[K2\]/g,eredm[i].split("|")[1]).replace(/\[KK\]/g,eredm[i].split("|")[1][0]+eredm[i].split("|")[0][0]).replace(/\[C\]/g,i+1);
+			}
+		}
+	}
+	document.getElementById("eredm").value=eredm_str;
+	document.getElementById("eredm").select();
+	document.getElementById("cutter_db").innerHTML="("+eredm.length+" falu)";
+}catch(e){alert("Feldolgozás nem lehetséges!\nNincs alap koordináta?\n\n"+e);}}
+
+function terulet_kij(){try{
+	var BEGIN=document.getElementById("t_1").value;
+	var END=document.getElementById("t_2").value;
+	var eredm_str="";
+	
+	BEGIN=BEGIN.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g)[0].split("|");
+	END=END.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g)[0].split("|");
+	if (parseInt(BEGIN[0],10)>parseInt(END[0],10)) {
+		var temp=BEGIN;
+		BEGIN=END;
+		END=temp;
+	}
+	
+	var Xnow=parseInt(BEGIN[0],10);
+	var Ynow=parseInt(BEGIN[1],10);
+	if (Ynow>parseInt(END[1],10)) var nov=false; else var nov=true;
+	var endC=nov?parseInt(END[1],10)+1:parseInt(END[1],10)-1;
+	
+	while (Ynow!=endC){
+		while (Xnow<=parseInt(END[0],10)) {eredm_str+=Xnow+"|"+Ynow+" "; Xnow++;}
+		Xnow=parseInt(BEGIN[0],10);
+		nov?Ynow++:Ynow--;
+	}
+	
+	document.getElementById("eredm").value=eredm_str;
+	document.getElementById("eredm").select();
+}catch(e){alert("Feldolgozás nem lehetséges!\nNincs valahol koordináta?\n\n"+e);}}
+
+</script>
+<li>
+<a href="#">Tutorial</a>
+<div>Számos scriptemben található hasonló műveleteket végrehajtó rész, most viszont itt egyben, mindentől függetlenül használhatod őket!<br>
+A Cutter kivágja a beírt szövegből a koordinátákat, azokat pedig különböző módon kiírja az OK gombra kattintás után. Továbbá, egy másik listát is megadva neki kiválogathatja a közös részeket, valamint kiveheti az első listából az ott megadott koordikat. Az eredményben 1 koordináta mindig csak 1x fog szerepelni, KIVÉVE ha a "Több falu többször szerepeljen" be van pipálva! Ekkor a kiegészítő listában lévő falukkal végzett műveletek hibásak lehetnek!<br>
+* Egyedi kimenet megadása: A twStats faluexportálójában látható Egyedi módhoz hasonló. Minden egyes eredménykor ez fog kiíródni. A beírt szöveg annyiszor fog kiíródni, amennyi koordináta van. Persze ezzel így ne msokra mész, ezért lehetnek benne spediális szövegek, melyek a hozzá tartozó információra cserélődnek át. Ezek:
+<ul><li>[K]: Maga a koordináta, pl. 123|321
+<li>[K1] és [K2]: A koordináta X (K1) és Y (K2) koordinátái, pl [K1] esetén 123-at fog kiírni
+<li>[KK]: A kontinens száma, pl. 11
+<li>[C]: Egy növekmény, mely minden egyes koordináta után 1-el növelődik, 1-el kezdődvén.
+<li>[N]: Egy "enter", azaz új sort kezd.</ul>
+Figyeljünk arra, hogy az egyedi megjelenítés végén legyen egy szóköz, vagy egy [N], különben egymás után ömlesztve fogja írni a dolgokat! 
+Ez a példa maximálisan kiaknázza a tudását: <code>[C]: X:[K1] Y:[K2] - [K] (K[KK])[N]</code> (próbáld ki!)
+<br>
+<br>
+Másik funkciója a téglalap terület kijelölő, ahol 2 koordinátát kell megadnod: a téglelap valamelyik sarkán lévő koordinátát, majd az átellenest. Tehát, ha a bal felső koordit adtad meg elsőként, akkor után a jobb alsót kell - épp úgy mintha az egérrel jelölnél ki egy területet pl. az asztalon! Ezután Cutter kiírja mely faluk tartoznak ebbe a területbe, hogy később ezt feldolgozhasd. Ilyenkor az eredmény mindig 1 soros. A többi scriptemben való felhasználás esetén ezeket a koordinátákat kell beírni, majd a <u>keresési távolságot 0 mezőre állítani</u>! </div>
+</li>
+
+<li>
+<a href="#">Script tulajdonságok/letöltés</a>
+<div >PF-en fut e: N/A<br>
+Nem magyar szerveren fut e: N/A<br>
+Futtatási hely: Itt<br>
+<br>
+
+<table>
+<tr style="text-align:center"><td>Alap lista:</td><td>Kiegészítő lista:</td><td>Téglalap kijelölő</td></tr>
+<tr>
+	<td><textarea id="alap" cols="40" rows="20" ></textarea></td>
+	<td><textarea id="kieg" cols="40" rows="20" style="background: rgb(255,215,215)" ></textarea></td>
+	<td style="text-align:center">Téglalap egyik csúcskoordinátája:<br><input type="text" id="t_1" size="6"><br>
+	Téglalap átellenes csúcskoordinátája:<br><input type="text" id="t_2" size="6"></td>
+</tr>
+<tr>
+	<td id="ki_opts">Kimeneti formátum: <br>
+		<input type="radio" checked name="KI"> Egy soros<br>
+		<input type="radio" name="KI"> Külön soros <br>
+		<input type="radio" name="KI"> BB kódos<br>
+		<input type="radio" name="KI"> Egyedi*: <input type="text" value="" size="36" id="Egyedi" placeholder="[coord][K][/coord][N]"><br><br><input type="button" onclick="vagas()" value="Vágás"> <input type="checkbox" id="halmaz"> Több falu többször szerepeljen?</td>
+	<td id="vag_opts" style="vertical-align:top">Vágási művelet: <br>
+		- <input type="radio" checked name="VAG"> Törlés/kivonás<br>
+		- <input type="radio" name="VAG"> Közös rész/metszet</td>
+	<td style="text-align:center"><input type="button" onclick="terulet_kij()" value="Terület-kijelölés"></td></tr>
+</table>
+Műveleti eredmény: <p style="display:inline" id="cutter_db"></p><br>
+<textarea cols="100" rows="20" id="eredm"></textarea>
+</div>
+</li>

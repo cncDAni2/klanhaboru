@@ -964,7 +964,7 @@ function szem4_farmolo_motor(){try{
 				if (PM1=="zero") {nexttime=10000; break;} /*Ha nincs még tábla feltöltve*/
 				if (PM1=="") {nexttime=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[8].value,10)*60000; break;}
 				FARM_REF=window.open(VILL1ST.replace(/village=[0-9]+/,"village="+koordTOid(PM1[2])).replace("screen=overview","screen=place"),AZON+"_Farmolo");
-				FARM_REF.blur();
+				if (!document.hidden) { FARM_REF.blur(); window.focus(); }
 				/*debug("Farmoló_ToStep1",PM1);*/
 				FARM_LEPES=1;
 				break;
@@ -1200,7 +1200,7 @@ function szem4_VIJE_motor(){try{
 			var csoport="";
 			if (game_data.player.premium) csoport="group_id=-1&";
 			VIJE_REF1=window.open(VILL1ST.replace("screen=overview","mode=attack&"+csoport+"screen=report"),AZON+"_SZEM4VIJE_1");
-			VIJE_REF1.blur();
+			if (!document.hidden) {VIJE_REF1.blur(); window.focus();}
 			VIJE_LEPES=1;
 			} else nexttime=10000;
 			break;
@@ -1211,7 +1211,7 @@ function szem4_VIJE_motor(){try{
 					if (PM2[3]) VIJE_LEPES=3; else {VIJE_LEPES=0; nexttime=120000;}
 				} else {
 					VIJE_REF2=window.open(VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"),AZON+"_SZEM4VIJE_2");
-					VIJE_REF2.blur();
+					if (!document.hidden) {VIJE_REF2.blur(); window.focus();}
 					VIJE_LEPES=2;
 				}
 			} else { VIJE_HIBA++;}
