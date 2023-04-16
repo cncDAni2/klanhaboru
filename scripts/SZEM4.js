@@ -1,5 +1,6 @@
 function stop(){
-var x = setTimeout('',100); for (var i = 0 ; i < x ; i++) clearTimeout(i);}
+	var x = setTimeout('',100); for (var i = 0 ; i < x ; i++) clearTimeout(i);
+}
 stop(); /*Időstop*/
 document.getElementsByTagName("html")[0].setAttribute("class","");
 
@@ -9,9 +10,9 @@ function loadXMLDoc(dname) {
 	xhttp.open("GET",dname,false);
 	xhttp.send();
 	return xhttp.responseXML;
-}
+}	
 
-if (typeof(AZON)!="undefined") exit();
+if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
 try{ /*Rendszeradatok*/
 var SZEM4_LOCAL_STORAGE="";
 var AZON="S0";
@@ -23,6 +24,30 @@ var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
 var VILL1ST="";
 var ALTBOT=true;
 var VERZIO="4.570828"; /* (4.)+(kieg.-ek száma)+(alverz:(dátum[ÉHHNN]))*/
+var worker = createWorker(function(self){
+	self.addEventListener("message", function(e) {
+		console.info('MSG?', e.data);
+		setTimeout(() => {postMessage(e.data);}, e.data.time);
+	}, false);
+});
+worker.onmessage = function(worker_message) {
+	console.info('MSG_ENINER2?', worker_message.data);
+	worker_message = worker_message.data;
+	switch(worker_message.id) {
+		case 'farm': szem4_farmolo_motor(); break;
+		case 'vije': szem4_VIJE_motor(); break;
+		case 'epit': szem4_EPITO_motor(); break;
+		case 'adatok': szem4_ADAT_motor(); break;
+		default: debug('worker','Ismeretlen ID', JSON.stringify(worker_message))
+	}
+};
+function createWorker(main){
+    var blob = new Blob(
+        ["(" + main.toString() + ")(self)"],
+        {type: "text/javascript"}
+    );
+    return new Worker(window.URL.createObjectURL(blob));
+}
 
 AZON=game_data.player.id+"_"+game_data.world+AZON;
 }catch(e){alert(e);}
@@ -65,7 +90,6 @@ function pic(file){
 }
 
 function altbot(){try{
-	alert(ALTBOT);
 	ALTBOT=!ALTBOT;
 	if (ALTBOT) {
 		document.getElementById("altbotURL").parentNode.getElementsByTagName("a")[0].innerHTML="BEKAPCSOLVA";
@@ -88,7 +112,7 @@ function playSound(hang){try{
 	var play="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/"+hang+".wav";
 	document.getElementById("wavhang").src=play;
 	document.getElementById("audio1").load();
-	setTimeout('if (document.getElementById("audio1").paused) document.getElementById("audio1").play()',666);
+	setTimeout('if (document.getElementById("audio1").paused) document.getElementById("audio1").play()', 666);
 }catch(e){alert2(e);}}
 
 function validate(evt) {
@@ -1000,7 +1024,9 @@ function szem4_farmolo_motor(){try{
 
 var inga=100/((Math.random()*40)+80);
 nexttime=Math.round(nexttime*inga);
-FARMOLO_TIMER = setTimeout(function(){szem4_farmolo_motor()},nexttime);
+try{
+	worker.postMessage({'id': 'farm', 'time': nexttime});
+}catch(e){debug('farm', 'Worker engine error: ' + e);setTimeout(function(){szem4_farmolo_motor();}, 3000);}
 return;}
 
 var KTID=new Array(), /*Koord-ID párosok*/
@@ -1230,7 +1256,9 @@ function szem4_VIJE_motor(){try{
 }catch(e){debug("szem4_VIJE_motor()","ERROR: "+e+" Lépés:"+VIJE_LEPES);}
 var inga=100/((Math.random()*40)+80);
 nexttime=Math.round(nexttime*inga);
-setTimeout("szem4_VIJE_motor()",nexttime);
+try{
+	worker.postMessage({'id': 'vije', 'time': nexttime});
+}catch(e){debug('vije', 'Worker engine error: ' + e);setTimeout(function(){szem4_VIJE_motor();}, 3000);}
 }
 /*VIJE*/
 ujkieg("vije","Jelentés Elemző",'<tr><td>A VIJE a Farmoló táblázatába dolgozik, itt csupán működési beállításokat módosíthatsz.<br><br><br>"Fatelep" a szerver jelenlegi nyelvén: <input type="text" size="15"  value="Fatelep"><br>"Agyagbánya" a szerver jelenlegi nyelvén: <input type="text" size="15"  value="Agyagbánya"><br>"Vasbánya" a szerver jelenlegi nyelvén: <input type="text" size="15" value="Vasbánya"><br>"Fal" a szerver jelenlegi nyelvén: <input type="text" size="15" value="Fal"><br><input type="checkbox"> Zöld farmjelentések törlése<br><br><br><i>Elemzett jelentések:</i><div id="VIJE_elemzett" style="font-size:30%;width:980px;word-wrap: break-word;"></div></td></tr>');
@@ -1616,7 +1644,11 @@ function szem4_EPITO_motor(){try{
 }catch(e){debug("Epito motor",e); EPIT_LEPES=0;}
 var inga=100/((Math.random()*40)+80);
 nexttime=Math.round(nexttime*inga);
-setTimeout("szem4_EPITO_motor()",nexttime);}
+try{
+	worker.postMessage({'id': 'epit', 'time': nexttime});
+}catch(e){debug('epit', 'Worker engine error: ' + e);setTimeout(function(){szem4_EPITO_motor();}, 3000);}
+//setTimeout("szem4_EPITO_motor()",nexttime);
+}
 
 ujkieg_hang("Építő","epites;falu_kesz;kritikus_hiba");
 ujkieg("epit","Építő",'<tr><td><h2 align="center">Építési listák</h2><table align="center" class="vis" style="border:1px solid black;color: black;"><tr><th onmouseover=\'sugo("Építési lista neve, amire később hivatkozhatunk")\'>Csoport neve</th><th onmouseover=\'sugo("Az építési sorrend megadása. Saját lista esetén ellenőrizzük az OK? linkre kattintva annak helyességét!")\' style="width:800px">Építési lista</th></tr><tr><td>Alapértelmezett</td><td><input type="text" disabled="disabled" value="main 10;storage 10;wall 10;main 15;wall 15;storage 15;farm 10;main 20;wall 20;MINES 10;smith 5;barracks 5;stable 5;main 15;storage 20;farm 20;market 10;main 22;smith 12;farm 25;storage 28;farm 26;MINES 24;market 19;barracks 15;stable 10;garage 5;MINES 26;farm 28;storage 30;barracks 20;stable 15;farm 30;barracks 25;stable 20;MINES 30;smith 20;snob 1" size="125"><a onclick="szem4_EPITO_cscheck(this)" style="color:blue; cursor:pointer;"> OK?</a></td></tr></table><p align="center">Csoportnév: <input type="text" value="" size="30" id="epit_ujcsopnev" placeholder="Nem tartalmazhat . _ ; karaktereket"> <a href="javascript: szem4_EPITO_ujCsop()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+' " height="17px"> Új csoport</a></p></td></tr><tr><td><h2 align="center">Építendő faluk</h2><table align="center" class="vis" style="border:1px solid black;color: black;width:900px" id="epit_lista"><tr><th style="width: 75px; cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",0)\' onmouseover=\'sugo("Rendezhető. Itt építek. Dupla klikk a falura = sor törlése")\'>Falu koord.</th><th onclick=\'rendez("lista",false,this,"epit_lista",1)\' onmouseover=\'sugo("Rendezhető. Felső táblázatban használt lista közül választhatsz egyet, melyet később bármikor megváltoztathatsz.")\' style="width: 135px; cursor: pointer">Használt lista</th><th style="width: 220px; cursor: pointer;" onclick=\'rendez("datum",false,this,"epit_lista",2)\' onmouseover=\'sugo("Rendezhető. Ekkor fogom újranézni a falut, hogy lehet e már építeni.<br>Dupla klikk=idő azonnalira állítása.")\'>Return</th><th style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",3)\' onmouseover=\'sugo("Rendezhető. Szöveges információ a faluban zajló építésről. Sárga hátterű szöveg orvosolható; kék jelentése hogy nem tud haladni; piros pedig kritikus hibát jelöl; a szín nélküli a normális működést jelzi.<br>Dupla klikk=alaphelyzet")\'><u>Infó</u></th></tr></table><p align="center" id="epit_ujfalu_adat">\
@@ -1932,7 +1964,11 @@ function szem4_ADAT_motor(){try{if (!ADAT_PAUSE){
 	if (Z[2].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_epito_save();
 	if (Z[3].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_sys_save();}
 }}catch(e){debug("ADAT_motor",e);}
-setTimeout("szem4_ADAT_motor()",60000);}
+	try{
+		worker.postMessage({'id': 'adatok', 'time': nexttime});
+	}catch(e){debug('adatok', 'Worker engine error: ' + e);setTimeout(function(){szem4_ADAT_motor();}, 3000);}
+//setTimeout("szem4_ADAT_motor()",60000);
+}
 
 function szem4_ADAT_AddImageRow(tipus){
 	return '\
@@ -1958,12 +1994,12 @@ szem4_ADAT_motor();
 
 $(document).ready(function(){
 	nyit("naplo");
-	naplo("Indulás","SZEM4 Elindult. Hangteszt...");
+	vercheck();
+	naplo("Indulás","SZEM4 Elindult. Fontosabb hangok betöltése...");
 	soundVolume(0.2);
 	playSound("bot2");
-	setTimeout(function(){naplo("Indulás","Hangteszt vége. Ha nem hallotta a sípszót, vélhetőleg nem elérhető a cnc weboldal - használja az alternatív botriadót!"); soundVolume(1.0);},3000);
+	setTimeout(function(){naplo("Indulás","Hangbetöltés vége. Ha nem hallotta a sípszót, használja az alternatív botriadót!"); soundVolume(1.0);},3000);
 	
-	setTimeout('vercheck()',5000);
 	$(function() {
 		$("#alert2").draggable({handle: $('#alert2head')});
 		$('#sugo').mouseover(function() {sugo("Ez itt a súgó");});
@@ -1978,22 +2014,21 @@ ADDME: webworker :(
 ADDME: iFrames
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 ADDME: Custom wallpaper
+FIXME: getServerTime (hiányzó fg)
 FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell!
+FIXME: Nyersanyag a faluban új oszlop: Mennyi TH katona megy rá. VIJE-nek ezt ki kell szedni. Ezután útidőbe beleszámolni az utat
 ADDME: Farmok rendezése táv szerint
-ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
-FIXME: pontos határszám kezelés, ne legyen hozzáadás h "még egy kis egység"
-FIXME: Kevesebbszer nyissa a lapot
 ADDME: "Sárgát NE támadd"
-ADDME: Ha fal van, küldjön TÖBB sereget! (csak kl?) "IntelliWall" (beállítás felugró ablakba?)
 ADDME: Fal szint lehessen mínusz is, ha elofeltételek nem teljesülnek: Barakk és 3as fohadi
-ADDME: Reset/ébreszto: Néha pihen a script, lehessen "felébreszteni" (timeout clear+újra motorindít)
-LOG: Ha lapot kell nyitnia, azt logolja a debug-ba miért kellett neki (hiba/nem talált)
-ADDME: Teherbírás módosító
-FIXME: Számolja bele az odaérkezés alatt keletkező nyerseket, és úgy keresse a "párját"
-ADDME: FAKE limit, és ennek figyelembe vétele
+ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
+ADDME: Ha fal van, küldjön TÖBB sereget! (csak kl?) "IntelliWall" (beállítás felugró ablakba?)
+ADDME: [Lebegő ablak] Reset/ébreszto: Néha pihen a script, lehessen "felébreszteni" (timeout clear+újra motorindít)
 REMOVE: Min sereg/falu, helyette minimum <határszám>-nyi nyersanyag elvétele
-?TRANSFORM: Gombbal állítódjon át a cucc (legyen RESET is), ezt olvassa ki, ekkor ellenőrizzen.
+ADDME: New kieg.: Falverő
+ADDME: Teherbírás módosító
+ADDME: FAKE limit, és ennek figyelembe vétele
 Optional ADDME: határszám felülírása FAKE limitnél? Alap: NEM
+?TRANSFORM: Gombbal állítódjon át a cucc (legyen RESET is), ezt olvassa ki, ekkor ellenőrizzen.
 */
 
 void(0);
