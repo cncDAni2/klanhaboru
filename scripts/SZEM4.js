@@ -27,12 +27,10 @@ var IFRAME = true;
 var VERZIO="4.570828"; /* (4.)+(kieg.-ek száma)+(alverz:(dátum[ÉHHNN]))*/
 var worker = createWorker(function(self){
 	self.addEventListener("message", function(e) {
-		console.info('MSG?', e.data);
 		setTimeout(() => {postMessage(e.data);}, e.data.time);
 	}, false);
 });
 worker.onmessage = function(worker_message) {
-	console.info('MSG_ENINER2?', worker_message.data);
 	worker_message = worker_message.data;
 	switch(worker_message.id) {
 		case 'farm': szem4_farmolo_motor(); break;
@@ -54,7 +52,7 @@ AZON=game_data.player.id+"_"+game_data.world+AZON;
 }catch(e){alert(e);}
 
 function vercheck(){try{
-	naplo("Globál","Verzió legfrissebb állaporban, GIT-ről szedve");
+	naplo("Globál","Verzió legfrissebb állapotban, GIT-ről szedve");
 }catch(e){alert2(e);}}
 
 function init(){try{
@@ -818,11 +816,18 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 	if (ny>parseInt(opts[3].value,10)) C_form.spy.value=0; /*Ha biztos megy rá MÉG támadás*/	
 	
 	var kek=false;
-	/*Forced?*/if (opts[5].checked && elerheto[4]<parseInt(opts[4].value)) {ezt=adatok[1]+"|semmi";} else {
+	/*Forced?*/
+	if (opts[5].checked && elerheto[4]<parseInt(opts[4].value)) {
+		console.info('Forced not OK', opts[5].checked, '&&', elerheto[4], '<', parseInt(opts[4].value));
+		ezt=adatok[1]+"|semmi";
+	} else {
 	
 	/*Raktár túltelített?*/ var nyersarany=(parseInt(FARM_REF.document.getElementById("wood").textContent)+parseInt(FARM_REF.document.getElementById("stone").textContent)+parseInt(FARM_REF.document.getElementById("iron").textContent))/(parseInt(FARM_REF.document.getElementById("storage").textContent)*3);
 	/*debug("Illeszt","Nyersarány: "+Math.round(nyersarany*100)+", limit: "+parseInt(opts[10].value));*/
-	if (Math.round(nyersarany*100)>parseInt(opts[10].value))  {ezt=adatok[1]+"|semmi";} else {
+	if (Math.round(nyersarany*100)>parseInt(opts[10].value))  {
+		ezt=adatok[1]+"|semmi";
+		console.info('Raktár túltelített, nem küldöm', Math.round(nyersarany*100), '>', parseInt(opts[10].value));
+	} else {
 	
 		/*FAKE LIMIT!?*/
 		/*console.info('Össz:', betesz_ossz, parseInt(opts[7].value), betesz_ossz>parseInt(opts[7].value));*/
@@ -837,7 +842,10 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 			/*debug("Farmolo()","Seregküldés "+adatok[3]+"-re. Nyers_faluba: "+parseInt(farm_helye.cells[3].textContent,10)+". Egység küldés: "+debugstr+". Teherbírás: "+debugzsak);*/
 			if ((debugzsak-100)>parseInt(farm_helye.cells[3].textContent,10)) debug("Farmolo()","<b>ERROR: TOO MANY UNITS</b>");
 			C_form.attack.click(); ezt=adatok[1]; 						
-		} else ezt=adatok[1]+"|semmi";
+		} else {
+			console.info("Fake limit?", betesz_ossz, '>=', parseInt(opts[7].value));
+			ezt=adatok[1]+"|semmi";
+		}
 	}}
 	
 	/*console.info('Beillesztve', [ny,ezt,adatok[2],adatok[3],sslw,kek,debugzsak]);*/
@@ -984,7 +992,6 @@ return;}
 
 function szem4_farmolo_motor(){try{
 	var nexttime=500;
-	
 	nexttime=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[9].value,10);
 	
 	if (BOT||FARM_PAUSE) {nexttime=5000;} else {
@@ -993,11 +1000,11 @@ function szem4_farmolo_motor(){try{
 	switch (FARM_LEPES) {
 		case 0: /*Meg kell nézni mi lesz a célpont, +nyitni a HONNAN-t.*/
 				PM1=szem4_farmolo_1kereso();
+				console.info('Case 0, PM1=', PM1);
 				if (PM1=="zero") {nexttime=10000; break;} /*Ha nincs még tábla feltöltve*/
 				if (PM1=="") {nexttime=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[8].value,10)*60000; break;}
 				//@IFRAME
 				FARM_REF=windowOpener('farm', VILL1ST.replace(/village=[0-9]+/,"village="+koordTOid(PM1[2])).replace("screen=overview","screen=place"), AZON+"_Farmolo");
-				if (!document.hidden) { FARM_REF.blur(); window.focus(); }
 				/*debug("Farmoló_ToStep1",PM1);*/
 				FARM_LEPES=1;
 				break;
@@ -1018,7 +1025,7 @@ function szem4_farmolo_motor(){try{
 		case 2: /*Confirm: nem e jött piros szöveg, játékos e -> OK-ézás.*/ 
 				if (isPageLoaded(FARM_REF,koordTOid(PM1[2]),"try=confirm")) {FARM_HIBA=0; FARM_GHIBA=0;
 					PM1=szem4_farmolo_3egyeztet(PM1);
-					if (typeof(PM1)=="object" && PM1.length>0 && PM1[0]==true) {/*debug("Farmoló_ToStep3",PM1);*/ FARM_LEPES=3;} else FARM_LEPES=0;
+					if (typeof(PM1)=="object" && PM1.length>0 && PM1[0]==true) {/*debug("Farmoló_ToStep3",PM1);*/ console.info('LeOK-éztem, ellenőrzés kéne', PM1); FARM_LEPES=3;} else FARM_LEPES=0;
 				} else {FARM_HIBA++;}
 				break;
 		case 3: /*Támadás elküldve, időt és ID-t nézünk, ha kell.*/ 
@@ -1035,6 +1042,7 @@ function szem4_farmolo_motor(){try{
 var inga=100/((Math.random()*40)+80);
 nexttime=Math.round(nexttime*inga);
 try{
+	if (nexttime > 2000) {console.info(new Date(), "Pihenek!? nexttime=", nexttime);}
 	worker.postMessage({'id': 'farm', 'time': nexttime});
 }catch(e){debug('farm', 'Worker engine error: ' + e);setTimeout(function(){szem4_farmolo_motor();}, 3000);}
 return;}
@@ -1236,7 +1244,6 @@ function szem4_VIJE_motor(){try{
 			if (game_data.player.premium) csoport="group_id=-1&";
 			//@IFRAME
 			VIJE_REF1=windowOpener('vije', VILL1ST.replace("screen=overview","mode=attack&"+csoport+"screen=report"), AZON+"_SZEM4VIJE_1");
-			if (!document.hidden) {VIJE_REF1.blur(); window.focus();}
 			VIJE_LEPES=1;
 			} else nexttime=10000;
 			break;
@@ -1248,7 +1255,6 @@ function szem4_VIJE_motor(){try{
 				} else {
 					//@IFRAME
 					VIJE_REF2=windowOpener('vije2', VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"), AZON+"_SZEM4VIJE_2");
-					if (!document.hidden) {VIJE_REF2.blur(); window.focus();}
 					VIJE_LEPES=2;
 				}
 			} else { VIJE_HIBA++;}
@@ -1283,6 +1289,31 @@ var VIJE_HIBA=0; var VIJE_GHIBA=0;
 var VIJE2_HIBA=0; var VIJE2_GHIBA=0;
 var PM2;
 szem4_VIJE_motor();
+
+/*-----------------TÁMADÁS FIGYELŐ--------------------*/
+
+function TamadUpdt(lap){try{
+	var table=document.getElementById("idtamad_Bejovok");
+	var d=new Date();
+	var jelenlegi=parseInt(lap.game_data.player.incomings,10);
+	var eddigi=0;
+	if (table.rows.length>1) eddigi=parseInt(table.rows[1].cells[1].innerHTML,10);
+	if (jelenlegi==eddigi) return;
+	
+	var row=table.insertRow(1);
+	var cell1=row.insertCell(0);
+	var cell2=row.insertCell(1);
+	cell1.innerHTML=d;
+	cell2.innerHTML=jelenlegi;
+	
+	if (jelenlegi>eddigi) playSound("bejovo"); /*replace: ATTACK SOUND!*/
+	return;
+}catch(e){debug("ID beir","Hiba: "+e);}
+}
+
+ujkieg_hang("Bejövő támadások","bejovo");
+ujkieg("idtamad","Bejövő támadások",'<tr><td align="center" ><table class="vis" id="idtamad_Bejovok" style="vertical-align:top; display: inline-block;"><tr><th>Időpont</th><th>Támadások száma</th></tr></table> </td></tr>');
+
 
 /*-----------------ÉPÍTŐ--------------------*/
 function szem4_EPITO_perccsokkento(){try{
@@ -1987,7 +2018,7 @@ function szem4_ADAT_motor(){try{if (!ADAT_PAUSE){
 	if (Z[3].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_sys_save();}
 }}catch(e){debug("ADAT_motor",e);}
 	try{
-		worker.postMessage({'id': 'adatok', 'time': nexttime});
+		worker.postMessage({'id': 'adatok', 'time': 60000});
 	}catch(e){debug('adatok', 'Worker engine error: ' + e);setTimeout(function(){szem4_ADAT_motor();}, 3000);}
 //setTimeout("szem4_ADAT_motor()",60000);
 }
@@ -2033,9 +2064,12 @@ $(document).ready(function(){
 	});
 }); 
 /*
+FIXME: Nincs is olyan, hogy a nagy nyersre vérszemet kap, pedig kéne!
+REFACTOR: Adatmenő. Mindent mentsen, idő is légyen
+REFACTOR: farm_opts inputoknak adj ID-kat, esetleg form az miért nem jó?
+FIXME: Utolsó visszatérő sereget nézzen, ne default <10p> pihit falu_helye.cells[2].innerHTML=d;
 ADDME: Custom wallpaper
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
-FIXME: getServerTime (hiányzó fg)
 FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell!
 FIXME: Nyersanyag a faluban új oszlop: Mennyi TH katona megy rá. VIJE-nek ezt ki kell szedni. Ezután útidőbe beleszámolni az utat
 ADDME: Farmok rendezése táv szerint
@@ -2043,9 +2077,11 @@ ADDME: "Sárgát NE támadd"
 ADDME: Fal szint lehessen mínusz is, ha elofeltételek nem teljesülnek: Barakk és 3as fohadi
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
 ADDME: Ha fal van, küldjön TÖBB sereget! (csak kl?) "IntelliWall" (beállítás felugró ablakba?)
-ADDME: [Lebegő ablak] Reset/ébreszto: Néha pihen a script, lehessen "felébreszteni" (timeout clear+újra motorindít)
+ADDME: [Lebegő ablak] PAUSE ALL, I'M out
+ADDME: [Lebegő ablak] Reset/ébresztő: Néha pihen a script, lehessen "felébreszteni" (timeout clear+újra motorindít)
 REMOVE: Min sereg/falu, helyette minimum <határszám>-nyi nyersanyag elvétele
 ADDME: New kieg.: Falverő
+FIXME: getServerTime (hiányzó fg)
 ADDME: Teherbírás módosító
 ADDME: FAKE limit, és ennek figyelembe vétele
 Optional ADDME: határszám felülírása FAKE limitnél? Alap: NEM
