@@ -1975,12 +1975,12 @@ $(document).ready(function(){
 }); 
 /*
 ADDME: webworker :(
-ADDME: szüneteltethetó a falu támadása/pipára mint a J?
-FIXME: Loading unit types
-FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell! 10:00
+ADDME: iFrames
+ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
+ADDME: Custom wallpaper
+FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell!
 ADDME: Farmok rendezése táv szerint
-ADDME: Címet írd már át h "SZEM IV", csak hogy tudjuk. Esetlen külön motorba, ami minden referenciát átír mp-enként
-ADDME: VIJE sat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
+ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
 FIXME: pontos határszám kezelés, ne legyen hozzáadás h "még egy kis egység"
 FIXME: Kevesebbszer nyissa a lapot
 ADDME: "Sárgát NE támadd"
