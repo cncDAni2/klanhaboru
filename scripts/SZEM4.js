@@ -23,6 +23,7 @@ var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
 var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
 var VILL1ST="";
 var ALTBOT=true;
+var IFRAME = true;
 var VERZIO="4.570828"; /* (4.)+(kieg.-ek száma)+(alverz:(dátum[ÉHHNN]))*/
 var worker = createWorker(function(self){
 	self.addEventListener("message", function(e) {
@@ -68,7 +69,7 @@ function init(){try{
 	if (patt.test(PFA.rows[1].cells[2].textContent)) var oszl=2; else
 	{alert("Nem találok koordinátákat ebbe a listába.\n\nI can not find coordinates in this view."); return false;}
 	VILL1ST=PFA.rows[1].cells[oszl].getElementsByTagName("a")[0].href;
-	for (var i=1;i<PFA.rows.length;i++){
+	for (var i=1;i<PFA.rows.length;i++) {
 		var kord=PFA.rows[i].cells[oszl].textContent.match(/[0-9]+(\|)[0-9]+/g);
 		kord=kord[kord.length-1];
 		KTID[i-1]=kord+";"+PFA.rows[i].cells[oszl].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0];
@@ -193,12 +194,12 @@ function prettyDatePrint(m){
 function nyit(ezt){try{
 	var temp=document.getElementById("content").childNodes;
 	var cid="";
-	for (var i=0;i<temp.length;i++){
+	for (var i=0;i<temp.length;i++) {
 		if (temp[i].nodeName.toUpperCase()=="TABLE") {cid=temp[i].getAttribute("id");
 		$("#"+cid).fadeOut(300);}
 	} var patt=new RegExp("\""+ezt+"\"");
 	temp=document.getElementById("menuk").getElementsByTagName("a");
-	for (i=0;i<temp.length;i++){
+	for (i=0;i<temp.length;i++) {
 		temp[i].style.padding="3px";
 		if (patt.test(temp[i].getAttribute("href"))) temp[i].style.backgroundColor="#000000"; else temp[i].style.backgroundColor="transparent";
 	}
@@ -257,7 +258,7 @@ function ujkieg_hang(nev,hangok){
 	var hely=document.getElementById("hangok").getElementsByTagName("div")[0];
 	var kieg=document.createElement("div"); kieg.setAttribute("style","display:table-cell; padding:10px;");
 	var str="<h3>"+nev+"</h3>";
-	for (var i=0;i<files.length;i++){
+	for (var i=0;i<files.length;i++) {
 		str+='<input type="checkbox" name="'+files[i]+'" checked> <a href="javascript: playSound(\''+files[i]+'\');">'+files[i]+'</a><br>';
 	}
 	kieg.innerHTML=str;
@@ -266,7 +267,7 @@ function ujkieg_hang(nev,hangok){
 }
 
 function szunet(script,kep){try{
-	switch (script){
+	switch (script) {
 		case "farm": 
 			FARM_PAUSE=!FARM_PAUSE;
 			var sw=FARM_PAUSE;
@@ -319,7 +320,7 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 	var no=0;
 	var vizsgal=$.trim(prodtable[1].cells[oszlop].innerText).replace(" ","");
 	
-	for (var i=1;i<prodtable.length;i++){
+	for (var i=1;i<prodtable.length;i++) {
 		switch (tipus) {
 			case "szoveg": tavok[i-1]=prodtable[i].cells[oszlop].innerText; break;
 			case "szam": tavok[i-1]=parseInt(prodtable[i].cells[oszlop].innerText.replace(".","")); break;
@@ -340,9 +341,9 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 		indexek[i-1]=i-1;
 	}
 	
-	for (var i=0;i<tavok.length;i++){
+	for (var i=0;i<tavok.length;i++) {
 		var min=i;
-		for (var j=i;j<tavok.length;j++){
+		for (var j=i;j<tavok.length;j++) {
 			if (bool) {if (tavok[j]>tavok[min]) min=j;}
 			else {if (tavok[j]<tavok[min]) min=j;}
 		}
@@ -355,11 +356,11 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 		indexek[min]=Ttemp;
 	}
 	
-	for (var i=prodtable.length-1;i>0;i--){
+	for (var i=prodtable.length-1;i>0;i--) {
 		OBJ.deleteRow(i);
 	}
 	
-	for (var i=0;i<tavok.length;i++){
+	for (var i=0;i<tavok.length;i++) {
 		OBJ.appendChild(sorok[indexek[i]]);
 	}
 	
@@ -368,7 +369,7 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 }catch(e){alert2("Hiba rendezéskor:\n"+e);}}
 
 function koordTOid(koord){
-	for (var i=0;i<KTID.length;i++){
+	for (var i=0;i<KTID.length;i++) {
 		if (KTID[i].split(";")[0]==koord) return KTID[i].split(";")[1];
 	}
 	return 0;
@@ -376,7 +377,7 @@ function koordTOid(koord){
 
 function rovidit(tipus){
 	var ret="";
-	switch (tipus){
+	switch (tipus) {
 		case "egysegek": 
 			for (var i=0;i<UNITS.length;i++)
 			ret+='<img style="width:15px" src="/graphic/unit/unit_'+UNITS[i]+'.png"><input type="checkbox" onclick="szem4_farmolo_multiclick('+i+',\'honnan\',this.checked)">';
@@ -399,9 +400,9 @@ function multipricer(ez,tip,s1){try{
 	if (ez==undefined) return;
 	if (!(document.getElementById("farm_multi_"+ez).checked)) return;
 	var x=document.getElementById("farm_"+ez).rows;
-	for (var i=x.length-1;i>0;i--){
+	for (var i=x.length-1;i>0;i--) {
 		if (x[i].style.display!="none") {
-			switch(tip){
+			switch(tip) {
 			case "del": x[i].parentNode.removeChild(x[i]);break;
 			case "urit": if (ez=="honnan") x[i].cells[2].innerHTML="";else x[i].cells[5].innerHTML="";break;
 			case "mod": x[i].cells[3].innerHTML=s1;break;
@@ -475,22 +476,22 @@ function add_farmolo(){ try{
 	faluk=faluk.match(/[0-9]+(\|)[0-9]+/g);
 	
 	var istarget=false;
-	for (var j=0;j<datas.rows[2].cells[0].getElementsByTagName("input").length;j++){
+	for (var j=0;j<datas.rows[2].cells[0].getElementsByTagName("input").length;j++) {
 		if (datas.rows[2].cells[0].getElementsByTagName("input")[j].checked==true) {istarget=true; break;}
 	}
-	if (!istarget){
+	if (!istarget) {
 		if (!confirm("Nincs semmilyen egység megadva, amit küldhetnék. Folytatod?\n(később ez a megadás módosítható)")) return;
 	}
 	
 	var dupla="";
-	for (var i=0;i<faluk.length;i++){
+	for (var i=0;i<faluk.length;i++) {
 		var a=document.getElementById("farm_honnan");
 		var b=document.getElementById("farm_hova");
-		for (var j=1;j<a.rows.length;j++){
+		for (var j=1;j<a.rows.length;j++) {
 			if (a.rows[j].cells[0].textContent==faluk[i]) {dupla+=faluk[i]+", "; faluk[i]=""; break;}
 		}
 		if (faluk[i]=="") continue;
-		for (var j=1;j<b.rows.length;j++){
+		for (var j=1;j<b.rows.length;j++) {
 			if (b.rows[j].cells[0].textContent==faluk[i]) {dupla+=faluk[i]+", "; faluk[i]=""; break;}
 		}
 		if (faluk[i]=="") continue;
@@ -499,7 +500,7 @@ function add_farmolo(){ try{
 		var b=a.insertRow(-1);
 		var c=b.insertCell(0); c.innerHTML=faluk[i]; c.setAttribute("ondblclick",'sortorol(this,"honnan")');
 		var c=b.insertCell(1); c.innerHTML=rovidit("egysegek");
-		for (var j=0;j<c.getElementsByTagName("input").length;j++){
+		for (var j=0;j<c.getElementsByTagName("input").length;j++) {
 			if (datas.rows[2].cells[0].getElementsByTagName("input")[j].checked==true) c.getElementsByTagName("input")[j].checked=true;
 		}
 		var c=b.insertCell(2); c.innerHTML=""; c.setAttribute("ondblclick",'urit(this,"honnan")');
@@ -520,14 +521,14 @@ function add_farmolando(){try{
 	if 	(datas.rows[2].cells[1].getElementsByTagName("input")[3].value=="") datas.rows[2].cells[1].getElementsByTagName("input")[3].value=3600;
 	
 	var dupla="";
-	for (var i=0;i<faluk.length;i++){
+	for (var i=0;i<faluk.length;i++) {
 		var a=document.getElementById("farm_hova");
 		var b=document.getElementById("farm_honnan");
-		for (var j=1;j<a.rows.length;j++){
+		for (var j=1;j<a.rows.length;j++) {
 			if (a.rows[j].cells[0].textContent==faluk[i]) {dupla+=faluk[i]+", "; faluk[i]=""; break;}
 		}
 		if (faluk[i]=="") continue;
-		for (var j=1;j<b.rows.length;j++){
+		for (var j=1;j<b.rows.length;j++) {
 			if (b.rows[j].cells[0].textContent==faluk[i]) {dupla+=faluk[i]+", "; faluk[i]=""; break;}
 		}
 		if (faluk[i]=="") continue;
@@ -583,15 +584,15 @@ function isPageLoaded(ref,faluid,address){try{
 		BotvedelemBe();
 		return false;
 	}
-	if (ref.document.location.href.indexOf("sid_wrong")>-1){
+	if (ref.document.location.href.indexOf("sid_wrong")>-1) {
 		naplo("Globális","Kijelentkezett fiók. Jelentkezzen be újra, vagy állítsa le a programot.");
 		BotvedelemBe();
 		return false;
 	}
 	if (address.indexOf("not ")>-1) var neg=true; else var neg=false;
 	if (faluid>-1) if (ref.game_data.village.id!=faluid) return false;
-	if (ref.document.getElementById("serverTime").innerHTML.length>4){
-		if (neg){
+	if (ref.document.getElementById("serverTime").innerHTML.length>4) {
+		if (neg) {
 			if (ref.document.location.href.indexOf(address.split(" ")[1])==-1) return true;
 		} else {
 			if (ref.document.location.href.indexOf(address)>-1)	return true;
@@ -599,12 +600,20 @@ function isPageLoaded(ref,faluid,address){try{
 	}
 }catch(e){return false;}
 return false;}
+function windowOpener(id, url, windowId) {
+	if (IFRAME) {
+		document.getElementById(id + "_iframe").src=url;
+		return document.getElementById(id + "_iframe").contentWindow;
+	} else {
+		return window.open(url, windowId);
+	}
+}
 
 function szem4_farmolo_multiclick(no,t,mire){try{
 	if (!(document.getElementById("farm_multi_"+t).checked)) return;
 	var x=document.getElementById("farm_"+t).rows;
 	if (t=="honnan") t=1; else t=4;
-	for (var i=1;i<x.length;i++){
+	for (var i=1;i<x.length;i++) {
 		if (x[i].style.display!="none") x[i].cells[t].getElementsByTagName("input")[no].checked=mire;
 	}
 	return;
@@ -623,9 +632,9 @@ function szem4_farmolo_csoport(tabla){try{
 	lista=lista.match(/[0-9]+(\|)[0-9]+/g);
 	var uj=false; var jel;
 	var x=document.getElementById("farm_"+tabla).rows;
-	for (var i=1;i<x.length;i++){
+	for (var i=1;i<x.length;i++) {
 		uj=false; jel=x[i].cells[0].textContent;
-		switch(type){
+		switch(type) {
 			case "norm": if (lista.indexOf(jel)>-1) uj=true; break;
 			case "negalt": if (x[i].style.display=="none") uj=true; break;
 			case "kulonbseg": if (x[i].style.display!="none" && lista.indexOf(jel)==-1) uj=true; break;
@@ -685,16 +694,16 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 	var par=[]; /*Távolság;Gyalogosok e?;Koordináta-honnan;koord-hova*/
 	var d=new Date(); var sp;
 	if (a.length==1 || b.length==1) return "zero";
-	for (var i=1;i<a.length;i++){
+	for (var i=1;i<a.length;i++) {
 		if (a[i].cells[0].style.backgroundColor=="red") continue;
 		if (parseInt(a[i].cells[3].textContent)<parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value)) continue;
 		
 		/*Farm megvan (a[i]. sor), párkeresés hozzá (van e egyátalán (par.length==3?))*/
 		var hogyok="";
-		for (var j=1;j<b.length;j++){
+		for (var j=1;j<b.length;j++) {
 			sp=0;
 			/*Elérhető forrás keresése*/
-			if (b[j].cells[2].innerHTML!=""){
+			if (b[j].cells[2].innerHTML!="") {
 				var d2=new Date(b[j].cells[2].textContent);
 				if (!(d2 instanceof Date && !isNaN(d2.valueOf()))) {
 					b[j].cells[2].innerHTML = '';
@@ -745,11 +754,11 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 	}
 	
 	var falu_helye=document.getElementById("farm_honnan").rows;
-	for (var i=1;i<falu_helye.length;i++){
+	for (var i=1;i<falu_helye.length;i++) {
 		if (falu_helye[i].cells[0].textContent==adatok[2]) {falu_helye=falu_helye[i].cells[1].getElementsByTagName("input"); break;}
 	}
 	var farm_helye=document.getElementById("farm_hova").rows;
-	for (var i=1;i<farm_helye.length;i++){
+	for (var i=1;i<farm_helye.length;i++) {
 		if (farm_helye[i].cells[0].textContent==adatok[3]) {farm_helye=farm_helye[i]; break;}
 	}
 	
@@ -776,7 +785,7 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 	
 	if (adatok[1]=="all") {
 		for (var i=5;i<UNITS.length;i++){try{
-			if (ny>TEHER[i]){
+			if (ny>TEHER[i]) {
 				var kellene=Math.ceil(ny/TEHER[i]);
 				var van=elerheto[i];
 				if (kellene>van) var betesz=van; else var betesz=kellene;
@@ -790,7 +799,7 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 		}
 	} else {
 		for (var i=0;i<4;i++){try{
-			if (ny>TEHER[i]){
+			if (ny>TEHER[i]) {
 				var kellene=Math.ceil(ny/TEHER[i]);
 				var van=elerheto[i];
 				if (kellene>van) var betesz=van; else var betesz=kellene;
@@ -839,17 +848,17 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 function szem4_farmolo_3egyeztet(adatok){try{
 	/*nyers_maradt;all/gyalog/semmi;honnan;hova;speed_slowest;kekesit*/
 	var falu_helye=document.getElementById("farm_honnan").rows;
-	for (var i=1;i<falu_helye.length;i++){
+	for (var i=1;i<falu_helye.length;i++) {
 		if (falu_helye[i].cells[0].textContent==adatok[2]) {falu_helye=falu_helye[i]; break;}
 	}
 	var farm_helye=document.getElementById("farm_hova").rows;
-	for (var i=1;i<farm_helye.length;i++){
+	for (var i=1;i<farm_helye.length;i++) {
 		if (farm_helye[i].cells[0].textContent==adatok[3]) {farm_helye=farm_helye[i]; break;}
 	}
 	
 	/*Piros szöveg*/
 	try{
-		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].getAttribute("class")=="error_box"){
+		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].getAttribute("class")=="error_box") {
 			naplo("Farmoló","Hiba "+adatok[3]+" farmolásánál: "+FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].textContent+". Tovább nem támadom");
 			farm_helye.cells[0].style.backgroundColor="red";
 			FARM_LEPES=0;
@@ -859,8 +868,8 @@ function szem4_farmolo_3egyeztet(adatok){try{
 	
 	/*Játékos-e?*/	
 	try{
-		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("table")[0].rows[2].cells[1].getElementsByTagName("a")[0].href.indexOf("info_player")>-1){
-			if (!farm_helye.cells[4].getElementsByTagName("input")[0].checked){
+		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("table")[0].rows[2].cells[1].getElementsByTagName("a")[0].href.indexOf("info_player")>-1) {
+			if (!farm_helye.cells[4].getElementsByTagName("input")[0].checked) {
 				naplo("Farmoló","Játékos "+maplink(adatok[3])+" helyen: "+FARM_REF.document.getElementById("content_value").getElementsByTagName("table")[0].rows[2].cells[1].innerHTML.replace("href",'target="_BLANK" href')+". Tovább nem támadom");
 				farm_helye.cells[0].style.backgroundColor="red";
 				FARM_LEPES=0;
@@ -883,7 +892,7 @@ function szem4_farmolo_3egyeztet(adatok){try{
 		if (adatok[5]) farm_helye.cells[1].style.backgroundColor="rgb(213, 188, 244)";
 		FARM_REF.document.getElementById("troop_confirm_submit").click();
 		farm_helye.cells[0].setAttribute("data-age",0);
-		if (adatok[0]>parseInt(opts[3].value)){
+		if (adatok[0]>parseInt(opts[3].value)) {
 			/*Lekérni a szerver időt*/
 			var d=getServerTime(FARM_REF);
 			var ido=distCalc(adatok[2].split("|"),adatok[3].split("|"));
@@ -907,7 +916,7 @@ function szem4_farmolo_4visszaell(adatok){try{
 		nyers_maradt(db);all/gyalog + semmi;honnan;hova;speed_slowest
 	*/	
 	var falu_helye=document.getElementById("farm_honnan").rows;
-	for (var i=1;i<falu_helye.length;i++){
+	for (var i=1;i<falu_helye.length;i++) {
 		if (falu_helye[i].cells[0].textContent==adatok[2]) {falu_helye=falu_helye[i]; break;}
 	}
 	
@@ -915,11 +924,11 @@ function szem4_farmolo_4visszaell(adatok){try{
 		if (adatok[1].indexOf("all")>-1) var lehetEGyalog=true; else var lehetEGyalog=false;
 	}
 
-	if (lehetEGyalog){ /*Sárga; de ha nincs gyalog->fehér*/
+	if (lehetEGyalog) { /*Sárga; de ha nincs gyalog->fehér*/
 		var backtest=false;
-		for (var i=0;i<3;i++){
-			if (falu_helye.cells[1].getElementsByTagName("input")[i].checked){
-				if (FARM_REF.document.getElementById("unit_input_"+UNITS[i])){
+		for (var i=0;i<3;i++) {
+			if (falu_helye.cells[1].getElementsByTagName("input")[i].checked) {
+				if (FARM_REF.document.getElementById("unit_input_"+UNITS[i])) {
 					if (parseInt(FARM_REF.document.getElementById("unit_input_"+UNITS[i]).parentNode.children[2].textContent.match(/[0-9]+/g)[0])>5) {
 						backtest=true;
 						break;
@@ -933,7 +942,7 @@ function szem4_farmolo_4visszaell(adatok){try{
 	/*Leggyorsabb kijelölt egység*/
 	var a=falu_helye.cells[1].getElementsByTagName("input");
 	var fastest=22;
-	for (var i=0;i<a.length;i++){
+	for (var i=0;i<a.length;i++) {
 		if (i==4) continue;
 		if (a[i].checked && E_SEB[i]<fastest) fastest=E_SEB[i];
 	}
@@ -981,12 +990,13 @@ function szem4_farmolo_motor(){try{
 	if (BOT||FARM_PAUSE) {nexttime=5000;} else {
 	/*if (FARM_REF!="undefined" && FARM_REF.closed) FARM_LEPES=0;*/
 	if (FARM_HIBA>10) {FARM_HIBA=0; FARM_GHIBA++; if(FARM_GHIBA>3) {if (FARM_GHIBA>5) {naplo("Globál","Nincs internet? Folyamatos hiba farmolónál"); nexttime=60000; playSound("bot2"); } FARM_REF.close();} FARM_LEPES=0;}
-	switch (FARM_LEPES){
+	switch (FARM_LEPES) {
 		case 0: /*Meg kell nézni mi lesz a célpont, +nyitni a HONNAN-t.*/
 				PM1=szem4_farmolo_1kereso();
 				if (PM1=="zero") {nexttime=10000; break;} /*Ha nincs még tábla feltöltve*/
 				if (PM1=="") {nexttime=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[8].value,10)*60000; break;}
-				FARM_REF=window.open(VILL1ST.replace(/village=[0-9]+/,"village="+koordTOid(PM1[2])).replace("screen=overview","screen=place"),AZON+"_Farmolo");
+				//@IFRAME
+				FARM_REF=windowOpener('farm', VILL1ST.replace(/village=[0-9]+/,"village="+koordTOid(PM1[2])).replace("screen=overview","screen=place"), AZON+"_Farmolo");
 				if (!document.hidden) { FARM_REF.blur(); window.focus(); }
 				/*debug("Farmoló_ToStep1",PM1);*/
 				FARM_LEPES=1;
@@ -1040,7 +1050,7 @@ var KTID=new Array(), /*Koord-ID párosok*/
 	
 init();
 ujkieg_hang("Alaphangok","naplobejegyzes;bot2");
-ujkieg("farm","Farmoló",'<tr><td><table class="vis" id="farm_opts" style="width:100%; margin-bottom: 50px;"><tr><th>Farmoló falu hozzáadása</th><th>Farmolandó falu hozzáadása</th></tr><tr><td style="width:48%;" onmouseover="sugo(\'Adj meg koordinátákat, melyek a te faluid és farmolni szeretnél velük. A koordináták elválasztása bármivel történhet.\')">Koordináták: <input type="text" size="45" placeholder="111|111, 222|222, ..."> <input type="button" value="Hozzáad" onclick="add_farmolo()"></td><td style="width:52%;" onmouseover="sugo(\'Adj meg koordinátákat, amelyek farmok, és farmolni szeretnéd. A koordináták elválasztása bármivel történhet.\')">Koordináták:  <input type="text" size="45" placeholder="111|111, 222|222, ..."> <input type="button" value="Hozzáad" onclick="add_farmolando()"></td></tr><tr><td onmouseover="sugo(\'A felvivendő falukból ezeket az egységeket használhatja SZEM IV farmolás céljából. Később módosítható.\')" style="vertical-align:middle;">Mivel? '+rovidit("egysegek")+'</td><td>Termelés/óra: <input onkeypress="validate(event)" type="text" size="5" value="3600" onmouseover="sugo(\'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik\')"> Max táv: <input type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(\'A max távolság, amin túl már nem küldök támadásokat\')">óra <input onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(\'A max távolság, amin túl már nem küldök támadásokat\')">perc. Határszám: <input type="text" onkeypress="validate(event)" onmouseover="sugo(\'Az új farmok ennyi nyersanyaggal lesznek felvíve. Másrész, ez alatti nyersanyagért még nem indulok el.\')" value="3600" size="5"><br>Kém/falu: <input onkeypress="validate(event)" type="text" value="1" size="2" onmouseover="sugo(\'Minden támadással ennyi kém fog menni\')"> Kényszerített?<input type="checkbox" onmouseover="sugo(\'Kémek nélkül nem indít támadást. Kémeket annak ellenére is fog vinni, ha nincs bepipálva a kém egység.\')">Kezdő feld.?<input type="checkbox" onmouseover="sugo(\'Minden falura maximum egyszer fog menni kém.\')">&nbsp;&nbsp;Min sereg/falu: <input onkeypress="validate(event)" type="text" value="100" size="4" onmouseover="sugo(\'Ennél kevesebb fő támadásonként nem indul. A szám tanyahely szerinti foglalásban értendő.\')"><br>Sebesség: <input onkeypress="validate(event)" type="text" size="2" value="10" onmouseover="sugo(\'Ha a farmoló nem talál több feladatot magának megáll, ennyi időre. Érték lehet: 1-300. Javasolt érték: 10-120 perc\')">perc/<input onkeypress="validate(event)" type="text" size="3" value="500" onmouseover="sugo(\'Egyes utasítások/lapbetöltődések ennyi időközönként hajtódnak végre. Érték lehet: 200-6000. Javasolt: 500ms, lassabb gépek esetén 1000-2000.\')">ms. Ha a raktár &gt;<input type="text" size="2" onmouseover="sugo(\'Figyeli a raktár telítettségét, és ha a megadott % fölé emelkedik, nem indít támadást onnan. Telítettség össznyersanyag alapján számolva. Min: 20. Ne nézze: 100-nál több érték megadása esetén.\')" value="90">%, nem foszt.</td></tr></table>  <table class="vis" id="farm_honnan" style="vertical-align:top; display: inline-block; width:550px"><tr><th width="55px" onmouseover="sugo(\'Ezen falukból farmolsz. Dupla klikk az érintett sor koordinátájára=sor törlése.<br>Rendezhető\')" style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"farm_honnan",0)\'>Honnan</th><th onmouseover="sugo(\'Ezen egységeket használ fel SZEM a farmoláshoz. Bármikor módosítható.\')">Mivel?</th><th onmouseover="sugo(\'Ekkor ér vissza sereg a számításaim szerint. Dupla klikk=törlés=már megérkezett/nézd újra.<br>Rendezhető.<br><br>Pipa: egy cellán végrehajtott (duplaklikkes) művelet minden látható falura érvényes lesz.\')" onclick=\'rendez("datum",false,this,"farm_honnan",2)\' style="cursor: pointer; vertical-align:middle;">Return <span style="margin-left: 45px; margin-right: 0px;"><img src="'+pic("search.png")+'" alt="?" title="Szűrés falukra..." style="width:15px;height:15px;" onclick="szem4_farmolo_csoport(\'honnan\')"><input type="checkbox" id="farm_multi_honnan" onmouseover="sugo(\'Ha bepipálod, akkor egy cellán végzett dupla klikkes művelet minden sorra érvényes lesz az adott oszlopba (tehát minden falura), ami jelenleg látszik. Légy óvatos!\')"></span></th></tr></table> <table class="vis" id="farm_hova" style="vertical-align:top; display: inline-block;"><tr><th onmouseover="sugo(\'Ezen falukat farmolod. A háttérszín jelöli a jelentés színét: alapértelmezett=zöld jelik/nincs felderítve. Sárga=veszteség volt a falun. Piros: a támadás besült, nem megy rá több támadás.<br>Dupla klikk a koordira: a háttérszín alapértelmezettre állítása.<br>Rendezhető\')" style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"farm_hova",0)\'>Hova</th><th onmouseover="sugo(\'Felderített bányaszintek, ha van. Kék háttér: megy rá kémtámadás.<br>Dupla klikk=az érintett sor törlése\')">Bányák</th><th onmouseover="sugo(\'Fal szintje. Dupla klikk=háttér csere (csak megjelölésként). <br>Rendezhető.\')" onclick=\'rendez("szam",false,this,"farm_hova",2)\' style="cursor: pointer;">Fal</th><th onmouseover="sugo(\'Számítások szerint ennyi nyers van az érintett faluba. Dupla klikk=érték módosítása.<br>Rendezhető.\')" onclick=\'rendez("szam",false,this,"farm_hova",3)\' style="cursor: pointer;">Nyers</th><th onmouseover="sugo(\'Játékos e? Ha játékost szeretnél támadni, pipáld be a falut mint játékos uralta, így támadni fogja. Ellenben piros hátteret kap a falu.\')">J?</th><th onmouseover="sugo(\'A falura ekkor ér be az utolsó nagyerejű támadás. Információ a jelentés elemzőnek. Dupla klikk=idő törlése.<br>Rendezhető.<br><br>Pipa: egy cellán végrehajtott (duplaklikkes) művelet minden látható falura érvényes lesz.\')" onclick=\'rendez("datum",false,this,"farm_hova",5)\' style="cursor: pointer; vertical-align:middle;">Ut.T<span style="margin-left: 65px; margin-right: 0px;"><img src="'+pic("search.png")+'" alt="?" title="Szűrés falukra..." style="width:15px;height:15px;" onclick="szem4_farmolo_csoport(\'hova\')"><input type="checkbox" id="farm_multi_hova"></span></th></tr></table></p> </td></tr>');
+ujkieg("farm","Farmoló",'<tr><td><table class="vis" id="farm_opts" style="width:100%; margin-bottom: 50px;"><tr><th>Farmoló falu hozzáadása</th><th>Farmolandó falu hozzáadása</th></tr><tr><td style="width:48%;" onmouseover="sugo(\'Adj meg koordinátákat, melyek a te faluid és farmolni szeretnél velük. A koordináták elválasztása bármivel történhet.\')">Koordináták: <input type="text" size="45" placeholder="111|111, 222|222, ..."> <input type="button" value="Hozzáad" onclick="add_farmolo()"></td><td style="width:52%;" onmouseover="sugo(\'Adj meg koordinátákat, amelyek farmok, és farmolni szeretnéd. A koordináták elválasztása bármivel történhet.\')">Koordináták:  <input type="text" size="45" placeholder="111|111, 222|222, ..."> <input type="button" value="Hozzáad" onclick="add_farmolando()"></td></tr><tr><td onmouseover="sugo(\'A felvivendő falukból ezeket az egységeket használhatja SZEM IV farmolás céljából. Később módosítható.\')" style="vertical-align:middle;">Mivel? '+rovidit("egysegek")+'</td><td>Termelés/óra: <input onkeypress="validate(event)" type="text" size="5" value="3600" onmouseover="sugo(\'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik\')"> Max táv: <input type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(\'A max távolság, amin túl már nem küldök támadásokat\')">óra <input onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(\'A max távolság, amin túl már nem küldök támadásokat\')">perc. Határszám: <input type="text" onkeypress="validate(event)" onmouseover="sugo(\'Az új farmok ennyi nyersanyaggal lesznek felvíve. Másrész, ez alatti nyersanyagért még nem indulok el.\')" value="3600" size="5"><br>Kém/falu: <input onkeypress="validate(event)" type="text" value="1" size="2" onmouseover="sugo(\'Minden támadással ennyi kém fog menni\')"> Kényszerített?<input type="checkbox" onmouseover="sugo(\'Kémek nélkül nem indít támadást. Kémeket annak ellenére is fog vinni, ha nincs bepipálva a kém egység.\')">Kezdő feld.?<input type="checkbox" onmouseover="sugo(\'Minden falura maximum egyszer fog menni kém.\')">&nbsp;&nbsp;Min sereg/falu: <input onkeypress="validate(event)" type="text" value="100" size="4" onmouseover="sugo(\'Ennél kevesebb fő támadásonként nem indul. A szám tanyahely szerinti foglalásban értendő.\')"><br>Sebesség: <input onkeypress="validate(event)" type="text" size="2" value="10" onmouseover="sugo(\'Ha a farmoló nem talál több feladatot magának megáll, ennyi időre. Érték lehet: 1-300. Javasolt érték: 10-120 perc\')">perc/<input onkeypress="validate(event)" type="text" size="3" value="500" onmouseover="sugo(\'Egyes utasítások/lapbetöltődések ennyi időközönként hajtódnak végre. Érték lehet: 200-6000. Javasolt: 500ms, lassabb gépek esetén 1000-2000.\')">ms. Ha a raktár &gt;<input type="text" size="2" onmouseover="sugo(\'Figyeli a raktár telítettségét, és ha a megadott % fölé emelkedik, nem indít támadást onnan. Telítettség össznyersanyag alapján számolva. Min: 20. Ne nézze: 100-nál több érték megadása esetén.\')" value="90">%, nem foszt.</td></tr></table>  <table class="vis" id="farm_honnan" style="vertical-align:top; display: inline-block; width:550px"><tr><th width="55px" onmouseover="sugo(\'Ezen falukból farmolsz. Dupla klikk az érintett sor koordinátájára=sor törlése.<br>Rendezhető\')" style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"farm_honnan",0)\'>Honnan</th><th onmouseover="sugo(\'Ezen egységeket használ fel SZEM a farmoláshoz. Bármikor módosítható.\')">Mivel?</th><th onmouseover="sugo(\'Ekkor ér vissza sereg a számításaim szerint. Dupla klikk=törlés=már megérkezett/nézd újra.<br>Rendezhető.<br><br>Pipa: egy cellán végrehajtott (duplaklikkes) művelet minden látható falura érvényes lesz.\')" onclick=\'rendez("datum",false,this,"farm_honnan",2)\' style="cursor: pointer; vertical-align:middle;">Return <span style="margin-left: 45px; margin-right: 0px;"><img src="'+pic("search.png")+'" alt="?" title="Szűrés falukra..." style="width:15px;height:15px;" onclick="szem4_farmolo_csoport(\'honnan\')"><input type="checkbox" id="farm_multi_honnan" onmouseover="sugo(\'Ha bepipálod, akkor egy cellán végzett dupla klikkes művelet minden sorra érvényes lesz az adott oszlopba (tehát minden falura), ami jelenleg látszik. Légy óvatos!\')"></span></th></tr></table> <table class="vis" id="farm_hova" style="vertical-align:top; display: inline-block;"><tr><th onmouseover="sugo(\'Ezen falukat farmolod. A háttérszín jelöli a jelentés színét: alapértelmezett=zöld jelik/nincs felderítve. Sárga=veszteség volt a falun. Piros: a támadás besült, nem megy rá több támadás.<br>Dupla klikk a koordira: a háttérszín alapértelmezettre állítása.<br>Rendezhető\')" style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"farm_hova",0)\'>Hova</th><th onmouseover="sugo(\'Felderített bányaszintek, ha van. Kék háttér: megy rá kémtámadás.<br>Dupla klikk=az érintett sor törlése\')">Bányák</th><th onmouseover="sugo(\'Fal szintje. Dupla klikk=háttér csere (csak megjelölésként). <br>Rendezhető.\')" onclick=\'rendez("szam",false,this,"farm_hova",2)\' style="cursor: pointer;">Fal</th><th onmouseover="sugo(\'Számítások szerint ennyi nyers van az érintett faluba. Dupla klikk=érték módosítása.<br>Rendezhető.\')" onclick=\'rendez("szam",false,this,"farm_hova",3)\' style="cursor: pointer;">Nyers</th><th onmouseover="sugo(\'Játékos e? Ha játékost szeretnél támadni, pipáld be a falut mint játékos uralta, így támadni fogja. Ellenben piros hátteret kap a falu.\')">J?</th><th onmouseover="sugo(\'A falura ekkor ér be az utolsó nagyerejű támadás. Információ a jelentés elemzőnek. Dupla klikk=idő törlése.<br>Rendezhető.<br><br>Pipa: egy cellán végrehajtott (duplaklikkes) művelet minden látható falura érvényes lesz.\')" onclick=\'rendez("datum",false,this,"farm_hova",5)\' style="cursor: pointer; vertical-align:middle;">Ut.T<span style="margin-left: 65px; margin-right: 0px;"><img src="'+pic("search.png")+'" alt="?" title="Szűrés falukra..." style="width:15px;height:15px;" onclick="szem4_farmolo_csoport(\'hova\')"><input type="checkbox" id="farm_multi_hova"></span></th></tr></table></p> <iframe id="farm_iframe" style="width: 100%; height: 800px;"></iframe></td></tr>');
 /*Table IDs:  farm_opts; farm_honnan; farm_hova*/
 szem4_farmolo_updater();
 var FARM_LEPES=0, FARM_REF, FARM_HIBA=0, FARM_GHIBA=0,
@@ -1050,7 +1060,7 @@ szem4_farmolo_motor();
 function VIJE_FarmElem(koord){try{
 	var farm_helye=document.getElementById("farm_hova").rows;
 	var BenneVanE=false;
-	for (var i=1;i<farm_helye.length;i++){
+	for (var i=1;i<farm_helye.length;i++) {
 		if (farm_helye[i].cells[0].textContent==koord) {BenneVanE=true; farm_helye=farm_helye[i]; break;}
 	}
 	if (!BenneVanE) return [false,false,0];
@@ -1066,7 +1076,7 @@ function VIJE_elemzett(jid){try{
 	var a=document.getElementById("VIJE_elemzett").textContent;
 	if (a=="") return false;
 	a=a.split(",");
-	for (var i=0;i<a.length;i++){
+	for (var i=0;i<a.length;i++) {
 		if (a[i]==jid) return true;
 	}
 	if (a.length>130) document.getElementById("VIJE_elemzett").innerHTML=a.slice(a.length-100,a.length);
@@ -1078,13 +1088,13 @@ function szem4_VIJE_1kivalaszt(){try{
 	VT=VIJE_REF1.document.getElementById("report_list").rows;
 	if (VT.length<3) return [0,0,"",false];
 	var vane=false;
-	for (var i=VT.length-2;i>0;i--){
+	for (var i=VT.length-2;i>0;i--) {
 		try{var koord=VT[i].cells[1].textContent.match(/[0-9]+(\|)[0-9]+/g);
 		koord=koord[koord.length-1];}catch(e){continue;}
 		var jid=VT[i].cells[1].getElementsByTagName("span")[0].getAttribute("data-id").replace("label_","");
 		if (VIJE_elemzett(jid)) continue;
 		var szin=VT[i].cells[1].childNodes;
-		for (var s=0;s<szin.length;s++){
+		for (var s=0;s<szin.length;s++) {
 			if (szin[s].nodeName=="IMG") {szin=szin[s].src.split(".png")[0].split("/"); szin=szin[szin.length-1]; break;}
 		}
 		var eredm=VIJE_FarmElem(koord); /*BenneVanE,VanEBanyaSzint,ut. támadás ideje*/
@@ -1093,7 +1103,7 @@ function szem4_VIJE_1kivalaszt(){try{
 		var d=getServerTime(VIJE_REF1); var d2=getServerTime(VIJE_REF1);
 		if (eredm[2]>d) {/*debug("VIJE1()",jid+":"+koord+"-et nem nézem, mert van rá \"nagy\" támadás.");*/ continue;}
 		
-		(function convertDate(){
+		(function convertDate() {
 			var ido = VT[i].cells[2].textContent;
 			var oraperc=ido.match(/[0-9]+:[0-9]+/g)[0];
 			var nap=ido.replace(oraperc,"").match(/[0-9]+/g)[0];
@@ -1111,7 +1121,7 @@ function szem4_VIJE_1kivalaszt(){try{
 		}
 	}
 	if (!vane) {
-		for (var i=VT.length-2;i>0;i--){
+		for (var i=VT.length-2;i>0;i--) {
 			if (VT[i].cells[0].getElementsByTagName("input")[0].checked) return [0,0,"",true];
 		}
 		return [0,0,"",false];
@@ -1124,7 +1134,7 @@ function szem4_VIJE_1kivalaszt(){try{
 
 function VIJE_adatbeir(koord,nyers,banya,fal,szin){try{
 	var farm_helye=document.getElementById("farm_hova").rows;
-	for (var i=1;i<farm_helye.length;i++){
+	for (var i=1;i<farm_helye.length;i++) {
 		if (farm_helye[i].cells[0].textContent==koord) {farm_helye=farm_helye[i]; break;}
 	}
 	farm_helye.cells[0].setAttribute("data-age",0);
@@ -1142,7 +1152,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin){try{
 function szem4_VIJE_2elemzes(adatok){try{
 	/*Adatok: [0]jelentés azon;[1]célpont koord;[2]jelentés SZÍNe;[3]volt e checkbox-olt jeli;[4]régi jeli e? (igen->nincs nyerselem)*/
 	var nyersossz=0;
-	if (VIJE_REF2.document.getElementById("attack_spy_resources")){
+	if (VIJE_REF2.document.getElementById("attack_spy_resources")) {
 		var x=VIJE_REF2.document.getElementById("attack_spy_resources").rows[0].cells[1];
 		if (adatok[4]) {var nyersossz="";debug("VIJE2","Nem kell elemezni (régi)"); } else {
 			try{
@@ -1158,20 +1168,20 @@ function szem4_VIJE_2elemzes(adatok){try{
 			}catch(e){var nyersossz=0; debug("VIJE","<a href='"+VIJE_REF2.document.location+"' target='_BLANK'>"+adatok[0]+"</a> ID-jű jelentés nem szokványos, talált nyers 0-ra állítva. Hiba: "+e);}
 		}
 	
-	if (VIJE_REF2.document.getElementById("attack_spy_buildings_left")){
+	if (VIJE_REF2.document.getElementById("attack_spy_buildings_left")) {
 			var s=document.getElementById("vije").getElementsByTagName("input");
 			var nevek=new Array(s[0].value.toUpperCase(),s[1].value.toUpperCase(),s[2].value.toUpperCase(),s[3].value.toUpperCase());
 			var banyak=new Array(0,0,0); var fal=0;
 			
 			var s=VIJE_REF2.document.getElementById("attack_spy_buildings_left").rows;
-			for (var i=1;i<s.length;i++){
-				for (var j=0;j<3;j++){
+			for (var i=1;i<s.length;i++) {
+				for (var j=0;j<3;j++) {
 				if (s[i].cells[0].textContent.toUpperCase().indexOf(nevek[j])>-1) banyak[j]=s[i].cells[1].textContent;}
 				if (s[i].cells[0].textContent.toUpperCase().indexOf(nevek[3])>-1) fal=s[i].cells[1].textContent;
 			}
 			var s=VIJE_REF2.document.getElementById("attack_spy_buildings_right").rows;
-			for (var i=1;i<s.length;i++){
-				for (var j=0;j<3;j++){
+			for (var i=1;i<s.length;i++) {
+				for (var j=0;j<3;j++) {
 				if (s[i].cells[0].textContent.toUpperCase().indexOf(nevek[j])>-1) banyak[j]=s[i].cells[1].textContent;}
 				if (s[i].cells[0].textContent.toUpperCase().indexOf(nevek[3])>-1) fal=s[i].cells[1].textContent;
 			}
@@ -1188,7 +1198,7 @@ function szem4_VIJE_2elemzes(adatok){try{
 	
 	/*Tedd be az elemzettek listájába az ID-t*/
 	document.getElementById("VIJE_elemzett").innerHTML+=adatok[0]+",";
-	if (document.getElementById("VIJE_elemzett").innerHTML.split(",").length>200){
+	if (document.getElementById("VIJE_elemzett").innerHTML.split(",").length>200) {
 		document.getElementById("VIJE_elemzett").innerHTML=document.getElementById("VIJE_elemzett").innerHTML.split(",").splice(100,100)+",";
 	}
 	
@@ -1219,30 +1229,33 @@ function szem4_VIJE_motor(){try{
 	if (!VIJE_REF1 || (VIJE_LEPES!=0 && VIJE_REF1.closed)) VIJE_LEPES=0;
 	
 	
-	switch(VIJE_LEPES){
+	switch(VIJE_LEPES) {
 		case 0: /*Támadói jelentések megnyitása*/
-			if (document.getElementById("farm_hova").rows.length>1){
+			if (document.getElementById("farm_hova").rows.length>1) {
 			var csoport="";
 			if (game_data.player.premium) csoport="group_id=-1&";
-			VIJE_REF1=window.open(VILL1ST.replace("screen=overview","mode=attack&"+csoport+"screen=report"),AZON+"_SZEM4VIJE_1");
+			//@IFRAME
+			VIJE_REF1=windowOpener('vije', VILL1ST.replace("screen=overview","mode=attack&"+csoport+"screen=report"), AZON+"_SZEM4VIJE_1");
 			if (!document.hidden) {VIJE_REF1.blur(); window.focus();}
 			VIJE_LEPES=1;
 			} else nexttime=10000;
 			break;
 		case 1: /*Megnyitandó jelentés kiválasztás(+bepipálás)*/
-			if (isPageLoaded(VIJE_REF1,-1,"screen=report")){VIJE_HIBA=0; VIJE_GHIBA=0;
+			if (isPageLoaded(VIJE_REF1,-1,"screen=report")) {VIJE_HIBA=0; VIJE_GHIBA=0;
 				PM2=szem4_VIJE_1kivalaszt();
 /*Nincs meló->60k*/	if (PM2[0]===0) {
 					if (PM2[3]) VIJE_LEPES=3; else {VIJE_LEPES=0; nexttime=120000;}
 				} else {
-					VIJE_REF2=window.open(VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"),AZON+"_SZEM4VIJE_2");
+					//@IFRAME
+					VIJE_REF2=windowOpener('vije2', VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"), AZON+"_SZEM4VIJE_2");
 					if (!document.hidden) {VIJE_REF2.blur(); window.focus();}
 					VIJE_LEPES=2;
 				}
 			} else { VIJE_HIBA++;}
 			break;
 		case 2: /*Megnyitott jelentés elemzése*/
-			if (isPageLoaded(VIJE_REF2,-1,PM2[0])){VIJE2_HIBA=0; VIJE2_GHIBA=0;
+			if (isPageLoaded(VIJE_REF2,-1,PM2[0])) {
+				VIJE2_HIBA=0; VIJE2_GHIBA=0;
 				szem4_VIJE_2elemzes(PM2);
 				if (PM2[3]) VIJE_LEPES=3; else VIJE_LEPES=1;
 			} else { VIJE2_HIBA++;}
@@ -1261,7 +1274,7 @@ try{
 }catch(e){debug('vije', 'Worker engine error: ' + e);setTimeout(function(){szem4_VIJE_motor();}, 3000);}
 }
 /*VIJE*/
-ujkieg("vije","Jelentés Elemző",'<tr><td>A VIJE a Farmoló táblázatába dolgozik, itt csupán működési beállításokat módosíthatsz.<br><br><br>"Fatelep" a szerver jelenlegi nyelvén: <input type="text" size="15"  value="Fatelep"><br>"Agyagbánya" a szerver jelenlegi nyelvén: <input type="text" size="15"  value="Agyagbánya"><br>"Vasbánya" a szerver jelenlegi nyelvén: <input type="text" size="15" value="Vasbánya"><br>"Fal" a szerver jelenlegi nyelvén: <input type="text" size="15" value="Fal"><br><input type="checkbox"> Zöld farmjelentések törlése<br><br><br><i>Elemzett jelentések:</i><div id="VIJE_elemzett" style="font-size:30%;width:980px;word-wrap: break-word;"></div></td></tr>');
+ujkieg("vije","Jelentés Elemző",'<tr><td>A VIJE a Farmoló táblázatába dolgozik, itt csupán működési beállításokat módosíthatsz.<br><br><br>"Fatelep" a szerver jelenlegi nyelvén: <input type="text" size="15"  value="Fatelep"><br>"Agyagbánya" a szerver jelenlegi nyelvén: <input type="text" size="15"  value="Agyagbánya"><br>"Vasbánya" a szerver jelenlegi nyelvén: <input type="text" size="15" value="Vasbánya"><br>"Fal" a szerver jelenlegi nyelvén: <input type="text" size="15" value="Fal"><br><input type="checkbox"> Zöld farmjelentések törlése<br><br><br><i>Elemzett jelentések:</i><div id="VIJE_elemzett" style="font-size:30%;width:980px;word-wrap: break-word;"></div><iframe id="vije_iframe" style="width: 100%; height: 800px;"></iframe><iframe id="vije2_iframe" style="width: 100%; height: 800px;"></iframe></td></tr>');
 
 var VIJE_PAUSE=false;
 var VIJE_LEPES=0;
@@ -1275,13 +1288,13 @@ szem4_VIJE_motor();
 function szem4_EPITO_perccsokkento(){try{
 	var hely=document.getElementById("epit").getElementsByTagName("table")[1].rows;
 	var patt=/[0-9]+( perc)/g; var sz=0;
-	for (var i=1;i<hely.length;i++){
-		if (hely[i].cells[3].textContent.search(patt)>-1){
+	for (var i=1;i<hely.length;i++) {
+		if (hely[i].cells[3].textContent.search(patt)>-1) {
 			sz=hely[i].cells[3].textContent.match(/[0-9]+/g)[0];
 			if (sz=="0") continue;
 			sz=parseInt(sz,10); 
 			sz--;
-			if (sz>0){
+			if (sz>0) {
 				sz=sz+"";
 				if (sz.length==1) sz="000"+sz;
 				if (sz.length==2) sz="00"+sz;
@@ -1298,7 +1311,7 @@ function szem4_EPITO_perccsokkento(){try{
 function szem4_EPITO_getlista(){try{
 	var ret='<select>';
 	var Z=document.getElementById("epit").getElementsByTagName("table")[0].rows;
-	for (var i=1;i<Z.length;i++){
+	for (var i=1;i<Z.length;i++) {
 		ret+='<option value="'+Z[i].cells[0].textContent+'">'+Z[i].cells[0].textContent+'</option> ';
 	}
 	ret+='</select>'; 
@@ -1310,13 +1323,16 @@ function szem4_EPITO_csopDelete(ezt){try{
 	if (!confirm("Biztos kitörlöd a "+name+" nevű csoportot?\nA csoportot használó faluk az Alapértelmezett csoportba fognak tartozni.")) return;
 	sortorol(ezt,"");
 	var bodyTable=document.getElementById("epit_lista").rows;
-	for (var i=1;i<bodyTable.length;i++){
+	for (var i=1;i<bodyTable.length;i++) {
 		var selectedElement=bodyTable[i].cells[1].getElementsByTagName("select")[0];
 		if (selectedElement.value==name) selectedElement.value=document.getElementById("epit").getElementsByTagName("table")[0].rows[1].cells[0].innerHTML;
 	}
 	bodyTable=document.getElementById("epit_ujfalu_adat").getElementsByTagName("option");
-	for (var i=0;i<bodyTable.length;i++){
-		if (bodyTable[i].value==name){document.getElementById("epit_ujfalu_adat").getElementsByTagName("select")[0].remove(i); break;}
+	for (var i=0;i<bodyTable.length;i++) {
+		if (bodyTable[i].value==name) {
+			document.getElementById("epit_ujfalu_adat").getElementsByTagName("select")[0].remove(i);
+			break;
+		}
 	}
 }catch(e){alert2("Hiba:\n"+e);}}
 
@@ -1327,9 +1343,9 @@ function szem4_EPITO_ujFalu(){try{
 	f_nev=f_nev.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);
 	var Z=document.getElementById("epit_lista"); var str="";
 	var lista=szem4_EPITO_getlista();
-	for (var i=0;i<f_nev.length;i++){
+	for (var i=0;i<f_nev.length;i++) {
 		var vane=false;
-		for (var j=1;j<Z.rows.length;j++){
+		for (var j=1;j<Z.rows.length;j++) {
 			if (Z.rows[j].cells[0].textContent==f_nev[i]) vane=true;
 		} if (vane) {str+="DUP:"+f_nev[i]+", "; continue;}
 		if (koordTOid(f_nev[i])==0) {str+="NL: "+f_nev[i]+", "; continue;}
@@ -1349,7 +1365,7 @@ function szem4_EPITO_ujCsop(){try{
 	var cs_nev=document.getElementById("epit_ujcsopnev").value.replace(/[;\._]/g,"").replace(/( )+/g," ");;
 	if (cs_nev=="" || cs_nev==null) return;
 	var Z=document.getElementById("epit").getElementsByTagName("table")[0];
-	for (var i=1;i<Z.rows.length;i++){
+	for (var i=1;i<Z.rows.length;i++) {
 		if (Z.rows[i].cells[0].textContent==cs_nev) throw "Már létezik ilyen nevű csoport";
 	}
 	var ZR=Z.insertRow(-1);
@@ -1357,7 +1373,7 @@ function szem4_EPITO_ujCsop(){try{
 		ZC=ZR.insertCell(1); ZC.innerHTML=Z.rows[1].cells[1].innerHTML; ZC.getElementsByTagName("input")[0].disabled=false;
 	
 	var Z=document.getElementById("epit_lista").rows;
-	for (var i=1;i<Z.length;i++){
+	for (var i=1;i<Z.length;i++) {
 		var Z2=Z[i].cells[1].getElementsByTagName("select")[0];
 		var option=document.createElement("option");
 		option.text=cs_nev;
@@ -1376,7 +1392,7 @@ function szem4_EPITO_cscheck(alma){try{
 	Z=Z.split(";");
 	
 	var epuletek=new Array("main","barracks","stable","garage","church_f","church","smith","snob","place","statue","market","wood","stone","iron","farm","storage","hide","wall","MINES");
-	for (var i=0;i<Z.length;i++){
+	for (var i=0;i<Z.length;i++) {
 		if (epuletek.indexOf(Z[i].match(/[a-zA-Z]+/g)[0])>-1) {} else throw "Nincs ilyen épület: "+Z[i].match(/[a-zA-Z]+/g)[0];
 		if (parseInt(Z[i].match(/[0-9]+/g)[0])>30) throw "Túl magas épületszint: "+Z[i];
 	}
@@ -1391,7 +1407,7 @@ function szem4_EPITO_most(objektum){try{
 
 function szem4_EPITO_csopToList(csoport){try{
 	var Z=document.getElementById("epit").getElementsByTagName("table")[0].rows;
-	for (var i=1;i<Z.length;i++){
+	for (var i=1;i<Z.length;i++) {
 		if (Z[i].cells[0].textContent==csoport) return Z[i].cells[1].getElementsByTagName("input")[0].value;
 	}
 	return ";";
@@ -1401,7 +1417,7 @@ function szem4_EPITO_Wopen(){try{
 	/*Eredmény: faluID, teljes építendő lista, pointer a sorra*/
 	var TT=document.getElementById("epit_lista").rows;
 	var now=new Date();
-	for (var i=1;i<TT.length;i++){
+	for (var i=1;i<TT.length;i++) {
 		var datum=new Date(TT[i].cells[2].textContent);
 		if (datum<now) {
 			var lista=szem4_EPITO_csopToList(TT[i].cells[1].getElementsByTagName("select")[0].value);
@@ -1453,7 +1469,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 	var bido=0; /*Ennyi perc építési idő*/
 	var bido1=0; /*Az első épület építési ideje*/
 	var s;
-	for (var i=1;i<sor.length;i++){
+	for (var i=1;i<sor.length;i++) {
 		try{blista+=sor[i].cells[0].getElementsByTagName("img")[0].src.match(/[A-Za-z0-9]+\.(png)/g)[0].replace(/[0-9]+/g,"").replace(".png","");
 			s=sor[i].cells[1].textContent.split(":");
 			bido+=parseInt(s[0])*60+parseInt(s[1])+(parseInt(s[2])/60);
@@ -1462,7 +1478,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 		}catch(e){}
 	}
 	bido=Math.round(bido);
-		bido=bido+"";if (bido!="0"){
+		bido=bido+"";if (bido!="0") {
 		if (bido.length==1) bido="000"+bido;
 		if (bido.length==2) bido="00"+bido;
 		if (bido.length==3) bido="0"+bido;}
@@ -1480,37 +1496,37 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 	
 	var i=-2;
 	var ss=blista.split(";");
-	for (var elem in GD){
+	for (var elem in GD) {
 		i++; if (i==-1) continue;
 		jel[i]=GD[elem];
 		ijel[i]=elem;
-		for (var g=0;g<ss.length;g++){
+		for (var g=0;g<ss.length;g++) {
 			if (ijel[i]==ss[g]) {
 				jel[i]++;
 				ss[g]="";}
 		}
 	}
 	var str=""; var vizsga=""; var mine=new Array(0,0,0);
-	for (i=0;i<cel.length;i++){
+	for (i=0;i<cel.length;i++) {
 		vizsga=cel[i].split(" ")[0];
-		for (var j=0;j<ijel.length;j++){ /*Keressük a megfelelő épület jelenlegi szintjét*/
+		for (var j=0;j<ijel.length;j++) { /*Keressük a megfelelő épület jelenlegi szintjét*/
 			if (ijel[j]==vizsga) {	/*Megvan, jelenlegi szintje jel[j]*/
 				/*alert("Cél: "+cel[i]+"\n Jelenleg: "+ijel[j]+" - "+jel[j]);*/
-				for (var k=0;k<parseInt(cel[i].split(" ")[1])-jel[j];k++){
+				for (var k=0;k<parseInt(cel[i].split(" ")[1])-jel[j];k++) {
 					str+=vizsga+";";
 				}
 				if (parseInt(cel[i].split(" ")[1])-jel[j]>0) jel[j]=parseInt(cel[i].split(" ")[1]);
 			}
 		}
-		if (vizsga=="MINES"){
+		if (vizsga=="MINES") {
 			/*3 indexet keresni: wood;stone;iron-ét*/
-			for (var j=0;j<ijel.length;j++){
+			for (var j=0;j<ijel.length;j++) {
 				if (ijel[j]=="wood") mine[0]=j;
 				if (ijel[j]=="stone") mine[1]=j;
 				if (ijel[j]=="iron") mine[2]=j;
 			}
-			for (var j=0;j<=parseInt(cel[i].split(" ")[1]);j++){
-				for (var k=0;k<3;k++){
+			for (var j=0;j<=parseInt(cel[i].split(" ")[1]);j++) {
+				for (var k=0;k<3;k++) {
 					if (jel[mine[k]] < j) {
 						str+=k+";";
 						jel[mine[k]]++;
@@ -1550,7 +1566,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 				else if (needs[3]>elements[1]) {ok="farm";}
 			if (ok=="") {
 					/*Nincs nyers?*/
-					if (needs[0]>EPIT_REF.game_data.village.wood || needs[1]>EPIT_REF.game_data.village.stone || needs[2]>EPIT_REF.game_data.village.iron){
+					if (needs[0]>EPIT_REF.game_data.village.wood || needs[1]>EPIT_REF.game_data.village.stone || needs[2]>EPIT_REF.game_data.village.iron) {
 						szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány lépett fel. Építés még "+bido+" percig.");
 					} else { /*Akkor már van 2 épület?*/
 						if (blista.split(";")[1].length>2) {
@@ -1570,8 +1586,8 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 					szem4_EPITO_addIdo(PMEP[2],180);
 					szem4_EPITO_infoCell(PMEP[2],"blue","A tanya maxon, és megtelt.");
 					/*Esetleg még raktárat?*/
-					for (var i=0;i<pcel;i++){
-						if (pcel.split(" ")[0]=="storage"){
+					for (var i=0;i<pcel;i++) {
+						if (pcel.split(" ")[0]=="storage") {
 							if (parseInt(pcel.split(" ")[1],10)>EPIT_REF.game_data.village.buildings.storage) 
 								try{szem4_EPITO_getBuildLink(EPIT_REF,"storage").click(); szem4_EPITO_addIdo(PMEP[2],60);}catch(e){}
 						}
@@ -1591,7 +1607,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 	} else {
 		/*Létezik ilyen épület egyáltalán?*/
 		i=-2; var letezo=false;
-		for (var elem in GD){
+		for (var elem in GD) {
 			i++; if (i==-1) continue;
 			if(elem==build) {letezo=true;break;}
 		}
@@ -1621,12 +1637,17 @@ function szem4_EPITO_motor(){try{
 	var nexttime=2000;
 	if (BOT||EPIT_PAUSE) {nexttime=5000;} else {
 	if (EPIT_HIBA>10) {EPIT_HIBA=0; EPIT_GHIBA++; if(EPIT_GHIBA>3) {if (EPIT_GHIBA>5) {naplo("Globál","Nincs internet? Folyamatos hiba az építőnél"); nexttime=60000; playSound("bot2");} EPIT_REF.close();} EPIT_LEPES=0;}
-	switch (EPIT_LEPES){
+	switch (EPIT_LEPES) {
 		case 0: PMEP=szem4_EPITO_Wopen(); /*FaluID;lista;link_a_faluhoz*/
-				if (PMEP[0]>0){
-				EPIT_REF=window.open(VILL1ST.replace("screen=overview","screen=main").replace(/village=[0-9]+/,"village="+PMEP[0]),AZON+"_SZEM4EPIT"); 
-				EPIT_LEPES=1;} else {
-					if (document.getElementById("epit_lista").rows.length==1) nexttime=5000; else nexttime=100000;
+				if (PMEP[0]>0) {
+					//@IFRAME
+					EPIT_REF=windowOpener('epit', VILL1ST.replace("screen=overview","screen=main").replace(/village=[0-9]+/,"village="+PMEP[0]), AZON+"_SZEM4EPIT");
+					EPIT_LEPES=1;
+				} else {
+					if (document.getElementById("epit_lista").rows.length==1) 
+						nexttime=5000;
+					else
+						nexttime=60000;
 				} break;
 		case 1: if (isPageLoaded(EPIT_REF,PMEP[0],"screen=main")) {EPIT_HIBA=0; EPIT_GHIBA=0;
 					/*PMEP=*/szem4_EPITO_IntettiBuild(PMEP[1]);
@@ -1654,7 +1675,8 @@ ujkieg_hang("Építő","epites;falu_kesz;kritikus_hiba");
 ujkieg("epit","Építő",'<tr><td><h2 align="center">Építési listák</h2><table align="center" class="vis" style="border:1px solid black;color: black;"><tr><th onmouseover=\'sugo("Építési lista neve, amire később hivatkozhatunk")\'>Csoport neve</th><th onmouseover=\'sugo("Az építési sorrend megadása. Saját lista esetén ellenőrizzük az OK? linkre kattintva annak helyességét!")\' style="width:800px">Építési lista</th></tr><tr><td>Alapértelmezett</td><td><input type="text" disabled="disabled" value="main 10;storage 10;wall 10;main 15;wall 15;storage 15;farm 10;main 20;wall 20;MINES 10;smith 5;barracks 5;stable 5;main 15;storage 20;farm 20;market 10;main 22;smith 12;farm 25;storage 28;farm 26;MINES 24;market 19;barracks 15;stable 10;garage 5;MINES 26;farm 28;storage 30;barracks 20;stable 15;farm 30;barracks 25;stable 20;MINES 30;smith 20;snob 1" size="125"><a onclick="szem4_EPITO_cscheck(this)" style="color:blue; cursor:pointer;"> OK?</a></td></tr></table><p align="center">Csoportnév: <input type="text" value="" size="30" id="epit_ujcsopnev" placeholder="Nem tartalmazhat . _ ; karaktereket"> <a href="javascript: szem4_EPITO_ujCsop()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+' " height="17px"> Új csoport</a></p></td></tr><tr><td><h2 align="center">Építendő faluk</h2><table align="center" class="vis" style="border:1px solid black;color: black;width:900px" id="epit_lista"><tr><th style="width: 75px; cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",0)\' onmouseover=\'sugo("Rendezhető. Itt építek. Dupla klikk a falura = sor törlése")\'>Falu koord.</th><th onclick=\'rendez("lista",false,this,"epit_lista",1)\' onmouseover=\'sugo("Rendezhető. Felső táblázatban használt lista közül választhatsz egyet, melyet később bármikor megváltoztathatsz.")\' style="width: 135px; cursor: pointer">Használt lista</th><th style="width: 220px; cursor: pointer;" onclick=\'rendez("datum",false,this,"epit_lista",2)\' onmouseover=\'sugo("Rendezhető. Ekkor fogom újranézni a falut, hogy lehet e már építeni.<br>Dupla klikk=idő azonnalira állítása.")\'>Return</th><th style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",3)\' onmouseover=\'sugo("Rendezhető. Szöveges információ a faluban zajló építésről. Sárga hátterű szöveg orvosolható; kék jelentése hogy nem tud haladni; piros pedig kritikus hibát jelöl; a szín nélküli a normális működést jelzi.<br>Dupla klikk=alaphelyzet")\'><u>Infó</u></th></tr></table><p align="center" id="epit_ujfalu_adat">\
 Csoport:  <select><option value="Alapértelmezett">Alapértelmezett</option> </select> \
 Faluk: <input type="text" value="" placeholder="Koordináták: 123|321 123|322 ..." size="50"> \
-<a href="javascript: szem4_EPITO_ujFalu()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+'" height="17px"> Új falu(k)</a></p></td></tr>');
+<a href="javascript: szem4_EPITO_ujFalu()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+'" height="17px"> Új falu(k)</a></p>\
+<iframe id="epit_iframe" style="width: 100%; height: 800px;"></iframe></td></tr>');
 /*Dupla klikk események; súgó; infóba linkmegnyitás*/
 /*Table IDs:  farm_opts; farm_honnan; farm_hova*/
 var EPIT_LEPES=0;
@@ -1665,7 +1687,7 @@ szem4_EPITO_perccsokkento();
 
 /*-----------------Export/Import kezelő--------------------*/
 function szem4_ADAT_saveNow(tipus){
- switch (tipus){
+ switch (tipus) {
 	case "farm": szem4_ADAT_farm_save(); break;
 	case "epito": szem4_ADAT_epito_save(); break;
 	case "sys": szem4_ADAT_sys_save(); break;
@@ -1674,7 +1696,7 @@ function szem4_ADAT_saveNow(tipus){
 }
 
 function szem4_ADAT_restart(tipus){
-	switch (tipus){
+	switch (tipus) {
 		case "farm": localStorage.setItem(AZON+"_farm",'3600.4.0.3600.1.false.false.100.10.500.90;;;;;;'); szem4_ADAT_farm_load(); break;
 		case "epito": localStorage.setItem(AZON+"_epito",'__'); szem4_ADAT_epito_load(); break;
 		case "sys": localStorage.setItem(AZON+"_sys",'Fatelep.Agyagbánya.Vasbánya.Fal.false;false.false.false;http://www youtube com/watch?v=k2a30--j37Q.true.true.true.true.true.true;'); 
@@ -1684,7 +1706,7 @@ function szem4_ADAT_restart(tipus){
 
 function szem4_ADAT_StopAll(){
 	var tabla=document.getElementById("adat_opts").rows;
-	for (var i=1;i<tabla.length;i++){
+	for (var i=1;i<tabla.length;i++) {
 		tabla[i].cells[0].getElementsByTagName("input")[0].checked=false;
 	}
 	return;
@@ -1700,7 +1722,7 @@ function szem4_ADAT_sys_save(){try{
 	var eredmeny="";
 	/*VIJE*/
 	var adat=document.getElementById("vije").getElementsByTagName("input");
-	for (var i=0;i<adat.length;i++){
+	for (var i=0;i<adat.length;i++) {
 		if (adat[i].getAttribute("type")=="checkbox") {
 			if (adat[i].checked) eredmeny+="true"; else eredmeny+="false"; 
 		} else eredmeny+=adat[i].value;
@@ -1710,14 +1732,14 @@ function szem4_ADAT_sys_save(){try{
 	
 	/*Adatmentő*/
 	var adat=document.getElementById("adatok").getElementsByTagName("input");
-	for (var i=0;i<adat.length;i++){
+	for (var i=0;i<adat.length;i++) {
 		if (adat[i].checked) eredmeny+="true"; else eredmeny+="false"; 
 		if (i<adat.length-1) eredmeny+=".";
 	}
 	eredmeny+=";";
 		/*Hangok*/
 	var adat=document.getElementById("hang").getElementsByTagName("input");
-	for (var i=0;i<adat.length;i++){
+	for (var i=0;i<adat.length;i++) {
 		if (adat[i].getAttribute("type")=="checkbox") {
 			if (adat[i].checked) eredmeny+="true"; else eredmeny+="false"; 
 		} else eredmeny+=adat[i].value.replace(/\./g," ").replace(/;/g,"  ");
@@ -1734,7 +1756,7 @@ function szem4_ADAT_farm_save(){try{
 	var eredmeny="";
 	/*Options*/
 	var adat=document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input");
-	for (var i=0;i<adat.length;i++){
+	for (var i=0;i<adat.length;i++) {
 		if (adat[i].type=="checkbox") {
 			if (adat[i].checked) eredmeny+="true"; else eredmeny+="false";
 		} else {eredmeny+=adat[i].value;}
@@ -1744,16 +1766,16 @@ function szem4_ADAT_farm_save(){try{
 	/*Farm_honnan*/
 	eredmeny+=";";
 	adat=document.getElementById("farm_honnan").rows;
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[0].textContent;
 		if (i<adat.length-1) eredmeny+=".";
 	}
 	eredmeny+=";";
 	
 	var seged;
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		seged=adat[i].cells[1].getElementsByTagName("input");
-		for (var j=0;j<seged.length;j++){
+		for (var j=0;j<seged.length;j++) {
 			if (seged[j].checked) eredmeny+="true"; else eredmeny+="false";
 			if (j<seged.length-1) eredmeny+="-";
 		}
@@ -1763,20 +1785,20 @@ function szem4_ADAT_farm_save(){try{
 	/*Farm_hova*/
 	eredmeny+=";";
 	adat=document.getElementById("farm_hova").rows;
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[0].textContent;
 		if (adat[i].cells[0].style.backgroundColor=="red") eredmeny+="R";
 		if (i<adat.length-1) eredmeny+=".";
 	} eredmeny+=";";
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[1].textContent;
 		if (i<adat.length-1) eredmeny+=".";
 	} eredmeny+=";";
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[2].textContent;
 		if (i<adat.length-1) eredmeny+=".";
 	} eredmeny+=";";
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		if (adat[i].cells[4].getElementsByTagName("input")[0].checked) eredmeny+="true"; else eredmeny+="false";
 		if (i<adat.length-1) eredmeny+=".";
 	}
@@ -1789,7 +1811,7 @@ function szem4_ADAT_epito_save(){try{
 	var eredmeny="";
 	/*Csoportok*/
 	var adat=document.getElementById("epit").getElementsByTagName("table")[0].rows;
-	for (var i=2;i<adat.length;i++){
+	for (var i=2;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[0].textContent+"-"+adat[i].cells[1].getElementsByTagName("input")[0].value;
 		if (i<adat.length-1) eredmeny+=".";
 	}
@@ -1797,12 +1819,12 @@ function szem4_ADAT_epito_save(){try{
 	/*Falulista*/
 	eredmeny+="_";
 	adat=document.getElementById("epit").getElementsByTagName("table")[1].rows;
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[0].textContent;
 		if (i<adat.length-1) eredmeny+=".";
 	}
 	eredmeny+="_";
-	for (var i=1;i<adat.length;i++){
+	for (var i=1;i<adat.length;i++) {
 		eredmeny+=adat[i].cells[1].getElementsByTagName("select")[0].value;
 		if (i<adat.length-1) eredmeny+=".";
 	}
@@ -1841,9 +1863,9 @@ function szem4_ADAT_farm_load(){try{
 		var resz=suti.split(";")[0].split(".");
 		var adat=document.getElementById("farm_honnan").rows;
 		resz=suti.split(";")[2].split(".");
-		for (var i=0;i<resz.length;i++){
+		for (var i=0;i<resz.length;i++) {
 			var hely=adat[i+1].cells[1].getElementsByTagName("input");
-			for (var j=0;j<resz[i].split("-").length;j++){
+			for (var j=0;j<resz[i].split("-").length;j++) {
 				if (resz[i].split("-")[j]=="true") hely[j].checked=true; else hely[j].checked=false;
 			}
 		}
@@ -1871,11 +1893,11 @@ function szem4_ADAT_epito_load(){try{
 	if(localStorage.getItem(AZON+"_epito")) var suti=localStorage.getItem(AZON+"_epito"); else return;
 	/* START: Minden adat törlése a listából és falukból!*/
 	var adat=document.getElementById("epit").getElementsByTagName("table")[0];
-	for (var i=adat.rows.length-1;i>1;i--){
+	for (var i=adat.rows.length-1;i>1;i--) {
 		adat.deleteRow(i);
 	}
 	var adat=document.getElementById("epit").getElementsByTagName("table")[1];
-	for (var i=adat.rows.length-1;i>0;i--){
+	for (var i=adat.rows.length-1;i>0;i--) {
 		adat.deleteRow(i);
 	}
 	adat=document.getElementById("epit_ujfalu_adat").getElementsByTagName("select")[0];
@@ -1883,7 +1905,7 @@ function szem4_ADAT_epito_load(){try{
 	
 	/*új csoport gomb használata, utána módosítás - ezt egyesével*/
 	adat=suti.split("_")[0].split(".");
-	for (var i=0;i<adat.length;i++){
+	for (var i=0;i<adat.length;i++) {
 		document.getElementById("epit_ujcsopnev").value=adat[i].split("-")[0];
 		szem4_EPITO_ujCsop();
 		document.getElementById("epit").getElementsByTagName("table")[0].rows[i+2].cells[1].getElementsByTagName("input")[0].value=adat[i].split("-")[1];
@@ -1895,7 +1917,7 @@ function szem4_ADAT_epito_load(){try{
 	
 	adat=suti.split("_")[2].split(".");
 	var hely=document.getElementById("epit").getElementsByTagName("table")[1].rows;
-	for (var i=0;i<adat.length;i++){
+	for (var i=0;i<adat.length;i++) {
 		hely[i+1].cells[1].getElementsByTagName("select")[0].value=adat[i];
 	}
 	alert2("Építési adatok betöltése kész.");
@@ -1907,7 +1929,7 @@ function szem4_ADAT_sys_load(){ try{
 	/*VIJE*/
 	var adat=document.getElementById("vije").getElementsByTagName("input");
 	var resz=suti.split(";")[0].split(".");
-	for (var i=0;i<resz.length;i++){
+	for (var i=0;i<resz.length;i++) {
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false; else
 		  adat[i].value=resz[i];
@@ -1916,7 +1938,7 @@ function szem4_ADAT_sys_load(){ try{
 	/*Adatmentő*/
 	var adat=document.getElementById("adat_opts").getElementsByTagName("input");
 	var resz=suti.split(";")[1].split(".");
-	for (var i=0;i<resz.length;i++){
+	for (var i=0;i<resz.length;i++) {
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false;
 	}
@@ -1925,7 +1947,7 @@ function szem4_ADAT_sys_load(){ try{
 	var adat=document.getElementById("hang").getElementsByTagName("input");
 	var resz=suti.split(";")[2].split(".");
 	adat[0].value=resz[0].replace(/\s\s/g,";").replace(/\s/g,".");
-	for (var i=1;i<resz.length;i++){
+	for (var i=1;i<resz.length;i++) {
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false;
 	}
@@ -1934,7 +1956,7 @@ function szem4_ADAT_sys_load(){ try{
 
 function szem4_ADAT_del(tipus){try{
 	if (!confirm("Biztos törli a(z) "+tipus+" összes adatát?")) return;
-	if (localStorage.getItem(AZON+"_"+tipus)){
+	if (localStorage.getItem(AZON+"_"+tipus)) {
 		localStorage.removeItem(AZON+"_"+tipus);
 		alert2(tipus+": Törlés sikeres");
 	} else alert2(tipus+": Nincs lementett adat");
@@ -1942,7 +1964,7 @@ function szem4_ADAT_del(tipus){try{
 }catch(e){debug("ADAT_epito_load",e);}}
 
 function szem4_ADAT_kiir(tipus){try{
-	if (localStorage.getItem(AZON+"_"+tipus)){
+	if (localStorage.getItem(AZON+"_"+tipus)) {
 		alert2("<textarea onmouseover='this.select()' onclick='this.select()' cols='38' rows='30'>"+localStorage.getItem(AZON+"_"+tipus)+"</textarea>");
 	} else alert2("Nincs lementett adat");
 	return;
@@ -1996,6 +2018,7 @@ $(document).ready(function(){
 	nyit("naplo");
 	vercheck();
 	naplo("Indulás","SZEM4 Elindult. Fontosabb hangok betöltése...");
+	if (IFRAME) naplo("Indulás","IFRAME engedélyezve.");
 	soundVolume(0.2);
 	playSound("bot2");
 	setTimeout(function(){naplo("Indulás","Hangbetöltés vége. Ha nem hallotta a sípszót, használja az alternatív botriadót!"); soundVolume(1.0);},3000);
@@ -2010,10 +2033,8 @@ $(document).ready(function(){
 	});
 }); 
 /*
-ADDME: webworker :(
-ADDME: iFrames
-ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 ADDME: Custom wallpaper
+ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 FIXME: getServerTime (hiányzó fg)
 FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell!
 FIXME: Nyersanyag a faluban új oszlop: Mennyi TH katona megy rá. VIJE-nek ezt ki kell szedni. Ezután útidőbe beleszámolni az utat
