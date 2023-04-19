@@ -24,7 +24,6 @@ var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
 var VILL1ST="";
 var ALTBOT=true;
 var IFRAME = true;
-var VERZIO="4.570828"; /* (4.)+(kieg.-ek száma)+(alverz:(dátum[ÉHHNN]))*/
 var MAX_IDO_PERC = 20; // MOCKED DATA: SHOULD BE A FARM SETTING
 var worker = createWorker(function(self){
 	self.addEventListener("message", function(e) {
@@ -113,7 +112,7 @@ function playSound(hang){try{
 	var play="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/"+hang+".wav";
 	document.getElementById("wavhang").src=play;
 	document.getElementById("audio1").load();
-	setTimeout('if (document.getElementById("audio1").paused) document.getElementById("audio1").play()', 666);
+	setTimeout(function() { if (document.getElementById("audio1").paused) document.getElementById("audio1").play()}, 666);
 }catch(e){alert2(e);}}
 
 function validate(evt) {
@@ -127,8 +126,7 @@ function validate(evt) {
   }
 }
 
-function shorttest(){try{ // FIXME: Kidolgozatlan függvény
-	return;
+function shorttest(){try{
 	var hiba=""; var warn="";
 	var nez=document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input");
 	
@@ -170,7 +168,6 @@ function shorttest(){try{ // FIXME: Kidolgozatlan függvény
 		else { if (warn=="") alert2("close");
 					else alert2("Javaslatok:\n"+warn);
 			   return true;} 
-	return;
 }catch(e){alert2("Hiba :(\n"+e);}}
 
 var SUGOORA;
@@ -807,6 +804,8 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		var farmCoord = a[i].cells[0].textContent;
 		var nyers_faluban = parseInt(a[i].cells[3].textContent,10); /* VÉRSZEM: Ne is nézzük tovább ha sok! */
 		if (isNaN(nyers_faluban)) debugger;
+		var verszem = false;
+		if (nyers_faluban > (hatarszam * 6)) verszem = true;
 		
 		/*Farm vizsgálat (a[i]. sor), legközelebbi saját falu keresés hozzá (van e egyátalán (par.length==3?))*/
 		var hogyok="";
@@ -857,7 +856,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 				};
 			}
 		}
-		if (closest_vill.traverTime > 0 && (par.length == 0 || closest_vill.traverTime < par[0])) {
+		if (closest_vill.traverTime > 0 && (verszem || par.length == 0 || closest_vill.traverTime < par[0])) {
 			var extraNyersByTerm = calculateNyers(farmCoord, a[i].cells[1].textContent, closest_vill.traverTime);
 			nyers_faluban += extraNyersByTerm;
 			if (isNaN(nyers_faluban)) debugger;
@@ -865,6 +864,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 			par = [closest_vill.traverTime, closest_vill.units, closest_vill.coord, farmCoord, nyers_faluban];
 			console.info('okok, új páros lett: ', farmCoord, nyers_faluban, '-->', par);
 		}
+		if (verszem && par.length > 1) { debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[2] + ' ('+ par[4] + ')'); break;}
 	}
 	if (par.length==0) return ""; /*Nincs munka*/
 	var maxspeed=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[1].value)*60+(parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[2].value));
@@ -2213,11 +2213,11 @@ szem4_ADAT_motor();
 $(document).ready(function(){
 	nyit("naplo");
 	vercheck();
-	naplo("Indulás","SZEM4 Elindult. Fontosabb hangok betöltése...");
+	naplo("Indulás","SZEM 4.5 elindult.");
 	if (IFRAME) naplo("Indulás","IFRAME engedélyezve.");
-	soundVolume(0.2);
+	soundVolume(0.0);
 	playSound("bot2");
-	setTimeout(function(){naplo("Indulás","Hangbetöltés vége. Ha nem hallotta a sípszót, használja az alternatív botriadót!"); soundVolume(1.0);},3000);
+	setTimeout(function(){soundVolume(1.0);},2000);
 	
 	$(function() {
 		$("#alert2").draggable({handle: $('#alert2head')});
