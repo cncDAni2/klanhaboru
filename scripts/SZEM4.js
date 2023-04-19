@@ -742,6 +742,17 @@ function addCurrentMovementToList(formEl, farmCoord) {
 	else {
 		allAttack.push([teherbiras, arriveTime.getTime()]);
 	}
+	// Nyers csökkentése a farm-listánkba, ha kell
+	var farmList = document.getElementById('farm_hova').rows;
+	for (var i=1;i<farmList.length;i++) {
+		if (farmList[i].cells[0].innerText == farmCoord) {
+			var nyers = parseInt(farmList[i].cells[3].innerText, 10);
+			if (nyers==0) break;
+			nyers-=teherbiras;
+			farmList[i].cells[3].innerHTML = nyers<0?0:nyers;
+			break;
+		}
+	}
 }
 function isgyalog(sor){try{
 /*
