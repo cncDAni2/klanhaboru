@@ -74,7 +74,7 @@ function init(){try{
 		KTID[i-1]=kord+";"+PFA.rows[i].cells[oszl].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0];
 	}
 	document.getElementsByTagName("head")[0].innerHTML += '<style type="text/css">body{ background: #111; } table.fej{ padding:1px;  margin:auto; color: white; border: 1px solid yellow; } table.menuitem{ vertical-align:top; text-align: top; padding: 20px; margin:auto; color: white; border: 1px solid yellow; } table.menuitem td{ padding: 0px; vertical-align:top; }  table{ padding: 0px; margin: auto; color: white;  } table.vis{ color:black; } table.vis td, table.vis th{ padding: 3px 6px 3px 6px;  } #farm_honnan tr td:last-child{font-size:50%;  width:130px;} #farm_hova tr td:last-child{font-size:50%; width:130px;}  textarea{ background-color: #020; color:white; } .divrow{ display: table-row; } .divcell { display: table-cell; text-align: center; vertical-align:top; }  a{ color: white; } img{ border-color: grey; padding:1px; } #naploka a {color:blue;} input[type="button"] {font-size:13px; font-family:Century Gothic,sans-serif;    color:#FFFF77;    background-color:#3366CC;    border-style:ridge;    border-color:#000000;    border-width:3px; }  </style>';
-	document.getElementsByTagName("body")[0].innerHTML='<div id="alert2" style="width: 300px; background-color: #60302b; color: #FFA; position: fixed; left:40%; top:40%; border:3px solid black; font-size: 11pt; padding: 5px; z-index:200; display:none"><div id="alert2head" style="width:100%;cursor:all-scroll; text-align:right; background: rgba(255,255,255,0.1)"><a href=\'javascript: alert2("close");\'>X (Bezár)</a></div><p id="alert2szov"></p></div> <table width="1024px" align="center" class="fej" style="background: #111; background-image:url(\''+pic("wallp.jpg")+'\'); background-size:1024px;"> <tr><td width="70%" id="fejresz" style="vertical-align:middle; margin:auto;"><h1><i></i></h1></td><td id="sugo" height="110px"></td></tr> <tr><td colspan="2" id="menuk" style="">  	<div class="divrow" style="width: 1024px"> 		<span class="divcell" id="kiegs" style="text-align:left; padding-top: 5px;width:774px;"><img src="'+pic("muhely_logo.png")+'" alt="Muhely" title="C&amp;C Műhely megnyitása" onclick="window.open(\'http://cncdani2.000webhostapp.com/index.php\')"> <img src="'+pic("kh_logo.png")+'" alt="Game" title="Klánháború megnyitása" onclick="window.open(\''+VILL1ST+'\')"> | </span> 		<span class="divcell" style="text-align:right; width:250px"> 			<a href=\'javascript: nyit("naplo");\' onmouseover="sugo(\'Események naplója\')">Napló</a> 			<a href=\'javascript: nyit("debug");\' onmouseover="sugo(\'Hibanapló\')">Debug</a> 			<a href=\'javascript: nyit("hang");\'><img src="'+pic("hang.png")+'" onmouseover="sugo(\'Hangbeállítások\')" alt="hangok"></a> 		</span> 	</div> 	 </td></tr> </table> <p id="content" style="display: inline"></p>';
+	document.getElementsByTagName("body")[0].innerHTML='<div id="alert2" style="width: 300px; background-color: #60302b; color: #FFA; position: fixed; left:40%; top:40%; border:3px solid black; font-size: 11pt; padding: 5px; z-index:200; display:none"><div id="alert2head" style="width:100%;cursor:all-scroll; text-align:right; background: rgba(255,255,255,0.1)"><a href=\'javascript: alert2("close");\'>X (Bezár)</a></div><p id="alert2szov"></p></div> <table width="1024px" align="center" class="fej" style="background: #111; background-image:url(\''+pic("wallp.jpg")+'\'); background-size:1024px;"> <tr><td width="70%" id="fejresz" style="vertical-align:middle; margin:auto;"><h1><i></i></h1></td><td id="sugo" height="110px"></td></tr> <tr><td colspan="2" id="menuk" style="">  	<div class="divrow" style="width: 1024px"> 		<span class="divcell" id="kiegs" style="text-align:left; padding-top: 5px;width:774px;"><img src="'+pic("muhely_logo.png")+'" alt="GIT" title="GIT C&amp;C Műhely megnyitása" onclick="window.open(\'https://github.com/cncDAni2/klanhaboru\')"> <img src="'+pic("kh_logo.png")+'" alt="Game" title="Klánháború megnyitása" onclick="window.open(\''+VILL1ST+'\')"> | </span> 		<span class="divcell" style="text-align:right; width:250px"> 			<a href=\'javascript: nyit("naplo");\' onmouseover="sugo(\'Események naplója\')">Napló</a> 			<a href=\'javascript: nyit("debug");\' onmouseover="sugo(\'Hibanapló\')">Debug</a> 			<a href=\'javascript: nyit("hang");\'><img src="'+pic("hang.png")+'" onmouseover="sugo(\'Hangbeállítások\')" alt="hangok"></a> 		</span> 	</div> 	 </td></tr> </table> <p id="content" style="display: inline"></p>';
 	document.getElementById("content").innerHTML='<table class="menuitem" width="1024px" align="center" id="naplo" style="display: none"> <tr><td> <h1 align="center">Napló</h1><br> <br> <table align="center" class="vis" id="naploka"><tr><th onclick=\'rendez("datum2",false,this,"naploka",0)\'  style="cursor: pointer;">Dátum</th><th  onclick=\'rendez("szoveg",false,this,"naploka",1)\' style="cursor: pointer;">Script</th><th  onclick=\'rendez("szoveg",false,this,"naploka",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table>  <table class="menuitem" width="1024px" align="center" id="debug" style="display: none"> <tr><td> <h1 align="center">DeBugger</h1><br> <br> <table align="center" class="vis" id="debugger"><tr><th onclick=\'rendez("datum2",false,this,"debugger",0)\' style="cursor: pointer;">Dátum</th><th onclick=\'rendez("szoveg",false,this,"debugger",1)\' style="cursor: pointer;">Script</th><th onclick=\'rendez("szoveg",false,this,"debugger",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table>  <table class="menuitem" width="1024px" align="center" id="hang" style="display: none"> <tr><td> <p align="center"><audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio></p> <h1 align="center">Hangbeállítás</h1><br> <div id="hangok" style="display:table;"> 	<div style="display:table-row;"><div style="display:table-cell; padding:10px;" onmouseover=\'sugo("Ha be van kapcsolva, bot védelem esetén ez a link is megnyitódik, mint figyelmeztetés.")\'><b>Alternatív botriadó? <a href="javascript: altbot()">BEKAPCSOLVA</a><br>Megnyitott URL (egyszer)<br><input type="text" id="altbotURL" size="42" value="http://www.youtube.com/watch?v=k2a30--j37Q"></div>   </div> </div> </td></tr> </table>';
 	document.title="SZEM IV";
 	
@@ -1165,6 +1165,7 @@ function szem4_farmolo_motor(){try{
 						else
 							FARM_LEPES=2;
 					} else FARM_LEPES=0;
+					FARM_REF.document.title = 'Szem4/farmoló';
 				} else {FARM_HIBA++;}
 				break;
 		case 2: /*Confirm: nem e jött piros szöveg, játékos e -> OK-ézás.*/ 
@@ -1411,15 +1412,16 @@ function szem4_VIJE_motor(){try{
 			} else nexttime=10000;
 			break;
 		case 1: /*Megnyitandó jelentés kiválasztás(+bepipálás)*/
-			if (isPageLoaded(VIJE_REF1,-1,"screen=report")) {VIJE_HIBA=0; VIJE_GHIBA=0;
+			if (isPageLoaded(VIJE_REF1,-1,"screen=report")) {
+				VIJE_HIBA=0; VIJE_GHIBA=0;
 				PM2=szem4_VIJE_1kivalaszt();
-/*Nincs meló->60k*/	if (PM2[0]===0) {
+				if (PM2[0]===0) { // Nincs meló
 					if (PM2[3]) VIJE_LEPES=3; else {VIJE_LEPES=0; nexttime=120000;}
 				} else {
-					//@IFRAME
 					VIJE_REF2=windowOpener('vije2', VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"), AZON+"_SZEM4VIJE_2");
 					VIJE_LEPES=2;
 				}
+				VIJE_REF1.document.title = 'Szem4/vije1';
 			} else { VIJE_HIBA++;}
 			break;
 		case 2: /*Megnyitott jelentés elemzése*/
@@ -1428,6 +1430,7 @@ function szem4_VIJE_motor(){try{
 				VIJE2_HIBA=0; VIJE2_GHIBA=0;
 				szem4_VIJE_2elemzes(PM2);
 				if (PM2[3]) VIJE_LEPES=3; else VIJE_LEPES=1;
+				VIJE_REF2.document.title = 'Szem4/vije2';
 			} else { VIJE2_HIBA++;}
 			break;
 		case 3: /*bepipált jelentések törlése*/
@@ -2245,25 +2248,25 @@ Sikeres elküldés esetén zöldíti a hátteret ahogy mi is tennénk, +ugye csa
 
 ILLESZTŐ: még 1 1séget a cuccbú' ne illesszen be ha az <20%-ig volna csak kihasználva
 
-FIXME: Nincs is olyan, hogy a nagy nyersre vérszemet kap, pedig kéne!
-FIXME: "Kezdő felderítés" helyett felderítés/limit perc, azaz x percenként küldjön rá csak kémet max
-ADDME: VIJE Settings: Outdated time
+ADDME: VIJE Settings: Outdated time --> ALL_VIJE_SAVED<coord: legfrissebb_ideje> --> Nem kell a "nézett jelik" listája, helyette csak annyi hogy frisebb-e mint amit nézett
 REFACTOR: Adatmenő. Mindent mentsen, idő is légyen
+ADDME: VIJE opciók: [ ] csak kém (csak kémes jelik nézése), [ ] warn-mode (zöldeket ne nézze)
+FIXME: "Kezdő felderítés" helyett felderítés/limit perc, azaz x percenként küldjön rá csak kémet max (0=off természetes módon)
+REMOVE: Min sereg/falu, helyette minimum <határszám>-nyi nyersanyag elvétele
 REFACTOR: farm_opts inputoknak adj ID-kat, esetleg form az miért nem jó?
+ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
 FIXME: Utolsó visszatérő sereget nézzen, ne default <10p> pihit falu_helye.cells[2].innerHTML=d;
-ADDME: Custom wallpaper
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell!
 FIXME: Nyersanyag a faluban új oszlop: Mennyi TH katona megy rá. VIJE-nek ezt ki kell szedni. Ezután útidőbe beleszámolni az utat
-ADDME: Farmok rendezése táv szerint
 ADDME: "Sárgát NE támadd"
 ADDME: Fal szint lehessen mínusz is, ha elofeltételek nem teljesülnek: Barakk és 3as fohadi
+ADDME: Custom wallpaper
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
-ADDME: Ha fal van, küldjön TÖBB sereget! (csak kl?) "IntelliWall" (beállítás felugró ablakba?)
-ADDME: [Lebegő ablak] PAUSE ALL, I'M out
+ADDME: New kieg.: FARMVÉDŐ
+ADDME: Farmok rendezése táv szerint
+ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT
 ADDME: [Lebegő ablak] Reset/ébresztő: Néha pihen a script, lehessen "felébreszteni" (timeout clear+újra motorindít)
-REMOVE: Min sereg/falu, helyette minimum <határszám>-nyi nyersanyag elvétele
-ADDME: New kieg.: Falverő
 FIXME: getServerTime (hiányzó fg)
 ADDME: Teherbírás módosító
 ADDME: FAKE limit, és ennek figyelembe vétele
