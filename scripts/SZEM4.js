@@ -10,7 +10,7 @@ function loadXMLDoc(dname) {
 	xhttp.open("GET",dname,false);
 	xhttp.send();
 	return xhttp.responseXML;
-}	
+}
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
 try{ /*Rendszeradatok*/
@@ -23,7 +23,7 @@ var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
 var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
 var VILL1ST="";
 var ALTBOT=true;
-var IFRAME = true;
+var IFRAME = false;
 var MAX_IDO_PERC = 20; // MOCKED DATA: SHOULD BE A FARM SETTING
 var worker = createWorker(function(self){
 	self.addEventListener("message", function(e) {
@@ -671,7 +671,6 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 	arriveTime = arriveTime.getTime();
 	if (!ALL_UNIT_MOVEMENT[farmCoord]) {
 		foszthatoNyers = getResourceProduction(banyaszintek, 'max');
-		console.info(farmCoord, 'Első támadás a falura. Fosztható nyers/termelés alapján a MAX: ', foszthatoNyers);
 		return foszthatoNyers;
 	}
 
@@ -694,7 +693,6 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 			foszthatoNyers-=getResourceProduction(banyaszintek, (arriveTime - firstAfter[1])  / 60000);
 		}
 	}
-	console.info(farmCoord, 'Fosztható nyers/termelés alapján: ', foszthatoNyers);
 	return foszthatoNyers;
 }catch(e) {debug('calculateNyers', e); console.info('calculateNyers', e);}}
 function findClosestTimes(allAttack, arriveTime) { //@AI
@@ -862,9 +860,8 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 			if (isNaN(nyers_faluban)) debugger;
 			if (nyers_faluban < hatarszam) continue;
 			par = [closest_vill.traverTime, closest_vill.units, closest_vill.coord, farmCoord, nyers_faluban];
-			console.info('okok, új páros lett: ', farmCoord, nyers_faluban, '-->', par);
 		}
-		if (verszem && par.length > 1) { debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[2] + ' ('+ par[4] + ')'); break;}
+		if (verszem && par.length > 1) { debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[3] + ' ('+ par[4] + ')'); break;}
 	}
 	if (par.length==0) return ""; /*Nincs munka*/
 	var maxspeed=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[1].value)*60+(parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[2].value));
@@ -1094,7 +1091,7 @@ function szem4_farmolo_4visszaell(adatok){try{
 	}
 	fastest = fastest*(1/SPEED)*(1/UNIT_S);
 	
-	/*Leghamarább visszaérő sereg*/
+	/*Leghamarább visszaérő sereg FIXME: Csak nézd meg melyik a legelső visszatérő ikon a listába oszt bazd vissza azt+5mp*/
 	/*var mozgas = getLastDate(FARM_REF,fastest);
 	if (!(mozgas instanceof Date && !isNaN(mozgas.valueOf()))) {
 		debug('Advanced error at #1', mozgas + " - Fastest: " + fastest);
@@ -1203,7 +1200,7 @@ var KTID=new Array(), /*Koord-ID párosok*/
 	E_SEB=new Array(18,22,18,18,9,10,10,11),
 	BOT=false,
 	FARMOLO_TIMER,
-	ALL_UNIT_MOVEMENT = []; //{..., hova(koord): [[ mennyi(teherbírás), mikorra(getTime()) ], ...], ...}
+	ALL_UNIT_MOVEMENT = []; //{..., hova(koord): [[ mennyi_termelésből(teherbírás), mikorra(getTime()), mennyi_VIJE_miatt(teherbírás) ], ...], ...}
 	
 init();
 ujkieg_hang("Alaphangok","naplobejegyzes;bot2");
@@ -1298,7 +1295,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 	if (banya!=="") 	{farm_helye.cells[1].innerHTML=banya; farm_helye.cells[1].backgroundColor="#f4e4bc"; if(fal=="") fal=0;}
 	if (fal!=="") 	{if (parseInt(farm_helye.cells[2].innerHTML)>parseInt(fal)) farm_helye.cells[2].backgroundColor=="#f4e4bc"; farm_helye.cells[2].innerHTML=fal;}
 	if (nyers!=="")	{farm_helye.cells[3].innerHTML=nyers; 
-		/*DEBUG*/if (nyers>parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10)*3) debug("VIJE_adatbeír","Sok nyers van itt, lehet hiba? "+koord+" falunál");}
+	if (nyers>parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10)*50) debug("VIJE_adatbeír","Sok nyers van itt, lehet hiba? "+koord+" falunál: ", nyers);}
 	if (szin==="green") farm_helye.cells[0].style.backgroundColor="#f4e4bc"; else 
 	if (szin==="yellow") farm_helye.cells[0].style.backgroundColor="yellow"; else 
 	if (szin==="blue") {} else 
@@ -2229,8 +2226,27 @@ $(document).ready(function(){
 	});
 }); 
 /*
+VIJE probléma:
+ALL_UNIT_MOVEMENT: termelésből;mikorra;VIJE-ből
+függvény - getAllResFromVIJE(coord): összegzi a VIJE-ből származó nyerslopást
+clearAttacks: Jó hívni VIJE előtt+ha pause-álódik is. Extra logika: Ha már beért a támadás, és volt VIJE-ből lopás, akkor
+	- Frissítse a táblázatot úgy, hogy a Nyers-ből kivonja a lopás mértékén (min 0 eredménnyel!)
+	- állítsa 0-ra a ALL_UNIT_MOVEMENT[coord][2]-t
+1kereso: nyers oszlop kiolvasása után, ha az érték nem 0, vonja ki belőle a getAllResFromVIJE(coord) értékét
+	- adjuk vissza a par[]-on át, hogy mennyi a VIJE-ből származó, és mennyi a termelésből jövő!
+2illeszto: par[]-ból összegezni kell: a termelésből és VIJE-ből származó IS kell, sima összegzés
+addCurrentMovementToList: TH-ból priorizálja azt, hogy a VIJE-ből származót lopta, és csak utána a termelésből származót
+
+FARMVÉDŐ
+Ha aktív, és falat lát, átvált csak-kl módba. Minimum sereget adunk meg falszintenként (ha nincs meg a kritérium, akkor 1xűen bejelöli h üres a falu; v kiegészíti a sereget ha tudja)
+Kos: Falszintenként megadjuk pontosan a sereget mit küldjön. Megadjuk mely falukat használhatja. Csak a farm-hoz legközelebbi falut fogja használni! Percenként frissítgeti végig van-e má'?
+Sikeres elküldés esetén zöldíti a hátteret ahogy mi is tennénk, +ugye csak azokat nézi ami nem zöld hátteres
+(! akár már most!)VIJE: falszint változás észlelésekor kiszedi a zöld jelzést 
+
+ILLESZTŐ: még 1 1séget a cuccbú' ne illesszen be ha az <20%-ig volna csak kihasználva
+
 FIXME: Nincs is olyan, hogy a nagy nyersre vérszemet kap, pedig kéne!
-FIXME: "Kezdő felderítés" új értelmet nyerjen: nem a bányák miatt kéne oda mennie, hanem csak mint első támadás kém, utána már kezeljük (ha jön korábbi akkor megint kém, ok, de...)
+FIXME: "Kezdő felderítés" helyett felderítés/limit perc, azaz x percenként küldjön rá csak kémet max
 ADDME: VIJE Settings: Outdated time
 REFACTOR: Adatmenő. Mindent mentsen, idő is légyen
 REFACTOR: farm_opts inputoknak adj ID-kat, esetleg form az miért nem jó?
