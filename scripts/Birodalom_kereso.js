@@ -1,18 +1,18 @@
 javascript:
-/*RANK jelentése:
-100%-kal több fakitermelés 1
-100%-kal több agyagkitermelés 2
-100%-kal több vaskitermelés 3
-30%-kal több nyersanyag kitermelés (minden nyersanyagból) 8
-50%-kal nagyobb raktárkapacitás és kereskedõszám 9
-50%-kal gyorsabb képzés a mûhelyben 7
-33%-kal gyorsabb képzés a barakkban 5
-33%-kal gyorsabb képzés az istállóban 6
-10%-kal több népesség 4*/
-try{if (document.getElementById("options").innerHTML!=undefined) {alert("Már fut"); exit(0);}}catch(e){}
+/*RANK jelentÃ©se:
+100%-kal tÃ¶bb fakitermelÃ©s 1
+100%-kal tÃ¶bb agyagkitermelÃ©s 2
+100%-kal tÃ¶bb vaskitermelÃ©s 3
+30%-kal tÃ¶bb nyersanyag kitermelÃ©s (minden nyersanyagbÃ³l) 8
+50%-kal nagyobb raktÃ¡rkapacitÃ¡s Ã©s kereskedÅ‘szÃ¡m 9
+50%-kal gyorsabb kÃ©pzÃ©s a mÅ±helyben 7
+33%-kal gyorsabb kÃ©pzÃ©s a barakkban 5
+33%-kal gyorsabb kÃ©pzÃ©s az istÃ¡llÃ³ban 6
+10%-kal tÃ¶bb nÃ©pessÃ©g 4*/
+try{if (document.getElementById("options").innerHTML!=undefined) {alert("MÃ¡r fut"); exit(0);}}catch(e){}
 var currentUrl = document.location.href;
 if (currentUrl.slice(-3) != 'txt') {
-	alert("Ez a script a világ adatainál tud futni.\nPl: http://hu1.klanhaboru.hu/map/village.txt \n\n Megpróbálom új lapon megnyitni");
+	alert("Ez a script a vilÃ¡g adatainÃ¡l tud futni.\nPl: http://hu1.klanhaboru.hu/map/village.txt \n\n MegprÃ³bÃ¡lom Ãºj lapon megnyitni");
 	let cnc_regex = new RegExp(`${game_data.world}\.[a-z\.]+`, "g");
 	window.open('http://' + game_data.world + '.'+currentUrl.match(cnc_regex)[0].replace(game_data.world+'.', '')+'/map/village.txt', '_BLANK');
 	exit(0);
@@ -20,7 +20,7 @@ if (currentUrl.slice(-3) != 'txt') {
 
 try{
 sor=document.documentElement.innerText.split("\n");
-document.documentElement.innerHTML+='<div id="options" style="width: 278px;  background: #e3c68c; background-image: url(\'https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/Bir_ker.jpg\');background-repeat:no-repeat; background-position:left top; color: black; text-shadow: 0 0 0px black;  position: fixed; left:10%; top:10%; border:3px solid black; text-shadow: 0 0 2px white; font-size: 15px; font-family:Lucida Sans Unicode; padding: 13px; z-index:2;"><br><p style="display:inline">Falu(k): </p><a href="javascript: csere()" style="text-decoration:none; border-bottom:1px dashed #0000CC; font-size:small; color:#55F">(Csere)</a> <input type="text" value="" size="17" id="falus"><br>Max táv:<input type="text" value="10.0" size="4"> mezõ<br>Min pont:<input type="text" value="" size="4">Max pont:<input type="text" value="" size="4"><br>Falunév leszûrõ: <input type="text" value="V%C3%A1roskapu" size="15"><br><input type="radio" name="selector" value="mind" checked="true">Minden<br><input type="radio" name="selector" value="barb">Csak barbár<br><input type="radio" name="selector" value="jatek">Csak játékos<br><input type="button" style="margin-top:5px" onclick="javascript: keres()" value="Keresés..."><br><br>Eredmény:<br><textarea style="background-color: #c0c0c0; color: black; opacity: 0.8;" id="result" onclick=\'this.select();\' rows="10" cols="33" readonly="readonly"></textarea><p id="work" style="position: absolute;bottom: 170px;right: 39px; padding: 0; margin: 0 0 6px 0;"></p></div>';
+document.documentElement.innerHTML+='<div id="options" style="width: 278px;  background: #e3c68c; background-image: url(\'https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/Bir_ker.jpg\');background-repeat:no-repeat; background-position:left top; color: black; text-shadow: 0 0 0px black;  position: fixed; left:10%; top:10%; border:3px solid black; text-shadow: 0 0 2px white; font-size: 15px; font-family:Lucida Sans Unicode; padding: 13px; z-index:2;"><br><p style="display:inline">Falu(k): </p><a href="javascript: csere()" style="text-decoration:none; border-bottom:1px dashed #0000CC; font-size:small; color:#55F">(Csere)</a> <input type="text" value="" size="17" id="falus"><br>Max tÃ¡v:<input type="text" value="10.0" size="4"> mezÅ‘<br>Min pont:<input type="text" value="" size="4">Max pont:<input type="text" value="" size="4"><br>FalunÃ©v leszÅ±rÅ‘: <input type="text" value="V%C3%A1roskapu" size="15"><br><input type="radio" name="selector" value="mind" checked="true">Minden<br><input type="radio" name="selector" value="barb">Csak barbÃ¡r<br><input type="radio" name="selector" value="jatek">Csak jÃ¡tÃ©kos<br><input type="button" style="margin-top:5px" onclick="javascript: keres()" value="KeresÃ©s..."><br><br>EredmÃ©ny:<br><textarea style="background-color: #c0c0c0; color: black; opacity: 0.8;" id="result" onclick=\'this.select();\' rows="10" cols="33" readonly="readonly"></textarea><p id="work" style="position: absolute;bottom: 170px;right: 39px; padding: 0; margin: 0 0 6px 0;"></p></div>';
 data=document.getElementById("options");
 result=document.getElementById("result");
 }catch(e){alert(e);}
@@ -28,23 +28,23 @@ result=document.getElementById("result");
 function csere(){try{
 	var csere=data.getElementsByTagName("p")[0];
 	if (csere.innerHTML=="Falu(k): ") {
-		csere.innerHTML="Játékos ID: ";
+		csere.innerHTML="JÃ¡tÃ©kos ID: ";
 		document.getElementById("falus").setAttribute("size","14");
 	} else {
 		csere.innerHTML="Falu(k): ";
 		document.getElementById("falus").setAttribute("size","17");
 	}
 	return;
-}catch(e){alert("Hiba történt:\n"+e);}}
+}catch(e){alert("Hiba tÃ¶rtÃ©nt:\n"+e);}}
 
 function keres(){
 	try{
 	var falu = [];
-	if (data.getElementsByTagName("p")[0].innerHTML=="Játékos ID: "){
-		/*Játékos ID faluinak keresése*/
+	if (data.getElementsByTagName("p")[0].innerHTML=="JÃ¡tÃ©kos ID: "){
+		/*JÃ¡tÃ©kos ID faluinak keresÃ©se*/
 		var player=data.getElementsByTagName("input")[0].value;
 		player=player.replace(/[^0-9]/g,"");
-		if (player=="") {alert("A játékos azonosítója csak számokból áll."); return;}
+		if (player=="") {alert("A jÃ¡tÃ©kos azonosÃ­tÃ³ja csak szÃ¡mokbÃ³l Ã¡ll."); return;}
 		data.getElementsByTagName("input")[0].value=player;
 		var found=false;
 		for (var i=1;i<sor.length;i++){
@@ -53,17 +53,17 @@ function keres(){
 				falu.push(sor[i].split(",")[2]+"|"+sor[i].split(",")[3]);
 			}
 		}
-		if (!found) {alert("Nem létezik játékos ilyen azonosítóval!"); return;}
+		if (!found) {alert("Nem lÃ©tezik jÃ¡tÃ©kos ilyen azonosÃ­tÃ³val!"); return;}
 	} else {
 		try{
 			falu=data.getElementsByTagName("input")[0].value.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);
-		}catch(e){alert("Nem található koordináta a listában"); return;}}
+		}catch(e){alert("Nem talÃ¡lhatÃ³ koordinÃ¡ta a listÃ¡ban"); return;}}
 
-	result.innerHTML='FaluID\tKoordi\tTáv\tPontszám\tJátékos ID\n';
+	result.innerHTML='FaluID\tKoordi\tTÃ¡v\tPontszÃ¡m\tJÃ¡tÃ©kos ID\n';
 
 	var tav=data.getElementsByTagName("input")[1].value;
 	tav=tav.replace(/[^0-9\.]/g,""); data.getElementsByTagName("input")[1].value=tav;
-	if (tav=="") {alert("A távolság egy pozitív valós szám lehet. Tizedesvesszõ elválasztására .-ot használj!");return;}
+	if (tav=="") {alert("A tÃ¡volsÃ¡g egy pozitÃ­v valÃ³s szÃ¡m lehet. TizedesvesszÅ‘ elvÃ¡lasztÃ¡sÃ¡ra .-ot hasznÃ¡lj!");return;}
 	tav=parseFloat(tav); data.getElementsByTagName("input")[1].value=tav;
 
 	var minp=data.getElementsByTagName("input")[2].value;
@@ -79,7 +79,7 @@ function keres(){
 	var jatek=false; if (data.getElementsByTagName("input")[7].checked==true) jatek=true; 
 	var falunev=data.getElementsByTagName("input")[4].value;
 
-	document.getElementById("work").innerHTML='<img src="http://muhely2.cncdani2.freeiz.com/images/preloader-w8-line-black.gif" alt="" width="100px">Feldolgozás...';
+	document.getElementById("work").innerHTML='<img src="http://muhely2.cncdani2.freeiz.com/images/preloader-w8-line-black.gif" alt="" width="100px">FeldolgozÃ¡s...';
 
 	var str="";
 	for (var i=0;i<sor.length;i++){
@@ -112,6 +112,6 @@ function keres(){
 	}
 	document.getElementById("result").innerHTML+=str;
 	}catch(e){alert(e);}
-	document.getElementById("work").innerHTML="Feldolgozás kész!";
+	document.getElementById("work").innerHTML="FeldolgozÃ¡s kÃ©sz!";
 }
 void(0);
