@@ -1,1 +1,2 @@
-https://codebeautify.org/minify-js
+npm i minify -g
+minify what.js > where.js
