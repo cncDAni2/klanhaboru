@@ -13,8 +13,8 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
+var VERZIO = '4.5 Build 23.04.24';
 try{ /*Rendszeradatok*/
-var VERZIO = '4.5 Build 23.04.23';
 var SZEM4_LOCAL_STORAGE="";
 var AZON="S0";
 if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -1930,10 +1930,7 @@ try{
 }catch(e){debug('epit', 'Worker engine error: ' + e);setTimeout(function(){szem4_EPITO_motor();}, 3000);}}
 
 ujkieg_hang("Építő","epites;falu_kesz;kritikus_hiba");
-ujkieg("epit","Építő",'<tr><td><h2 align="center">Építési listák</h2><table align="center" class="vis" style="border:1px solid black;color: black;"><tr><th onmouseover=\'sugo(this,"Építési lista neve, amire később hivatkozhatunk")\'>Csoport neve</th><th onmouseover=\'sugo(this,"Az építési sorrend megadása. Saját lista esetén ellenőrizzük az OK? linkre kattintva annak helyességét!")\' style="width:800px">Építési lista</th></tr><tr><td>Alapértelmezett</td><td><input type="text" disabled="disabled" value="main 10;storage 10;wall 10;main 15;wall 15;storage 15;farm 10;main 20;wall 20;MINES 10;smith 5;barracks 5;stable 5;main 15;storage 20;farm 20;market 10;main 22;smith 12;farm 25;storage 28;farm 26;MINES 24;market 19;barracks 15;stable 10;garage 5;MINES 26;farm 28;storage 30;barracks 20;stable 15;farm 30;barracks 25;stable 20;MINES 30;smith 20;snob 1" size="125"><a onclick="szem4_EPITO_cscheck(this)" style="color:blue; cursor:pointer;"> OK?</a></td></tr></table><p align="center">Csoportnév: <input type="text" value="" size="30" id="epit_ujcsopnev" placeholder="Nem tartalmazhat . _ ; karaktereket"> <a href="javascript: szem4_EPITO_ujCsop()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+' " height="17px"> Új csoport</a></p></td></tr><tr><td><h2 align="center">Építendő faluk</h2><table align="center" class="vis" style="border:1px solid black;color: black;width:900px" id="epit_lista"><tr><th style="width: 75px; cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",0)\' onmouseover=\'sugo(this,"Rendezhető. Itt építek. Dupla klikk a falura = sor törlése")\'>Falu koord.</th><th onclick=\'rendez("lista",false,this,"epit_lista",1)\' onmouseover=\'sugo(this,"Rendezhető. Felső táblázatban használt lista közül választhatsz egyet, melyet később bármikor megváltoztathatsz.")\' style="width: 135px; cursor: pointer">Használt lista</th><th style="width: 220px; cursor: pointer;" onclick=\'rendez("datum",false,this,"epit_lista",2)\' onmouseover=\'sugo(this,"Rendezhető. Ekkor fogom újranézni a falut, hogy lehet e már építeni.<br>Dupla klikk=idő azonnalira állítása.")\'>Return</th><th style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",3)\' onmouseover=\'sugo(this,"Rendezhető. Szöveges információ a faluban zajló építésről. Sárga hátterű szöveg orvosolható; kék jelentése hogy nem tud haladni; piros pedig kritikus hibát jelöl; a szín nélküli a normális működést jelzi.<br>Dupla klikk=alaphelyzet")\'><u>Infó</u></th></tr></table><p align="center" id="epit_ujfalu_adat">\
-Csoport:  <select><option value="Alapértelmezett">Alapértelmezett</option> </select> \
-Faluk: <input type="text" value="" placeholder="Koordináták: 123|321 123|322 ..." size="50"> \
-<a href="javascript: szem4_EPITO_ujFalu()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+'" height="17px"> Új falu(k)</a></p></td></tr>');
+ujkieg("epit","Építő",'<tr><td><h2 align="center">Építési listák</h2><table align="center" class="vis" style="border:1px solid black;color: black;"><tr><th onmouseover=\'sugo(this,"Építési lista neve, amire később hivatkozhatunk")\'>Csoport neve</th><th onmouseover=\'sugo(this,"Az építési sorrend megadása. Saját lista esetén ellenőrizzük az OK? linkre kattintva annak helyességét!")\' style="width:800px">Építési lista</th></tr><tr><td>Alapértelmezett</td><td><input type="text" disabled="disabled" value="main 10;storage 10;wall 10;main 15;wall 15;storage 15;farm 10;main 20;wall 20;MINES 10;smith 5;barracks 5;stable 5;main 15;storage 20;farm 20;market 10;main 22;smith 12;farm 25;storage 28;farm 26;MINES 24;market 19;barracks 15;stable 10;garage 5;MINES 26;farm 28;storage 30;barracks 20;stable 15;farm 30;barracks 25;stable 20;MINES 30;smith 20;snob 1" size="125"><a onclick="szem4_EPITO_cscheck(this)" style="color:blue; cursor:pointer;"> OK?</a></td></tr></table><p align="center">Csoportnév: <input type="text" value="" size="30" id="epit_ujcsopnev" placeholder="Nem tartalmazhat . _ ; karaktereket"> <a href="javascript: szem4_EPITO_ujCsop()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+' " height="17px"> Új csoport</a></p></td></tr><tr><td><h2 align="center">Építendő faluk</h2><table align="center" class="vis" style="border:1px solid black;color: black;width:900px" id="epit_lista"><tr><th style="width: 75px; cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",0)\' onmouseover=\'sugo(this,"Rendezhető. Itt építek. Dupla klikk a falura = sor törlése")\'>Falu koord.</th><th onclick=\'rendez("lista",false,this,"epit_lista",1)\' onmouseover=\'sugo(this,"Rendezhető. Felső táblázatban használt lista közül választhatsz egyet, melyet később bármikor megváltoztathatsz.")\' style="width: 135px; cursor: pointer">Használt lista</th><th style="width: 220px; cursor: pointer;" onclick=\'rendez("datum",false,this,"epit_lista",2)\' onmouseover=\'sugo(this,"Rendezhető. Ekkor fogom újranézni a falut, hogy lehet e már építeni.<br>Dupla klikk=idő azonnalira állítása.")\'>Return</th><th style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",3)\' onmouseover=\'sugo(this,"Rendezhető. Szöveges információ a faluban zajló építésről. Sárga hátterű szöveg orvosolható; kék jelentése hogy nem tud haladni; piros pedig kritikus hibát jelöl; a szín nélküli a normális működést jelzi.<br>Dupla klikk=alaphelyzet")\'><u>Infó</u></th></tr></table><p align="center" id="epit_ujfalu_adat">Csoport:  <select><option value="Alapértelmezett">Alapértelmezett</option> </select> \Faluk: <input type="text" value="" placeholder="Koordináták: 123|321 123|322 ..." size="50"> \<a href="javascript: szem4_EPITO_ujFalu()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+'" height="17px"> Új falu(k)</a></p></td></tr>');
 /*Dupla klikk események; súgó; infóba linkmegnyitás*/
 /*Table IDs:  farm_opts; farm_honnan; farm_hova*/
 var EPIT_LEPES=0;
@@ -1941,6 +1938,8 @@ var EPIT_REF; var EPIT_HIBA=0; var EPIT_GHIBA=0;
 var PMEP; var EPIT_PAUSE=false;
 szem4_EPITO_motor();
 szem4_EPITO_perccsokkento();
+
+/*-----------------PF TŐZSDE--------------------*/
 
 /*-----------------Export/Import kezelő--------------------*/
 function szem4_ADAT_saveNow(tipus){
@@ -1995,7 +1994,8 @@ function szem4_ADAT_sys_save(){try{
 		if (i<adat.length-1) eredmeny+=".";
 	}
 	eredmeny+=";";
-		/*Hangok*/
+	
+	/*Hangok*/
 	var adat=document.getElementById("hang").getElementsByTagName("input");
 	for (var i=0;i<adat.length;i++) {
 		if (adat[i].getAttribute("type")=="checkbox") {
@@ -2209,12 +2209,15 @@ function szem4_ADAT_sys_load(){ try{
 	/*VIJE*/
 	var adat=document.getElementById("vije").getElementsByTagName("input");
 	var resz=suti.split(";")[0].split(".");
-	for (var i=0;i<resz.length-1;i++) {
+	for (var i=0;i<resz.length-2;i++) {
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false; else
 		  adat[i].value=resz[i];
 	}
-	ALL_VIJE_SAVED = JSON.parse(resz[resz.length-1]);
+	if (!resz[resz.length-1] || resz[resz.length-1].length < 6)
+		ALL_VIJE_SAVED = {};
+	else
+		ALL_VIJE_SAVED = JSON.parse(resz[resz.length-1]);
 	
 	/*Adatmentő*/
 	var adat=document.getElementById("adat_opts").getElementsByTagName("input");
@@ -2232,6 +2235,7 @@ function szem4_ADAT_sys_load(){ try{
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false;
 	}
+
 	alert2("Rendszereadatok betöltése kész.");
 }catch(e){debug("ADAT_epito_sys",e);}}
 
@@ -2257,6 +2261,7 @@ function szem4_ADAT_betolt(tipus){try{
 	localStorage.setItem(AZON+"_"+tipus,beadat);
 	if (tipus=="farm") szem4_ADAT_farm_load();
 	if (tipus=="epito") szem4_ADAT_epito_load();
+	if (tipus=="sys") szem4_ADAT_sys_load();
 	alert2("Az adatok sikeresen betöltődtek.");
 }catch(e){debug("szem4_ADAT_betolt",e);}}
 
@@ -2293,6 +2298,8 @@ if (!confirm("Engedélyezed az adatok mentését?\nKésőbb elindíthatja, ha vi
 
 szem4_ADAT_motor();
 
+
+
 $(document).ready(function(){
 	nyit("naplo");
 	vercheck();
@@ -2310,7 +2317,7 @@ $(document).ready(function(){
 	$("#farm_opts input").on('keydown keypress',function(){
 		setTimeout('shorttest()',20);
 	});
-}); 
+});
 /*
 
 FARMVÉDŐ
@@ -2320,6 +2327,7 @@ Sikeres elküldés esetén zöldíti a hátteret ahogy mi is tennénk, +ugye csa
 (! akár már most!)VIJE: falszint változás észlelésekor kiszedi a zöld jelzést 
 
 ILLESZTŐ: még 1 1séget a cuccbú' ne illesszen be ha az <20%-ig volna csak kihasználva
+ADDME: Határszám emelése megbízhatóság/2 percnyi termelésig
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 FIXME: "Kezdő felderítés" helyett felderítés/limit perc, azaz x percenként küldjön rá csak kémet max (0=off természetes módon)
 FIXME: Farmolo: Ha nincs munka, azért csekkoljon rá a referenciára, hátha akkor jött be a bot védelem!
