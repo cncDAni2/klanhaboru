@@ -13,42 +13,42 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = '4.5 Build 23.04.24';
+var VERZIO = '4.5 Build 23.04.26';
 try{ /*Rendszeradatok*/
-var SZEM4_LOCAL_STORAGE="";
-var AZON="S0";
-if (window.name.indexOf(AZON)>-1) AZON="S1";
-var BASE_URL=document.location.href.split("game.php")[0];
-var CONFIG=loadXMLDoc(BASE_URL+"interface.php?func=get_config");
-var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
-var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
-var VILL1ST="";
-var ALTBOT=true;
-var MAX_IDO_PERC = 20; // MOCKED DATA: SHOULD BE A FARM SETTING
-var worker = createWorker(function(self){
-	self.addEventListener("message", function(e) {
-		setTimeout(() => {postMessage(e.data);}, e.data.time);
-	}, false);
-});
-worker.onmessage = function(worker_message) {
-	worker_message = worker_message.data;
-	switch(worker_message.id) {
-		case 'farm': szem4_farmolo_motor(); break;
-		case 'vije': szem4_VIJE_motor(); break;
-		case 'epit': szem4_EPITO_motor(); break;
-		case 'adatok': szem4_ADAT_motor(); break;
-		default: debug('worker','Ismeretlen ID', JSON.stringify(worker_message))
+	var SZEM4_LOCAL_STORAGE="";
+	var AZON="S0";
+	if (window.name.indexOf(AZON)>-1) AZON="S1";
+	var BASE_URL=document.location.href.split("game.php")[0];
+	var CONFIG=loadXMLDoc(BASE_URL+"interface.php?func=get_config");
+	var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
+	var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
+	var VILL1ST="";
+	var ALTBOT=true;
+	var MAX_IDO_PERC = 20; // MOCKED DATA: SHOULD BE A FARM SETTING
+	AZON=game_data.player.id+"_"+game_data.world+AZON;
+	var CLOUD_AUTHS = localStorage.getItem('szem_firebase');
+	var worker = createWorker(function(self){
+		self.addEventListener("message", function(e) {
+			setTimeout(() => {postMessage(e.data);}, e.data.time);
+		}, false);
+	});
+	worker.onmessage = function(worker_message) {
+		worker_message = worker_message.data;
+		switch(worker_message.id) {
+			case 'farm': szem4_farmolo_motor(); break;
+			case 'vije': szem4_VIJE_motor(); break;
+			case 'epit': szem4_EPITO_motor(); break;
+			case 'adatok': szem4_ADAT_motor(); break;
+			default: debug('worker','Ismeretlen ID', JSON.stringify(worker_message))
+		}
+	};
+	function createWorker(main){
+		var blob = new Blob(
+			["(" + main.toString() + ")(self)"],
+			{type: "text/javascript"}
+		);
+		return new Worker(window.URL.createObjectURL(blob));
 	}
-};
-function createWorker(main){
-    var blob = new Blob(
-        ["(" + main.toString() + ")(self)"],
-        {type: "text/javascript"}
-    );
-    return new Worker(window.URL.createObjectURL(blob));
-}
-
-AZON=game_data.player.id+"_"+game_data.world+AZON;
 }catch(e){alert('SZEM Nem tud elindulni/n' + e); exit(0);}
 
 function vercheck(){try{
@@ -1046,7 +1046,6 @@ function szem4_farmolo_3egyeztet(adatok){try{
 	try{
 		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].getAttribute("class")=="error_box") {
 			naplo("Farmoló","Hiba "+adatok[3]+" farmolásánál: "+FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].textContent+". Tovább nem támadom");
-			debugger;
 			farm_helye.cells[0].style.backgroundColor="red";
 			FARM_LEPES=0;
 			if (FARM_REF.document.querySelector('.village-item')) {
@@ -2006,7 +2005,7 @@ function szem4_ADAT_sys_save(){try{
 	eredmeny+=";";
 	
 	localStorage.setItem(AZON+"_sys",eredmeny);
-	var d=new Date(); document.getElementById("adat_opts").rows[3].cells[2].textContent=d;
+	var d=new Date(); document.getElementById("adat_opts").rows[3].cells[2].textContent=d.toLocaleString();;
 	return;
 }catch(e){debug("ADAT_sys_save",e);}}
 
@@ -2073,7 +2072,7 @@ function szem4_ADAT_farm_save(){try{
 	}
 
 	localStorage.setItem(AZON+"_farm",eredmeny);
-	var d=new Date(); document.getElementById("adat_opts").rows[1].cells[2].textContent=d;
+	var d=new Date(); document.getElementById("adat_opts").rows[1].cells[2].textContent=d.toLocaleString();
 	return;
 }catch(e){debug("ADAT_farm_save",e);}}
 
@@ -2099,7 +2098,7 @@ function szem4_ADAT_epito_save(){try{
 		if (i<adat.length-1) eredmeny+=".";
 	}
 	localStorage.setItem(AZON+"_epito",eredmeny);
-	var d=new Date(); document.getElementById("adat_opts").rows[2].cells[2].textContent=d;
+	var d=new Date(); document.getElementById("adat_opts").rows[2].cells[2].textContent=d.toLocaleString();;
 	return;
 }catch(e){debug("ADAT_epito_save",e);}}
 
@@ -2265,12 +2264,96 @@ function szem4_ADAT_betolt(tipus){try{
 	alert2("Az adatok sikeresen betöltődtek.");
 }catch(e){debug("szem4_ADAT_betolt",e);}}
 
+function loadCloudSync() {
+	if (CLOUD_AUTHS) {try{
+		CLOUD_AUTHS = JSON.parse(CLOUD_AUTHS);
+		if (!CLOUD_AUTHS.authDomain || !CLOUD_AUTHS.projectId || !CLOUD_AUTHS.storageBucket || !CLOUD_AUTHS.messagingSenderId || !CLOUD_AUTHS.appId || !CLOUD_AUTHS.email || !CLOUD_AUTHS.password || !CLOUD_AUTHS.collection || !CLOUD_AUTHS.myDocument)
+			throw 'Must consist these fields: authDomain projectId storageBucket messagingSenderId appId email password';
+	} catch(e) { naplo('Sync', 'Invalid Auth data ' + e); }
+	} else return;
+	const script = document.createElement("script");
+	script.type = "module";
+	script.innerHTML = `
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
+		import { getFirestore, collection, updateDoc, getDoc, doc }  from "https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore.js";
+		import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js"
+
+		const app = initializeApp(CLOUD_AUTHS);
+		const db = getFirestore(app);
+		const auth = getAuth();
+
+		signInWithEmailAndPassword(auth, CLOUD_AUTHS.email, CLOUD_AUTHS.password)
+		.then(async (userCredential) => {
+			const user = userCredential.user;
+
+			window.readUpData = async () => {
+				const myDoc = await getDoc(doc(db, CLOUD_AUTHS.collection, CLOUD_AUTHS.myDocument));
+				return myDoc.data();
+			}
+			window.updateData = async (newData) => {
+				try {
+					const myDoc = await getDoc(doc(db, CLOUD_AUTHS.collection, CLOUD_AUTHS.myDocument));
+					await updateDoc(myDoc.ref, newData);
+					return 'OK';
+				} catch(e) {
+					return 'Error: '+e;
+				}
+			}
+			window.naplo('Sync', 'Firebase felhő kapcsolat létrejött');
+			if (confirm("Firebase adatszinkronizálás helyi adatokra?")) {
+				window.loadCloudDataIntoLocal();
+			}
+		})
+		.catch((error) => {
+			const errorCode = error.code;
+			const errorMessage = error.message;
+		});`;
+	document.head.appendChild(script);
+}
+function loadCloudDataIntoLocal() {
+	if (!CLOUD_AUTHS) {
+		alert("Nincs aktív felhő szinkronizáció");
+		return;
+	}
+	readUpData().then((cloudData) => {
+		console.info('Adat letöltve:', cloudData);
+		localStorage.setItem(AZON+"_farm", cloudData.farm);
+		localStorage.setItem(AZON+"_epito", cloudData.epit);
+		localStorage.setItem(AZON+"_sys", cloudData.vije);
+		szem4_ADAT_LoadAll();
+	});
+	document.getElementById("adat_opts").rows[4].cells[0].getElementsByTagName("input")[0].checked = true;
+}
+function saveLocalDataToCloud() {
+	if (!CLOUD_AUTHS) {
+		alert("Nincs aktív felhő szinkronizáció");
+		return;
+	}
+	var jsonToSave = {
+		farm: localStorage.getItem(AZON+"_farm"),
+		epit: localStorage.getItem(AZON+"_epito"),
+		vije: localStorage.getItem(AZON+"_sys")
+	};
+	updateData(jsonToSave).then((data) => {
+		debug('Sync', 'Synced - ' + data);
+		var d=new Date(); document.getElementById("adat_opts").rows[4].cells[2].textContent=d.toLocaleString();
+	});
+}
+
 function szem4_ADAT_motor(){try{if (!ADAT_PAUSE){
-	if (ADAT_FIRST) ADAT_FIRST=false; else {
-	var Z=document.getElementById("adat_opts").rows;
-	if (Z[1].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_farm_save();
-	if (Z[2].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_epito_save();
-	if (Z[3].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_sys_save();}
+	if (ADAT_FIRST === 0)
+		ADAT_FIRST=1;
+	 else {
+		var Z=document.getElementById("adat_opts").rows;
+		if (Z[1].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_farm_save();
+		if (Z[2].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_epito_save();
+		if (Z[3].cells[0].getElementsByTagName("input")[0].checked) szem4_ADAT_sys_save();
+		ADAT_FIRST++;
+		if (ADAT_FIRST > 5) {
+			ADAT_FIRST = 1;
+			if (Z[4].cells[0].getElementsByTagName("input")[0].checked) saveLocalDataToCloud();
+		}
+	}
 }}catch(e){debug("ADAT_motor",e);}
 try{
 	worker.postMessage({'id': 'adatok', 'time': 60000});
@@ -2292,13 +2375,13 @@ ujkieg("adatok","Adatmentő",'<tr><td>\
 <tr><td><input type="checkbox" checked></td><td>Farmoló</td><td></td><td>'+szem4_ADAT_AddImageRow("farm")+'</td></tr>\
 <tr><td><input type="checkbox" checked></td><td>Építő</td><td></td><td>'+szem4_ADAT_AddImageRow("epito")+'</td></tr>\
 <tr><td><input type="checkbox" checked></td><td>VIJE,Adatmentő,Hangok</td><td></td><td>'+szem4_ADAT_AddImageRow("sys")+'</td></tr>\
+<tr><td><input type="checkbox" unchecked></td><td><img src="'+pic('cloud.png')+'"> Cloud sync</td><td></td><td>\
+			<img title="Cloud adat betöltése a jelenlegi rendszerbe" alt="Import" onclick="loadCloudDataIntoLocal()" width="17px" src="'+pic("Import.png")+'"> \
+			<img title="Local adat lementése a Cloud rendszerbe" alt="Save" onclick="saveLocalDataToCloud()" width="17px" src="'+pic("saveNow.png")+'">\
+</td></tr>\
 </table><p align="center"></p></td></tr>');
-var ADAT_PAUSE=false, ADAT_FIRST=true;
-if (!confirm("Engedélyezed az adatok mentését?\nKésőbb elindíthatja, ha visszapipálja a mentés engedélyezését - ekkor szükséges kézi adatbetöltés is előtte.")) szem4_ADAT_StopAll(); else szem4_ADAT_LoadAll();
-
+var ADAT_PAUSE=false, ADAT_FIRST=0;
 szem4_ADAT_motor();
-
-
 
 $(document).ready(function(){
 	nyit("naplo");
@@ -2307,6 +2390,18 @@ $(document).ready(function(){
 	naplo("Indulás","Farmolók szünetelő módban.");
 	soundVolume(0.0);
 	playSound("bot2"); /* Ha elmegy a net, tudjon csipogni */
+	if (confirm("Engedélyezed az adatok mentését?\nKésőbb elindíthatja, ha visszapipálja a mentés engedélyezését - ekkor szükséges kézi adatbetöltés is előtte.")) {
+		if (CLOUD_AUTHS) {
+			naplo("Sync","Connecting to Firebase Cloud System...");
+			loadCloudSync();
+		} else {
+			naplo("Sync","Firebase Cloud System is not setup. Create 'szem_firebase' localStorage item with credentials");
+			naplo("Adat","Adatbetöltés helyi adatokból...");
+			szem4_ADAT_LoadAll();
+		}
+	} else {
+		szem4_ADAT_StopAll();
+	}
 	setTimeout(function(){soundVolume(1.0);},2000);
 	
 	$(function() {
