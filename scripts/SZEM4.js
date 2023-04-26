@@ -1362,7 +1362,6 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 	if (farm_helye.cells[5].innerHTML!="") farm_helye.cells[5].innerHTML="";
 
 	// Mockolt támadás beillesztése ha nem regisztrált támadásról jött jelentés
-	hungarianDate = hungarianDate.getTime();
 	var allAttack = ALL_UNIT_MOVEMENT[koord];
 	if (!allAttack) ALL_UNIT_MOVEMENT[koord] = [[10000, hungarianDate, 0]];
 	else {
@@ -1381,8 +1380,7 @@ function szem4_VIJE_2elemzes(adatok){try{
 	/*Adatok: [0]jelentés azon;[1]célpont koord;[2]jelentés SZÍNe;[3]volt e checkbox-olt jeli;[4]régi jeli e? (igen->nincs nyerselem)*/
 	var nyersossz=0;
 	var isOld = false;
-	
-	var reportTable=VIJE_REF2.document.getElementById("attack_results").parentNode;
+	var reportTable=VIJE_REF2.document.getElementById("attack_info_att").parentNode;
 	while (reportTable.nodeName != 'TABLE') {
 		reportTable = reportTable.parentNode;
 	}
@@ -1426,7 +1424,8 @@ function szem4_VIJE_2elemzes(adatok){try{
 		}
 		VIJE_adatbeir(adatok[1],nyersossz,banyak,fal,adatok[2], hungarianDate);
 	} else if (!isOld) {
-		var fosztogatas = VIJE_REF2.document.getElementById('attack_results').rows[0].cells[2].innerText.split('/').map(item => parseInt(item,10));
+		var atkTable = VIJE_REF2.document.getElementById('attack_results');
+		var fosztogatas = atkTable?atkTable.rows[0].cells[2].innerText.split('/').map(item => parseInt(item,10)):0;
 		var nyers = '';
 		if (fosztogatas[0] != fosztogatas[1]) nyers=0;
 		VIJE_adatbeir(adatok[1],nyers,"","",adatok[2], hungarianDate);
@@ -2375,7 +2374,7 @@ ujkieg("adatok","Adatmentő",'<tr><td>\
 <tr><td><input type="checkbox" checked></td><td>Farmoló</td><td></td><td>'+szem4_ADAT_AddImageRow("farm")+'</td></tr>\
 <tr><td><input type="checkbox" checked></td><td>Építő</td><td></td><td>'+szem4_ADAT_AddImageRow("epito")+'</td></tr>\
 <tr><td><input type="checkbox" checked></td><td>VIJE,Adatmentő,Hangok</td><td></td><td>'+szem4_ADAT_AddImageRow("sys")+'</td></tr>\
-<tr><td><input type="checkbox" unchecked></td><td><img src="'+pic('cloud.png')+'"> Cloud sync</td><td></td><td>\
+<tr><td><input type="checkbox" unchecked></td><td><img height="17px" src="'+pic('cloud.png')+'"> Cloud sync</td><td></td><td>\
 			<img title="Cloud adat betöltése a jelenlegi rendszerbe" alt="Import" onclick="loadCloudDataIntoLocal()" width="17px" src="'+pic("Import.png")+'"> \
 			<img title="Local adat lementése a Cloud rendszerbe" alt="Save" onclick="saveLocalDataToCloud()" width="17px" src="'+pic("saveNow.png")+'">\
 </td></tr>\

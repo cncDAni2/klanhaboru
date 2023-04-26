@@ -20,7 +20,7 @@ Az algoritmus: SZEM egy folyamatos "vonat"-ot próbál felállítani. Számítá
 Összegzés: Számodra ez egy játék a számokkal, amit a megbízhatóság és határszám állításával tudsz játszani. Minél jobban megbízol a faluban, annál jobb és szorosabb szerelvényeket fog küldeni SZEM, viszont könnyen lehet hogy a túlzott bizakodás feleslegesen küldött egységet is jelent, főleg ha már rég támadtál egy falura (pl. egy friss reggeli indításnál). A kisebb határszám pedig több gyorsabb támadásokat eredményez ami sokkal hatékonyabb, de a legkisebb fal is már komoly károkat okozhat, valamint egyre nagyobb aktivitást jelent ami gyanúsabb a játék számára.
 
 # SZEM4 Firebase Auth
-SZEM4 képes adataidat felhőben tárolni a [Google Firebase](https://console.firebase.google.com/u/0/) rendszerbe. Ehhez neked kell létrehozni egy applikációt, melynek eredménye képp ki dobja dobni a szükséges credentials-öket.
+SZEM4 képes adataidat felhőben tárolni a [Google Firebase](https://console.firebase.google.com/u/0/) rendszerbe. Ehhez neked kell ide regisztrálni és létrehozni egy applikációt, melynek eredménye képp ki fogja dobni a szükséges credentials-öket.
 Ezután létre kell hoznod bent egy Firestore Database-t (Rules-be írd át: "allow read, write: if request.auth != null"), majd egy tetszőleges "collection" és "document"-et. Ezen neveit add hozzá a credentials objecthez "collection" és "myDocument" név alatt.
 Ezután engedélyezni kell az email alapú authentikációt. Ha megvan, végy fel egy fiókot, és az email/jelszó párost illeszd az előzőleg megadott credentials objecthez "email" és "password" mezőként.
 Az így kapott objectet vedd fel a "szem_firebase" localStorage-be, stringify-olva. Végén egy ilyen parancsot kell futtatni:
