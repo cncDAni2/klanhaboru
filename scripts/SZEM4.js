@@ -1385,6 +1385,8 @@ function szem4_VIJE_2elemzes(adatok){try{
 		reportTable = reportTable.parentNode;
 	}
 	var hungarianDate = reportTable.rows[1].cells[1].innerText;
+	var defUnits = VIJE_REF2.document.getElementById('attack_info_def_units');
+	if (defUnits && defUnits.textContent.match(/[1-9]+/g)) adatok[2] = 'Sereg a faluban!';
 	hungarianDate = new Date(Date.parse(hungarianDate.replace(/jan\./g, "Jan").replace(/febr?\./g, "Feb").replace(/márc\./g, "Mar").replace(/ápr\./g, "Apr").replace(/máj\./g, "May").replace(/jún\./g, "Jun").replace(/júl\./g, "Jul").replace(/aug\./g, "Aug").replace(/szept\./g, "Sep").replace(/okt\./g, "Oct").replace(/nov\./g, "Nov").replace(/dec\./g, "Dec")));
 	if (ALL_VIJE_SAVED[adatok[1]] >= hungarianDate.getTime()) isOld = true;;
 	if (!isOld && VIJE_REF2.document.getElementById("attack_spy_resources")) {
