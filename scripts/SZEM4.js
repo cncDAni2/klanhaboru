@@ -15,7 +15,6 @@ function loadXMLDoc(dname) {
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
 var VERZIO = '4.5 Build 23.04.26';
 try{ /*Rendszeradatok*/
-	var SZEM4_LOCAL_STORAGE="";
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
 	var BASE_URL=document.location.href.split("game.php")[0];
@@ -28,8 +27,14 @@ try{ /*Rendszeradatok*/
 	AZON=game_data.player.id+"_"+game_data.world+AZON;
 	var CLOUD_AUTHS = localStorage.getItem('szem_firebase');
 	var worker = createWorker(function(self){
+		self.TIMERS = {};
 		self.addEventListener("message", function(e) {
-			setTimeout(() => {postMessage(e.data);}, e.data.time);
+			if (e.data.id == 'stopTimer') {
+				e.data.timers = self.TIMERS;
+				clearTimeout(self.TIMERS[e.data.value]);
+			} else {
+				self.TIMERS[e.data.id] = setTimeout(() => { postMessage(e.data); }, e.data.time);
+			}
 		}, false);
 	});
 	worker.onmessage = function(worker_message) {
@@ -73,7 +78,7 @@ function init(){try{
 		KTID[i-1]=kord+";"+PFA.rows[i].cells[oszl].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0];
 	}
 	document.getElementsByTagName("head")[0].innerHTML += '<style type="text/css">body{ background: #111; } table.fej{ padding:1px;  margin:auto; color: white; border: 1px solid yellow; } table.menuitem{ vertical-align:top; text-align: top; padding: 20px; margin:auto; color: white; border: 1px solid yellow; } table.menuitem td{ padding: 0px; vertical-align:top; }  table{ padding: 0px; margin: auto; color: white;  } table.vis{ color:black; } table.vis td, table.vis th{ padding: 3px 6px 3px 6px;  } #farm_honnan tr td:last-child{font-size:50%;  width:130px;} #farm_hova tr td:last-child{font-size:50%; width:130px;}  textarea{ background-color: #020; color:white; } .divrow{ display: table-row; } .divcell { display: table-cell; text-align: center; vertical-align:top; }  a{ color: white; } img{ border-color: grey; padding:1px; } #naploka a {color:blue;} input[type="button"] {font-size:13px; font-family:Century Gothic,sans-serif;    color:#FFFF77;    background-color:#3366CC;    border-style:ridge;    border-color:#000000;    border-width:3px; }  </style>';
-	document.getElementsByTagName("body")[0].innerHTML='<div id="alert2" style="width: 300px; background-color: #60302b; color: #FFA; position: fixed; left:40%; top:40%; border:3px solid black; font-size: 11pt; padding: 5px; z-index:200; display:none"><div id="alert2head" style="width:100%;cursor:all-scroll; text-align:right; background: rgba(255,255,255,0.1)"><a href=\'javascript: alert2("close");\'>X (Bezár)</a></div><p id="alert2szov"></p></div> <table width="1024px" align="center" class="fej" style="background: #111; background-image:url(\''+pic("wallp.jpg")+'\'); background-size:1024px;"> <tr><td width="70%" id="fejresz" style="vertical-align:middle; margin:auto;"><h1><i></i></h1></td><td id="sugo" height="110px"></td></tr> <tr><td colspan="2" id="menuk" style="">  	<div class="divrow" style="width: 1024px"> 		<span class="divcell" id="kiegs" style="text-align:left; padding-top: 5px;width:774px;"><img src="'+pic("muhely_logo.png")+'" alt="GIT" title="GIT C&amp;C Műhely megnyitása" onclick="window.open(\'https://github.com/cncDAni2/klanhaboru\')"> <img src="'+pic("kh_logo.png")+'" alt="Game" title="Klánháború megnyitása" onclick="window.open(\''+VILL1ST+'\')"> | </span> 		<span class="divcell" style="text-align:right; width:250px"> 			<a href=\'javascript: nyit("naplo");\' onmouseover="sugo(this,\'Események naplója\')">Napló</a> 			<a href=\'javascript: nyit("debug");\' onmouseover="sugo(this,\'Hibanapló\')">Debug</a> 			<a href=\'javascript: nyit("hang");\'><img src="'+pic("hang.png")+'" onmouseover="sugo(this,\'Hangbeállítások\')" alt="hangok"></a> 		</span> 	</div> 	 </td></tr> </table> <p id="content" style="display: inline"></p>';
+	document.getElementsByTagName("body")[0].innerHTML='<div id="alert2" style="width: 300px; background-color: #60302b; color: #FFA; position: fixed; left:40%; top:40%; border:3px solid black; font-size: 11pt; padding: 5px; z-index:200; display:none"><div id="alert2head" style="width:100%;cursor:all-scroll; text-align:right; background: rgba(255,255,255,0.1)"><a href=\'javascript: alert2("close");\'>X (Bezár)</a></div><p id="alert2szov"></p></div> <table width="1024px" align="center" class="fej" style="background: #111; background-image:url(\''+pic("wallp.jpg")+'\'); background-size:1024px;"> <tr><td width="70%" id="fejresz" style="vertical-align:middle; margin:auto;"><h1><i></i></h1></td><td id="sugo" height="110px"></td></tr> <tr><td colspan="2" id="menuk" style="">  	<div class="divrow" style="width: 1024px"> 		<span class="divcell" id="kiegs" style="text-align:left; padding-top: 5px;width:774px;"><img src="'+pic("muhely_logo.png")+'" alt="GIT" title="GIT C&amp;C Műhely megnyitása" onclick="window.open(\'https://github.com/cncDAni2/klanhaboru\')"> <img src="'+pic("kh_logo.png")+'" alt="Game" title="Klánháború megnyitása" onclick="window.open(document.location.href)"> | </span> 		<span class="divcell" style="text-align:right; width:250px"> 			<a href=\'javascript: nyit("naplo");\' onmouseover="sugo(this,\'Események naplója\')">Napló</a> 			<a href=\'javascript: nyit("debug");\' onmouseover="sugo(this,\'Hibanapló\')">Debug</a> 			<a href=\'javascript: nyit("hang");\'><img src="'+pic("hang.png")+'" onmouseover="sugo(this,\'Hangbeállítások\')" alt="hangok"></a> 		</span> 	</div> 	 </td></tr> </table> <p id="content" style="display: inline"></p>';
 	document.getElementById("content").innerHTML='<table class="menuitem" width="1024px" align="center" id="naplo" style="display: none"> <tr><td> <h1 align="center">Napló</h1><br> <br> <table align="center" class="vis" id="naploka"><tr><th onclick=\'rendez("datum2",false,this,"naploka",0)\'  style="cursor: pointer;">Dátum</th><th  onclick=\'rendez("szoveg",false,this,"naploka",1)\' style="cursor: pointer;">Script</th><th  onclick=\'rendez("szoveg",false,this,"naploka",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table>  <table class="menuitem" width="1024px" align="center" id="debug" style="display: none"> <tr><td> <h1 align="center">DeBugger</h1><br> <br> <table align="center" class="vis" id="debugger"><tr><th onclick=\'rendez("datum2",false,this,"debugger",0)\' style="cursor: pointer;">Dátum</th><th onclick=\'rendez("szoveg",false,this,"debugger",1)\' style="cursor: pointer;">Script</th><th onclick=\'rendez("szoveg",false,this,"debugger",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table>  <table class="menuitem" width="1024px" align="center" id="hang" style="display: none"> <tr><td> <p align="center"><audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio></p> <h1 align="center">Hangbeállítás</h1><br> <div id="hangok" style="display:table;"> 	<div style="display:table-row;"><div style="display:table-cell; padding:10px;" onmouseover=\'sugo(this,"Ha be van kapcsolva, bot védelem esetén ez a link is megnyitódik, mint figyelmeztetés.")\'><b>Alternatív botriadó? <a href="javascript: altbot()">BEKAPCSOLVA</a><br>Megnyitott URL (egyszer)<br><input type="text" id="altbotURL" size="42" value="http://www.youtube.com/watch?v=k2a30--j37Q"></div>   </div> </div> </td></tr> </table>';
 	document.title="SZEM IV";
 	
@@ -2154,14 +2159,20 @@ function szem4_ADAT_farm_load(){try{
 
 		resz=suti.split(";")[7];
 		if (resz && resz.length > 5) ALL_UNIT_MOVEMENT = JSON.parse(resz); else ALL_UNIT_MOVEMENT = {};
-
+		
 		resz=suti.split(";")[8];
 		if (resz && resz.length > 5) ALL_SPY_MOVEMENTS = JSON.parse(resz); else ALL_SPY_MOVEMENTS = {};
-
+		
 		resz=suti.split(";")[9];
 		if (resz)  {
 			resz = resz.split('.');
-			for (var i=0;i<resz.length;i++) adat[i+1].cells[3].textContent=resz[i];
+			for (var i=0;i<resz.length;i++) {
+				if (ALL_VIJE_SAVED[adat[i+1].cells[0].textContent]) {
+					adat[i+1].cells[3].textContent=resz[i];
+				} else {
+					adat[i+1].cells[3].textContent=0;
+				}
+			}
 		}
 		
 		document.getElementById("farm_opts").rows[2].cells[0].getElementsByTagName("input")[0].checked=false;
@@ -2335,8 +2346,7 @@ function saveLocalDataToCloud() {
 		epit: localStorage.getItem(AZON+"_epito"),
 		vije: localStorage.getItem(AZON+"_sys")
 	};
-	updateData(jsonToSave).then((data) => {
-		debug('Sync', 'Synced - ' + data);
+	updateData(jsonToSave).then(() => {
 		var d=new Date(); document.getElementById("adat_opts").rows[4].cells[2].textContent=d.toLocaleString();
 	});
 }

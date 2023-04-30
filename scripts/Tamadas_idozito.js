@@ -1,6 +1,6 @@
 javascript:
-PONTOS=-300; /*Ennyivel hamarább indítja a támadást. Negatív: később indítja*/
-TIPUS="B"; /*B: Back, azaz mikor érkezzen be? N: Normal, azaz mikor indítsa?*/
+var PONTOS=850; /*Ennyivel hamarább indítja a támadást. Negatív: később indítja*/
+var TIPUS="B"; /*B: Back, azaz mikor érkezzen be? N: Normal, azaz mikor indítsa?*/
 function elkuld(){
 	var x = new Date();
 	console.info('OK:',writeoutDate(x));

@@ -1,0 +1,1 @@
+minify scripts/kotrogep.js > minified_scripts/kotrogep.txt
