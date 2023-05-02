@@ -4,6 +4,7 @@ try { /*PF-Area*/
 } catch (e) {
     alert(e);
 }
+var curr_width = $('#main_layout').width();
 var oz = document.getElementById("production_table").getElementsByTagName("a");
 for (var o = 0; o < oz.length; o++) {
     try {
@@ -13,7 +14,7 @@ for (var o = 0; o < oz.length; o++) {
 
 $("#contentContainer").prependTo("body");
 $("body").children(":not(#contentContainer)").remove();
-$("#ds_body").width('1300px').css('margin','auto').css('background-image', 'linear-gradient(#FFF 0, #FFF 300px, #363)');
+$("#ds_body").width((curr_width + 200) + 'px').css('margin','auto').css('background', '#363');
 var ELEM=document.createElement("div");
 ELEM.setAttribute('id', 'kotrogep-header');
 ELEM.innerHTML = '<p align="center"><audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio><br><img src="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/kotrogep/excavator.gif" height="221px"></p> <h1 align="center">KOTRÓGÉP</h1><h4 align="center"><i>...és érmeverő</i></h3><br><p style="padding-left:25px">Minimum nyers/falu: <img alt="Fa" title="Fa" src="http://hu17.tribalwars.net/graphic/holz.png"> <input type="text" id="fa_" size="5" value="50000"><img alt="Agyag" title="Agyag" src="http://hu17.tribalwars.net/graphic/lehm.png?6c9bd"> <input type="text" id="agyag_" size="5" value="50000"> <img alt="Vas" title="Vas" src="http://hu17.tribalwars.net/graphic/eisen.png?0e9e5"> <input type="text" id="vas_" size="5" value="50000"> &nbsp;&nbsp;&nbsp;Feltöltési mód? <input type="checkbox" onclick=set_balance()> <a onclick="javascript: alert(\'Az opció bepipálása után a BE oszlopba megjelölt falukat a script továbbra is feltölti nyersanyaggal, de ügyel arra, hogy ne léphesse túl a raktár kapacitását. Megfelelő pipálással egy jó balance hozható létre.\')">Mi ez?</a> &nbsp;&nbsp;&nbsp; Feltöltés a raktár kapacitásának <input type="text" size="2" id="maxup" value="80">%-áig. Max szállítási távolság: <input type="text" value="30" size="2" id="maxtav"> mező. <input id="rapid_value" size="2" value="10"> perc múlva nézem újra a falut, ha nem volt munkája.</p>\  <p id="newrowarea"><b>Új külső falu megadása:</b> Koordináta <input type="text" size="7"> Kezdeti nyers <img alt="Fa" title="Fa" src="http://hu17.tribalwars.net/graphic/holz.png"> <input type="text" size="5" value="0"><img alt="Agyag" title="Agyag" src="http://hu17.tribalwars.net/graphic/lehm.png?6c9bd"> <input type="text" size="5" value="0"> <img alt="Vas" title="Vas" src="http://hu17.tribalwars.net/graphic/eisen.png?0e9e5"> <input type="text" size="5" value="0"> <input type="button" onclick=addNewRow() value="Felvisz"> <input type="button" onclick=addMoreRow() value="Tömeges felvitel"></p>\  <p id="kot_uzi"><b>Üzenetek:</b></p>';
@@ -25,9 +26,12 @@ ELEM = document.createElement("style");
 ELEM.type = "text/css";
 ELEM.innerHTML = `
     #kotrogep-header {
-        background: #FFF;
+        background-image: linear-gradient(#FFF 0, #FFF 300px, #363);
         padding: 10px;
         border-radius: 10px;
+    }
+    #db {
+        color: wheat;
     }
 `;
 document.head.appendChild(ELEM);
@@ -35,7 +39,7 @@ document.title = "A KOTRÓGÉP";
 var tabla = document.getElementById("production_table");
 for (i = 0; i < tabla.rows.length; i++) {
     cell = tabla.rows[i].insertCell(0);
-    cell.setAttribute("width", "115px");
+    cell.setAttribute("width", "110px");
     if (i == 0) {
         cell.innerHTML = '<b>ÉRME</b> <img onclick=pipa(\'auto\',2); title="Azon faluk bepipálása, melyek tanyaszintje max, és betelt." src="' + pic("auto") + '"><img onclick=pipa(\'all\',2); title="Összes falu bepipálása." src="' + pic("all") + '"><img onclick=pipa(\'none\',2); title="Kiszedi a pipákat." src="' + pic("none") + '"><img onclick=pipa(\'clone\',2); title="Azok falukat pipálja be, amik a BE oszlopnál már be vannak." src="' + pic("clone") + '">';
         cell.style.backgroundColor = "#FF0";
@@ -47,12 +51,13 @@ for (i = 0; i < tabla.rows.length; i++) {
         cell.style.backgroundColor = "#AAF";
     } else cell.innerHTML = '<input type="checkbox">';
     cell = tabla.rows[i].insertCell(0);
+    cell.setAttribute("width", "90px");
     if (i == 0) {
         cell.innerHTML = '<b>BE</b> <img onclick=pipa(\'auto\',0); title="Azon faluk bepipálása, melyek tanyaszintje max, és betelt." src="' + pic("auto") + '"><img onclick=pipa(\'all\',0); title="Összes falu bepipálása." src="' + pic("all") + '"><img onclick=pipa(\'none\',0); title="Kiszedi a pipákat." src="' + pic("none") + '"><img onclick=pipa(\'clone\',0); title="Azok falukat pipálja be, amik az ÉRME oszlopnál már be vannak." src="' + pic("clone") + '">';
         cell.style.backgroundColor = "#AAF";
     } else cell.innerHTML = '<input type="checkbox">';
     cell = tabla.rows[i].insertCell(0);
-    cell.setAttribute("width", "250px");
+    cell.setAttribute("width", "180px");
     if (i == 0) {
         cell.innerHTML = "<b>Online</b>";
         cell.style.backgroundColor = "#AAF";
@@ -248,12 +253,12 @@ function botriado(bool) { /*Egy link jelenik meg, mely ezt a fg-t TRUE-val hívj
         PM4 = false;
         A = window.open(document.location.href, "kotrogep");
         document.getElementById("audio1").pause();
-        setTimeout("eloszto();", 2000);
+        setTimeout(() => eloszto(), 2000);
     }
 }
 function nfrissit(sorsz, ures) {
     try {
-        if (ures) extraido = new Array(0, 10, 0);
+        if (ures) extraido = new Array(0, 5, 0);
         else extraido = A.document.getElementById("content_value").getElementsByTagName("table")[0].rows[5].cells[1].innerHTML.match(/[0-9]+/g);
         if (extraido[1] != 0) {
             extraido[1] = (extraido[1] + "").replace(/^0*/g, "");
@@ -263,7 +268,7 @@ function nfrissit(sorsz, ures) {
         newdate.setHours(newdate.getHours() + (parseInt(extraido[0]) * 2));
         newdate.setMinutes(parseInt(newdate.getMinutes()) + (parseInt(extraido[1]) * 2) + 1);
         newdate.setSeconds(parseInt(newdate.getSeconds()) + (parseInt(extraido[2]) * 2));
-        tabla.rows[sorsz].cells[0].innerHTML = newdate;
+        tabla.rows[sorsz].cells[0].innerHTML = newdate.toLocaleString();
         if (!ures) A.document.getElementById("content_value").getElementsByTagName("input")[0].click();
     } catch (e) {
         db("nFrissít hiba: " + e);
@@ -839,10 +844,11 @@ function balance_frissit() {
 function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltődését is. Ha minden rendben, meghívja az aktiális intézkező fg.-t a paraméterekkel.*/
     try {
         AUTOUPDATE++;
-        if (AUTOUPDATE > 1000) {
+        if (AUTOUPDATE > 500) {
             AUTOUPDATE = 0;
             A = window.open(document.location.href, "kotrogep");
-            throw "Update";
+            setTimeout("eloszto()", 500);
+            return;
         }
         if (A.closed) {
             A = window.open(document.location.href, "kotrogep");
@@ -916,9 +922,8 @@ function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltőd�
             A = window.open(document.location.href, "kotrogep");
         } catch (e) {}
     }
-    rand = (Math.floor(Math.random() * 250) + 500);
-    setTimeout("eloszto()", rand);
-    return;
+    rand = (Math.floor(Math.random() * 500) + 1000);
+    setTimeout(() => eloszto(), rand);
 }
 var ALLAPOT = 0;
 var PM1 = 0;
@@ -935,7 +940,7 @@ document.getElementById("wavhang").src = "https://raw.githubusercontent.com/cncD
 document.getElementById("audio1").load();
 document.getElementById("audio1").pause();
 eloszto();
-$("#production_table tr:not(:first-child) td:first-child").dblclick(function () {
+$("#production_table tbody tr td:first-child").dblclick(function () {
     this.innerHTML = "Ismeretlen";
 });
 void(0);

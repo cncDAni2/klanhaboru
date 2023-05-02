@@ -660,7 +660,6 @@ function clearAttacks() {try{
 				debug('clearAttacks', 'Anomaly, nem szabályszerű mozgás ('+item+'):'+JSON.stringify(movement)+' -- össz:'+JSON.stringify(outdatedArrays));
 			}
 			if (movement[2] > 0) {
-				console.info('Sub_nyers', item, ALL_UNIT_MOVEMENT[item]);
 				subtractNyersValue(movement[0], movement[2]);
 				movement[2] = 0;
 			}
@@ -672,11 +671,9 @@ function clearAttacks() {try{
 			return (current[1] > prev[1]) ? current : prev;
 		}, outdatedArrays[0]);
 
-		console.info('clearAttacks: Vannak törlendők, '+item+'az ez utániakat kéne: ', closestArray, JSON.stringify(ALL_UNIT_MOVEMENT[item]));
 		ALL_UNIT_MOVEMENT[item] = ALL_UNIT_MOVEMENT[item].filter(function(array) {
 			return array[1] >= closestArray[1];
 		});
-		console.info('clearAttacks kész, eredmény: ', item, ALL_UNIT_MOVEMENT[item]);
 	}
 	for (let item in ALL_VIJE_SAVED) {
 		if (ALL_VIJE_SAVED[item] < currentTime - (3 * 60 * 60000)) {
@@ -684,7 +681,7 @@ function clearAttacks() {try{
 			delete ALL_VIJE_SAVED[item];
 		}
 	}
-}catch(e) {debug('clearAttacks', e); console.info('clearAttacks', e);}}
+}catch(e) {debug('clearAttacks', e);}}
 
 function getCorrigatedMaxIdoPerc(banyaszintek) {
 	var hatarszam=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10);
@@ -709,7 +706,7 @@ function getResourceProduction(banyaszintek, idoPerc) {try{
 	
 	var idoOra = idoPerc/60;
 	return Math.round(prodHour * idoOra);
-}catch(e) {debug('getResourceProduction', e); console.info('getResourceProduction', e);}}
+}catch(e) {debug('getResourceProduction', e);}}
 function convertTbToTime(banyaszintek, tb) {
 	var termeles = getProdHour(banyaszintek); // 1000 
 	var idoPerc = (tb / termeles) * 60;
@@ -747,7 +744,7 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 		}
 	}
 	return foszthatoNyers;
-}catch(e) {debug('calculateNyers', e); console.info('calculateNyers', e);}}
+}catch(e) {debug('calculateNyers', e);}}
 function findClosestTimes(allAttack, arriveTime) { //@AI
 	// Initialize variables to store the closest array before and after the target epoch time
 	var closestBefore = null;
@@ -791,7 +788,6 @@ function addCurrentMovementToList(formEl, farmCoord, farmHelyRow) {
 			teherbiras-=VIJE_teher;
 		}
 	}
-	console.info('addCurrentMovementToList::', [teherbiras, arriveTime, VIJE_teher]);
 
 	var allAttack = ALL_UNIT_MOVEMENT[farmCoord];
 	if (!allAttack) {
@@ -849,6 +845,8 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 	var par=[]; /*Becsült útidő;Gyalogosok e?;koord-honnan;koord-hova;nyers_termelésből*/
 	var currDate=new Date(); var sp;
 	if (a.length==1 || b.length==1) return "zero";
+	var maxspeed=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[1].value)*60+(parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[2].value));
+
 	for (var i=1;i<a.length;i++) {
 		if (a[i].cells[0].style.backgroundColor=="red") continue;
 		var hatarszam=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10);
@@ -907,7 +905,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 				};
 			}
 		}
-		if (closest_vill.traverTime > 0 && (verszem || par.length == 0 || closest_vill.traverTime < par[0])) {
+		if (closest_vill.traverTime <= maxspeed && closest_vill.traverTime > 0 && (verszem || par.length == 0 || closest_vill.traverTime < par[0])) {
 			var nyers_termeles = calculateNyers(farmCoord, a[i].cells[1].textContent, closest_vill.traverTime);
 			if ((nyers_VIJE + nyers_termeles) < hatarszam) continue;
 			par = [closest_vill.traverTime, closest_vill.units, closest_vill.coord, farmCoord, nyers_VIJE+nyers_termeles];
@@ -915,10 +913,9 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		if (verszem && par.length > 1) { debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[3] + ' ('+ par[4] + ')'); break;}
 	}
 	if (par.length==0) return ""; /*Nincs munka*/
-	var maxspeed=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[1].value)*60+(parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[2].value));
-	/*debug("TEST_01",maxspeed+" - "+par[0]);*/
+	
 	if (par[0]>maxspeed) return "";
-	/*debug("Farmolo","Célpontválasztás: "+par);	*/
+	console.info('Támadás '+par[3], JSON.stringify(par), JSON.stringify(ALL_UNIT_MOVEMENT[par[3]]));
 	return par;
 }catch(e){debug("szem4_farmolo_1kereso()",e); return "";}}
 
@@ -1027,7 +1024,6 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 			if ((debugzsak-100)>adatok[4]) debug("Farmolo()","<b>ERROR: TOO MANY UNITS</b>");
 			C_form.attack.click(); ezt=adatok[1]; 						
 		} else {
-			console.info("Fake limit?", betesz_ossz, '>=', parseInt(opts[7].value), ' --> Falu: '+adatok[3]);
 			ezt=adatok[1]+"|semmi";
 		}
 	}}
@@ -1214,7 +1210,7 @@ function szem4_farmolo_motor(){try{
 				if (isPageLoaded(FARM_REF,koordTOid(PM1[2]),"screen=place")) {
 					FARM_HIBA=0; FARM_GHIBA=0;
 					PM1=szem4_farmolo_2illeszto(PM1);
-					console.info("Case 1, PM1::", PM1);
+					console.info("Case 1, PM1=", PM1);
 					if (typeof(PM1)=="object" && PM1.length>0) {
 						if (PM1[1].indexOf("semmi")>0) 
 							FARM_LEPES=3;
@@ -1724,45 +1720,113 @@ function szem4_EPITO_getBuildLink(ref, type) {
   }
 }
 
-function szem4_EPITO_IntettiBuild(pcel){try{
+function szem4_EPITO_IntettiBuild(buildOrder){try{
 	/*Jelenleg: építés alatt állók --> blista*/
-	try{TamadUpdt(EPIT_REF);}catch(e){}
-	try{var sor=EPIT_REF.document.getElementById("buildqueue").rows;
-	
-	var blista=""; /*BuildingList*/
-	var bido=0; /*Ennyi perc építési idő*/
-	var bido1=0; /*Az első épület építési ideje*/
-	var s;
-	for (var i=1;i<sor.length;i++) {
-		try{blista+=sor[i].cells[0].getElementsByTagName("img")[0].src.match(/[A-Za-z0-9]+\.(png)/g)[0].replace(/[0-9]+/g,"").replace(".png","");
-			s=sor[i].cells[1].textContent.split(":");
-			bido+=parseInt(s[0])*60+parseInt(s[1])+(parseInt(s[2])/60);
-			if (bido1==0) bido1=bido;
-			blista+=";";
-		}catch(e){}
+	//try{TamadUpdt(EPIT_REF);}catch(e){}
+	var buildList=""; /*Current BuildingList IDs*/
+	var allBuildTime=0; /*Ennyi perc építési idő, csak kiírás végett*/
+	var firstBuildTime=0; /*Az első épület építési ideje*/
+	var textTime;
+
+	try{
+		if (!EPIT_REF.document.getElementById("buildqueue")) throw 'No queue';
+		var buildQueueRows=EPIT_REF.document.getElementById("buildqueue").rows;
+		for (var i=1;i<buildQueueRows.length;i++) {try{
+			buildList+=buildQueueRows[i].cells[0].getElementsByTagName("img")[0].src.match(/[A-Za-z0-9]+\.(png)/g)[0].replace(/[0-9]+/g,"").replace(".png","");
+			textTime=buildQueueRows[i].cells[1].textContent.split(":");
+			allBuildTime+=parseInt(textTime[0])*60+parseInt(textTime[1])+(parseInt(textTime[2])/60);
+			if (firstBuildTime==0) firstBuildTime=allBuildTime;
+			buildList+=";";
+		}catch(e){}}
+
+	allBuildTime=Math.round(allBuildTime);
+	allBuildTime=allBuildTime+"";
+	if (allBuildTime!="0") {
+		if (allBuildTime.length==1) allBuildTime="000"+allBuildTime;
+		if (allBuildTime.length==2) allBuildTime="00"+allBuildTime;
+		if (allBuildTime.length==3) allBuildTime="0"+allBuildTime;
 	}
-	bido=Math.round(bido);
-		bido=bido+"";if (bido!="0") {
-		if (bido.length==1) bido="000"+bido;
-		if (bido.length==2) bido="00"+bido;
-		if (bido.length==3) bido="0"+bido;}
-	bido1=bido1.toFixed(2)+1;
-	if (bido1>180) bido1=180;
-	}catch(e){var blista=";"; var bido=0; var bido1=0;}
+	firstBuildTime = Math.ceil(firstBuildTime);
+	if (firstBuildTime>180) firstBuildTime=180;
+	}catch(e){var buildList=";"; var allBuildTime=0; var firstBuildTime=0;}
 	
-	if (blista.split(";").length>4) { szem4_EPITO_addIdo(PMEP[2],100);  return "overflow";} 
+	if (buildList == '') buildList = ';';
+	if (buildList.split(";").length>4) { szem4_EPITO_addIdo(PMEP[2],100);  return "overflow";} 
+	
+	/* Jelenlegi épületszintek kiszámítása építési sorral együtt */
+	const currentBuildLvls=EPIT_REF.game_data.village.buildings;
+	buildList=buildList.split(";");
+	for (var i=0;i<buildList.length;i++) {
+		currentBuildLvls[buildList[i]]++;
+	}
+
+	/* Következő építendő épület meghatározása */
+	var nextToBuild = '';
+	var buildOrderArr=buildOrder.split(";");
+	for (var i=0;i<buildOrderArr.length;i++) {
+		let cel = buildOrderArr.split(' ');
+		cel[1] = parseInt(cel[1]);
+		if (cel[0] == 'MINES') {
+			let smallest = 31;
+			if (currentBuildLvls['wood'] < cel[1]) {
+				smallest = currentBuildLvls['wood'],;
+				nextToBuild = 'wood';
+			}
+			if (currentBuildLvls['stone'] < cel[1] && currentBuildLvls['stone'] < smallest) {
+				smallest = currentBuildLvls['stone'];
+				nextToBuild = 'stone';
+			}
+			if (currentBuildLvls['iron'] < cel[1] && currentBuildLvls['iron'] < smallest) {
+				smallest = currentBuildLvls['iron'];
+				nextToBuild = 'iron';
+			}
+			if (nextToBuild != '') break;
+		}
+		if (currentBuildLvls[cel[0]] < cel[1]) {
+			nextToBuild = cel[0];
+			break;
+		}
+	}
+
+	/* Cél szükségeletének lekérése */
+	var nextToBuildRow = EPIT_REF.document.getElementById('main_buildrow_' + nextToBuild);
+	if (!nextToBuildRow) throw 'Nem lehet ilyen épületet építeni: ' + nextToBuild;
+	var resNeed = {
+		wood: parseInt(nextToBuildRow[1].textContent.match(/[0-9]+/g),10),
+		stone: parseInt(nextToBuildRow[2].textContent.match(/[0-9]+/g),10),
+		iron: parseInt(nextToBuildRow[3].textContent.match(/[0-9]+/g),10),
+		pop: parseInt(nextToBuildRow[5].textContent.match(/[0-9]+/g),10)
+	}
+	if (Math.max(resNeed.wood, resNeed.stone, resNeed.iron) < EPIT_REF.game_data.village.storage_max) nextToBuild = 'storage';
+	if (resNeed.pop > (EPIT_REF.game_data.village.pop_max - EPIT_REF.game_data.village.pop)) nextToBuild = 'farm+';
+	if (nextToBuild == 'farm+' && EPIT_REF.game_data.village.buildings.farm == 30) {
+		szem4_EPITO_infoCell(PMEP[2],"red","Tanya megtelt, építés nem folytatható. Építés még "+allBuildTime+" percig.");
+		return;
+	}
+	if (nextToBuild == 'farm+' && buildList.includes('farm')) {
+		szem4_EPITO_infoCell(PMEP[2],'yellow', 'Tanya megtelt, de már építés alatt... Építés még '+allBuildTime+' percig.');
+		return;
+	}
+	// if () nyersanyaghiány
+	if (nextToBuild == 'farm+') nextToBuild = 'farm';
+
+	
+
+
+
+
+
 	
 	/*Következő épület meghatározása: építendő épület ---> str*/
-	var GD=EPIT_REF.game_data.village.buildings;
-	var cel=pcel.split(";");
 	var jel=new Array(); /*épületek szintjei*/
 	var ijel=new Array(); /*épület típusa*/
 	
 	var i=-2;
-	var ss=blista.split(";");
-	for (var elem in GD) {
+	
+	// Jelenlegi szintek megállítása, build ordert hozzáadva
+	for (var elem in currentBuildLvls) {
 		i++; if (i==-1) continue;
-		jel[i]=GD[elem];
+		jel[i]=currentBuildLvls[elem];
 		ijel[i]=elem;
 		for (var g=0;g<ss.length;g++) {
 			if (ijel[i]==ss[g]) {
@@ -1771,15 +1835,15 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 		}
 	}
 	var str=""; var vizsga=""; var mine=new Array(0,0,0);
-	for (i=0;i<cel.length;i++) {
-		vizsga=cel[i].split(" ")[0];
+	for (i=0;i<buildOrderArr.length;i++) {
+		vizsga=buildOrderArr[i].split(" ")[0];
 		for (var j=0;j<ijel.length;j++) { /*Keressük a megfelelő épület jelenlegi szintjét*/
 			if (ijel[j]==vizsga) {	/*Megvan, jelenlegi szintje jel[j]*/
 				/*alert("Cél: "+cel[i]+"\n Jelenleg: "+ijel[j]+" - "+jel[j]);*/
-				for (var k=0;k<parseInt(cel[i].split(" ")[1])-jel[j];k++) {
+				for (var k=0;k<parseInt(buildOrderArr[i].split(" ")[1])-jel[j];k++) {
 					str+=vizsga+";";
 				}
-				if (parseInt(cel[i].split(" ")[1])-jel[j]>0) jel[j]=parseInt(cel[i].split(" ")[1]);
+				if (parseInt(buildOrderArr[i].split(" ")[1])-jel[j]>0) jel[j]=parseInt(buildOrderArr[i].split(" ")[1]);
 			}
 		}
 		if (vizsga=="MINES") {
@@ -1789,7 +1853,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 				if (ijel[j]=="stone") mine[1]=j;
 				if (ijel[j]=="iron") mine[2]=j;
 			}
-			for (var j=0;j<=parseInt(cel[i].split(" ")[1]);j++) {
+			for (var j=0;j<=parseInt(buildOrderArr[i].split(" ")[1]);j++) {
 				for (var k=0;k<3;k++) {
 					if (jel[mine[k]] < j) {
 						str+=k+";";
@@ -1831,28 +1895,28 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 			if (ok=="") {
 					/*Nincs nyers?*/
 					if (needs[0]>EPIT_REF.game_data.village.wood || needs[1]>EPIT_REF.game_data.village.stone || needs[2]>EPIT_REF.game_data.village.iron) {
-						szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány lépett fel. Építés még "+bido+" percig.");
+						szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány lépett fel. Építés még "+allBuildTime+" percig.");
 					} else { /*Akkor már van 2 épület?*/
-						if (blista.split(";")[1].length>2) {
-							szem4_EPITO_infoCell(PMEP[2],"alap","Építési sor megtelt. Építés még "+bido+" percig.");
+						if (buildList.split(";")[1].length>2) {
+							szem4_EPITO_infoCell(PMEP[2],"alap","Építési sor megtelt. Építés még "+allBuildTime+" percig.");
 						} else { /*Ez se? Akkor... nem tom :S*/
-							szem4_EPITO_infoCell(PMEP[2],"blue","Ismeretlen ok miatti állás. Építés még "+bido+" percig.");
+							szem4_EPITO_infoCell(PMEP[2],"blue","Ismeretlen ok miatti állás. Építés még "+allBuildTime+" percig.");
 						}
 					}
-				if (bido1>0) szem4_EPITO_addIdo(PMEP[2],bido1); else szem4_EPITO_addIdo(PMEP[2],30);
+				if (firstBuildTime>0) szem4_EPITO_addIdo(PMEP[2],firstBuildTime); else szem4_EPITO_addIdo(PMEP[2],30);
 				return;
 			}
 			if (ok==build) { 
-				if (bido1>0) szem4_EPITO_addIdo(PMEP[2],bido1); else szem4_EPITO_addIdo(PMEP[2],60); 
+				if (firstBuildTime>0) szem4_EPITO_addIdo(PMEP[2],firstBuildTime); else szem4_EPITO_addIdo(PMEP[2],60); 
 			} else {
 				if (ok=="farm" && parseInt(EPIT_REF.game_data.village.buildings.farm)>=30) {
 					/*Nem lehet több épületet építeni, mert megtelt a tanya*/ 
 					szem4_EPITO_addIdo(PMEP[2],180);
 					szem4_EPITO_infoCell(PMEP[2],"blue","A tanya maxon, és megtelt.");
 					/*Esetleg még raktárat?*/
-					for (var i=0;i<pcel;i++) {
-						if (pcel.split(" ")[0]=="storage") {
-							if (parseInt(pcel.split(" ")[1],10)>EPIT_REF.game_data.village.buildings.storage) 
+					for (var i=0;i<buildOrder;i++) {
+						if (buildOrder.split(" ")[0]=="storage") {
+							if (parseInt(buildOrder.split(" ")[1],10)>EPIT_REF.game_data.village.buildings.storage) 
 								try{szem4_EPITO_getBuildLink(EPIT_REF,"storage").click(); szem4_EPITO_addIdo(PMEP[2],60);}catch(e){}
 						}
 					}
@@ -1860,10 +1924,10 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 					if (EPIT_REF.$("#main_buildlink_"+ok).is(":visible")) {
 						szem4_EPITO_getBuildLink(EPIT_REF,ok).click(); 
 					} else { /*A hibát okozó épület sem építhető. Speciális legend hiba: farm-ot kell venni, de kicsi a raktár hozzá :) */
-						if (blista.split(";")[1]!="") szem4_EPITO_infoCell(PMEP[2],"alap","Tanyát vagy raktárat kéne húzni, de teli van a sor most. Építés még "+bido+" percig.");
+						if (buildList.split(";")[1]!="") szem4_EPITO_infoCell(PMEP[2],"alap","Tanyát vagy raktárat kéne húzni, de teli van a sor most. Építés még "+allBuildTime+" percig.");
 						else 
-						szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány!? Tanyát vagy raktárat kéne húzni, de nem tudom betenni. Építés még "+bido+" percig.");
-						if (bido1>0) szem4_EPITO_addIdo(PMEP[2],bido1); else szem4_EPITO_addIdo(PMEP[2],60);
+						szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány!? Tanyát vagy raktárat kéne húzni, de nem tudom betenni. Építés még "+allBuildTime+" percig.");
+						if (firstBuildTime>0) szem4_EPITO_addIdo(PMEP[2],firstBuildTime); else szem4_EPITO_addIdo(PMEP[2],60);
 					}
 				}
 			}
@@ -1871,7 +1935,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 	} else {
 		/*Létezik ilyen épület egyáltalán?*/
 		i=-2; var letezo=false;
-		for (var elem in GD) {
+		for (var elem in currentBuildLvls) {
 			i++; if (i==-1) continue;
 			if(elem==build) {letezo=true;break;}
 		}
@@ -1883,7 +1947,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 		}
 		
 		/*Létezik, tehát előfeltétel nincs meg. Van építés alatt valami?*/
-		if (!(bido1>0)) {
+		if (!(firstBuildTime>0)) {
 			szem4_EPITO_infoCell(PMEP[2],"red","A soron következő épülethez ("+build+") más épületek szükségeltetnek.");
 			szem4_EPITO_addIdo(PMEP[2],60);
 			naplo("Építő","Előfeltételeknek nem megfelelő építési listát tartalmaz a(z) \""+PMEP[2].cells[1].getElementsByTagName("select")[0].value+"\" építési lista!"); 
@@ -1892,7 +1956,7 @@ function szem4_EPITO_IntettiBuild(pcel){try{
 		
 		/*Még várunk, mert építünk*/
 		szem4_EPITO_infoCell(PMEP[2],"alap","Jelenleg előfeltétel épül.");
-		if (bido1>0) szem4_EPITO_addIdo(PMEP[2],bido1); else {debug("Építő","Anomália: H4f"); szem4_EPITO_addIdo(PMEP[2],60);}
+		if (firstBuildTime>0) szem4_EPITO_addIdo(PMEP[2],firstBuildTime); else {debug("Építő","Anomália: H4f"); szem4_EPITO_addIdo(PMEP[2],60);}
 	}
 	return;
 }catch(e){debug("epit_IntelliB",e);}}
@@ -2011,7 +2075,7 @@ function szem4_ADAT_sys_save(){try{
 	eredmeny+=";";
 	
 	localStorage.setItem(AZON+"_sys",eredmeny);
-	var d=new Date(); document.getElementById("adat_opts").rows[3].cells[2].textContent=d.toLocaleString();;
+	var d=new Date(); document.getElementById("adat_opts").rows[3].cells[2].textContent=d.toLocaleString();
 	return;
 }catch(e){debug("ADAT_sys_save",e);}}
 
@@ -2328,7 +2392,6 @@ function loadCloudDataIntoLocal() {
 		return;
 	}
 	readUpData().then((cloudData) => {
-		console.info('Adat letöltve:', cloudData);
 		localStorage.setItem(AZON+"_farm", cloudData.farm);
 		localStorage.setItem(AZON+"_epito", cloudData.epit);
 		localStorage.setItem(AZON+"_sys", cloudData.vije);
@@ -2432,24 +2495,23 @@ Kos: Falszintenként megadjuk pontosan a sereget mit küldjön. Megadjuk mely fa
 Sikeres elküldés esetén zöldíti a hátteret ahogy mi is tennénk, +ugye csak azokat nézi ami nem zöld hátteres
 (! akár már most!)VIJE: falszint változás észlelésekor kiszedi a zöld jelzést 
 
+ADDME: Screen freeze: Minden féle klikk v bill. megfagyasztja a botot, és nem csinál semmit 5mp-ig! Kis ikon is jelezhetné h FREEZED
+ADDME: Fal szint lehessen mínusz is, ha elofeltételek nem teljesülnek: Barakk és 3as fohadi
+ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
+ADDME: New kieg.: Tőzsdefigyelő (Csak hang)
+ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
+ADDME: Ai: Automatikus, falunkénti megbízhatóság- és hatászám számolás. Csak perc alapú, és farmvédő alapú
+ADDME: Tőzsdefigyelő
 ILLESZTŐ: még 1 1séget a cuccbú' ne illesszen be ha az <20%-ig volna csak kihasználva
 ADDME: Határszám emelése megbízhatóság/2 percnyi termelésig
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
-FIXME: "Kezdő felderítés" helyett felderítés/limit perc, azaz x percenként küldjön rá csak kémet max (0=off természetes módon)
-FIXME: Farmolo: Ha nincs munka, azért csekkoljon rá a referenciára, hátha akkor jött be a bot védelem!
-ADDME: VIJE opciók: [ ] csak kém (csak kémes jelik nézése), [ ] warn-mode (zöldeket ne nézze)
+ADDME: VIJE opciók: [ ] csak kém (csak kémes jelik nézése), [ ] low-mode (zöldeket ne nézze)
 REMOVE: Min sereg/falu, helyette minimum <határszám>-nyi nyersanyag elvétele
 REFACTOR: farm_opts inputoknak adj ID-kat, esetleg form az miért nem jó?
 ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
 FIXME: Utolsó visszatérő sereget nézzen, ne default <10p> pihit falu_helye.cells[2].innerHTML=d;
-FIXME: Ne töltse be újra a lapot a farmoló, ha már azon vagyok ami kell!
-FIXME: Nyersanyag a faluban új oszlop: Mennyi TH katona megy rá. VIJE-nek ezt ki kell szedni. Ezután útidőbe beleszámolni az utat
 ADDME: "Sárgát NE támadd"
-ADDME: Fal szint lehessen mínusz is, ha elofeltételek nem teljesülnek: Barakk és 3as fohadi
 ADDME: Custom wallpaper
-ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
-ADDME: New kieg.: Tőzsdefigyelő (Csak hang)
-ADDME: New kieg.: FARMVÉDŐ
 EXTRA: Pihenés sync: Ha Farmoló pihen, VIJE is (külön opció VIJE-nél: recommended ha zöld-törlése be van pipálva)
 ADDME: Farmok rendezése táv szerint
 ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT

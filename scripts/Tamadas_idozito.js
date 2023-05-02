@@ -1,5 +1,5 @@
 javascript:
-var PONTOS=850; /*Ennyivel hamarább indítja a támadást. Negatív: később indítja*/
+var PONTOS=50; /*Ennyivel hamarább indítja a támadást. Negatív: később indítja*/
 var TIPUS="B"; /*B: Back, azaz mikor érkezzen be? N: Normal, azaz mikor indítsa?*/
 function elkuld(){
 	var x = new Date();
