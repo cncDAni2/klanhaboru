@@ -1950,7 +1950,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	var nextToBuildRow = EPIT_REF.document.getElementById('main_buildrow_' + nextToBuild);
 	if (!nextToBuildRow) {
 		szem4_EPITO_infoCell(PMEP[2],firstBuildTime==0?"red":"yellow", nextToBuild+" nem építhető. Előfeltétel szükséges? Építés még "+allBuildTime+" percig.");
-		szem4_EPITO_addIdo(PEMP[2], firstBuildTime>0?firstBuildTime:60);
+		szem4_EPITO_addIdo(PMEP[2], firstBuildTime>0?firstBuildTime:60);
 		return;
 	}
 	var resNeed = {
@@ -1963,12 +1963,12 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	if (resNeed.pop > (EPIT_REF.game_data.village.pop_max - EPIT_REF.game_data.village.pop)) nextToBuild = 'farm+';
 	if (nextToBuild == 'farm+' && EPIT_REF.game_data.village.buildings.farm == 30) {
 		szem4_EPITO_infoCell(PMEP[2],"red","Tanya megtelt, építés nem folytatható. Építés még "+allBuildTime+" percig.");
-		szem4_EPITO_addIdo(PEMP[2], 120);
+		szem4_EPITO_addIdo(PMEP[2], 120);
 		return;
 	}
 	if (nextToBuild == 'farm+' && buildList.includes('farm')) {
 		szem4_EPITO_infoCell(PMEP[2],'yellow', 'Tanya megtelt, de már építés alatt... Építés még '+allBuildTime+' percig.');
-		szem4_EPITO_addIdo(PEMP[2], 120);
+		szem4_EPITO_addIdo(PMEP[2], 120);
 		return;
 	}
 	if (nextToBuild == 'farm+' || nextToBuild == 'storage+') {
@@ -2105,7 +2105,7 @@ function szem4_ADAT_sys_save(){try{
 		if (adat[i].getAttribute("type")=="checkbox") {
 			if (adat[i].checked) eredmeny+="true"; else eredmeny+="false"; 
 		} else eredmeny+=adat[i].value;
-		if (i<adat.length-1) eredmeny+="..";
+		if (i<adat.length-1) eredmeny+=".";
 	}
 	eredmeny+='.'+JSON.stringify(ALL_VIJE_SAVED);
 	eredmeny+=";";
