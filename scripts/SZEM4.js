@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = '4.5 Build 23.05.03';
+var VERZIO = '4.5 Build 23.05.04';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -1847,7 +1847,7 @@ function szem4_EPITO_infoCell(sor,szin,info){try{
 	if (szin=="red") setTimeout('playSound("kritikus_hiba")',2000);
 	sor.cells[3].style.backgroundColor=szin;
 	
-	sor.cells[3].innerHTML=info+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+koordTOid(sor.cells[0].textContent))+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';
+	sor.cells[3].innerHTML=info+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+koordTOid(sor.cells[0].textContent)).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';
 	return;
 }catch(e){debug("építő_infoCell",e);}}
 

@@ -12,6 +12,22 @@ for (var o = 0; o < oz.length; o++) {
     } catch (e) {}
 }
 
+var worker = createWorker(function(self){
+	self.addEventListener("message", function(e) {
+		setTimeout(() => { postMessage(e.data); }, e.data.time);
+	}, false);
+});
+worker.onmessage = function(worker_message) {
+	eloszto();
+};
+function createWorker(main){
+	var blob = new Blob(
+		["(" + main.toString() + ")(self)"],
+		{type: "text/javascript"}
+	);
+	return new Worker(window.URL.createObjectURL(blob));
+}
+
 $("#contentContainer").prependTo("body");
 $("body").children(":not(#contentContainer)").remove();
 $("#ds_body").width((curr_width + 200) + 'px').css('margin','auto').css('background', '#363');
@@ -847,17 +863,20 @@ function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltőd�
         if (AUTOUPDATE > 500) {
             AUTOUPDATE = 0;
             A = window.open(document.location.href, "kotrogep");
-            setTimeout("eloszto()", 500);
+            worker.postMessage({'id': 'kotro', 'time': 500});
+            // setTimeout("eloszto()", 500);
             return;
         }
         if (A.closed) {
             A = window.open(document.location.href, "kotrogep");
             ALLAPOT = 0;
-            setTimeout("eloszto()", 500);
+            worker.postMessage({'id': 'kotro', 'time': 500});
+            //setTimeout("eloszto()", 500);
             return;
         }
         if (A.document.readyState != "complete") {
-            setTimeout("eloszto()", 500);
+            worker.postMessage({'id': 'kotro', 'time': 500});
+            //setTimeout("eloszto()", 500);
             return;
         }
         if (A.document.getElementById('bot_check') || A.document.title == "Bot védelem") {
@@ -922,8 +941,9 @@ function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltőd�
             A = window.open(document.location.href, "kotrogep");
         } catch (e) {}
     }
-    rand = (Math.floor(Math.random() * 500) + 1000);
-    setTimeout(() => eloszto(), rand);
+    rand = (Math.floor(Math.random() * 500) + 500);
+    worker.postMessage({'id': 'kotro', 'time': rand});
+    //setTimeout(() => eloszto(), rand);
 }
 var ALLAPOT = 0;
 var PM1 = 0;

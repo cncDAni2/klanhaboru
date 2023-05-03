@@ -1,7 +1,27 @@
-javascript:
-/*Minify notes: %60-at cserélni " % 60"-ra + tabulátorokat szóközre (metszetképzés résznél az img-k között csak tab-ok vannak*/
 if (typeof cURL=='undefined') var cURL=document.location.href; else exit(0);
 if(cURL.indexOf('screen=overview_villages')==-1) exit(0);
+
+var worker = createWorker(function(self){
+	self.addEventListener("message", function(e) {
+		setTimeout(() => { postMessage(e.data); }, e.data.time);
+	}, false);
+});
+worker.onmessage = function(worker_message) {
+	worker_message = worker_message.data;
+	switch(worker_message.task) {
+		case 'falunyit':
+			openedREFS.push(window.open(worker_message.vill));
+			break;
+		default: alert("Unknow task");
+	}
+};
+function createWorker(main){
+	var blob = new Blob(
+		["(" + main.toString() + ")(self)"],
+		{type: "text/javascript"}
+	);
+	return new Worker(window.URL.createObjectURL(blob));
+}
 
 function loadXMLDoc(dname) {
 	if (window.XMLHttpRequest) xhttp=new XMLHttpRequest();
@@ -664,37 +684,27 @@ function megnyit(){ /*nem none display-ű falukat megnyitja, OPENTYPE változó 
 try{
 	var faluNO = szamlal();
 	if (faluNO > 25 && !confirm(faluNO + ' lapot készült megnyitni. Biztos?')) return;
-    var nyit="";
+	var nyit="";
 	var FALUK=document.getElementById("production_table");
 	oszlopno=getOszlopNo("falunev");
 	openedREFS = [];
-	/*CIK = 0;
-	for (var i=0;i<refarray.length;i++) {
-		setTimeout(function(){
-			refarray[CIK].document.forms["units"].support.click();
-			CIK++;
-		},TIME*i);
-	}*/
-	TABHELPER = 0;
-	TABHELPER_LIST = [];
+	var tabhelperList = [];
 	var no=0;
-    for (var q=1;q<FALUK.rows.length;q++){
-        if (FALUK.rows[q].style.display!="none") {
-            nyit=FALUK.rows[q].cells[getOszlopNo("falunev")].getElementsByTagName("a")[0].getAttribute("href");
-            nyit=nyit.replace("overview",OPENTYPE);
-			TABHELPER_LIST.push(nyit);
-            /*openedREFS.push(window.open(nyit));*/
-        }
-    }
-	for (var q=0;q<TABHELPER_LIST.length;q++) {
-		setTimeout(function(){
-			openedREFS.push(window.open(TABHELPER_LIST[TABHELPER]));
-			TABHELPER++;
-		}, (150+(Math.random()*100))*q);
+	for (var q=1;q<FALUK.rows.length;q++){
+		if (FALUK.rows[q].style.display!="none") {
+			nyit=FALUK.rows[q].cells[getOszlopNo("falunev")].getElementsByTagName("a")[0].getAttribute("href");
+			nyit=nyit.replace("overview", OPENTYPE);
+			tabhelperList.push(nyit);
+		}
 	}
-	displayMessage('Megnyitott lapok', TABHELPER_LIST.length + 'lap megnyitva.<br><button type="button" onclick="closeAllTab()">Kattints ide a bezáráshoz</button>');
+	for (var q=0;q<tabhelperList.length;q++) {
+		worker.postMessage({'task': 'falunyit', 'time': 150+(200*q), 'vill': tabhelperList[q]});
+	}
+	displayMessage('Megnyitott lapok', tabhelperList.length + 'lap megnyitva.<br><button type="button" onclick="closeAllTab()">Kattints ide a bezáráshoz</button>');
 	var limit = 10;
-	setTimeout(function() {addCsoportJelzo(openedREFS)}, TABHELPER_LIST.length*200);
+}catch(e){alert("Open_ERROR:"+e);}
+
+	setTimeout(function() {addCsoportJelzo(openedREFS)}, 500+(tabhelperList.length*200));
 	
 	function addCsoportJelzo(openedREFS) {
 		var allOk = true;
@@ -708,8 +718,7 @@ try{
 			setTimeout(function() {addCsoportJelzo(openedREFS)}, 1000);
 		}
 	}
-}catch(e){alert("Open_ERROR:"+e);}
-return;
+
 }
 function closeAllTab() {
 	for (var i=0;i<openedREFS.length;i++) {
@@ -916,15 +925,16 @@ function politavolsag(silent){try{
 			cell.innerHTML='<div class="tavolsag">'+minF+'</div>';
 			tavToolTip.innerHTML = "A legközelebbi falu.<br>Távolsága: "+min+" mező";
 		}
+		var sixty = 60; // For minifier only
 		tavToolTip.innerHTML += 
 			'<table class="tavTable"><tbody>' +
-			'<tr><td>Lándzsás</td><td>' + parseInt(ut_l/60)+":"+FN((parseInt(ut_l) % 60)) + '</td></tr>' +
-			'<tr><td>Kardforgató</td><td>'+ parseInt(ut_k/60)+":"+FN((parseInt(ut_k) % 60)) +'</td></tr>' +
-			'<tr><td>Felderítő</td><td>'+ parseInt(ut_kem/60)+":"+FN((parseInt(ut_kem) % 60)) +'</td></tr>' +
-			'<tr><td>Könnyűlovas</td><td>'+ parseInt(ut_kl/60)+":"+FN((parseInt(ut_kl) % 60)) +'</td></tr>' +
-			'<tr><td>Nehézlovas</td><td>'+ parseInt(ut_nl/60)+":"+FN((parseInt(ut_nl) % 60)) +'</td></tr>' +
-			'<tr><td>Kos</td><td>'+ parseInt(ut_kos/60)+":"+FN((parseInt(ut_kos) % 60)) +'</td></tr>' +
-			'<tr><td>Főnemes</td><td>'+ parseInt(ut_fn/60)+":"+FN((parseInt(ut_fn) % 60)) +'</td></tr>' +
+			'<tr><td>Lándzsás</td><td>' + parseInt(ut_l/sixty)+":"+FN((parseInt(ut_l) % sixty)) + '</td></tr>' +
+			'<tr><td>Kardforgató</td><td>'+ parseInt(ut_k/sixty)+":"+FN((parseInt(ut_k) % sixty)) +'</td></tr>' +
+			'<tr><td>Felderítő</td><td>'+ parseInt(ut_kem/sixty)+":"+FN((parseInt(ut_kem) % sixty)) +'</td></tr>' +
+			'<tr><td>Könnyűlovas</td><td>'+ parseInt(ut_kl/sixty)+":"+FN((parseInt(ut_kl) % sixty)) +'</td></tr>' +
+			'<tr><td>Nehézlovas</td><td>'+ parseInt(ut_nl/sixty)+":"+FN((parseInt(ut_nl) % sixty)) +'</td></tr>' +
+			'<tr><td>Kos</td><td>'+ parseInt(ut_kos/sixty)+":"+FN((parseInt(ut_kos) % sixty)) +'</td></tr>' +
+			'<tr><td>Főnemes</td><td>'+ parseInt(ut_fn/sixty)+":"+FN((parseInt(ut_fn) % sixty)) +'</td></tr>' +
 			'</tbody></table>';
 		cell.appendChild(tavToolTip);
 	}
@@ -1816,7 +1826,7 @@ function createView(){
 }
 
 try{
-	var TABHELPER, TABHELPER_LIST, openedREFS;
+	var openedREFS;
 	convertView();
 	
 	/*Süti analizálás*/
