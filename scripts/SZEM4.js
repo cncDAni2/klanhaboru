@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = '4.5 Build 23.04.26';
+var VERZIO = '4.5 Build 23.05.03';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -95,9 +95,10 @@ function init(){try{
 		#global_notifications {
 			position: absolute;
 			top: 0;
-			left: -26px;
-			width: 26px;
+			left: -22px;
+			width: 18px;
 		}
+		#global_notifications img { width: 18px; }
 		table.menuitem {
 			vertical-align:top;
 			text-align: top;
@@ -565,7 +566,7 @@ function hattercsere(cella){
 }
 function addFreezeNotification() {
 	USER_ACTIVITY = true;
-	document.getElementById('global_notifications').innerHTML = `<img src="${pic('freeze.png')}" onmouseover="sugo(this,'Amíg SZEM keretrendszert piszkálod, SZEM pihen hogy fókuszálni tudj (automata)')" width="24px">`;
+	document.getElementById('global_notifications').innerHTML = `<img src="${pic('freeze.png')}" onmouseover="sugo(this,'Amíg SZEM keretrendszert piszkálod, SZEM pihen hogy fókuszálni tudj (automata)')">`;
 	clearTimeout(USER_ACTIVITY_TIMEOUT);
 	USER_ACTIVITY_TIMEOUT = setTimeout(() => {
 		USER_ACTIVITY = false;
@@ -1492,7 +1493,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 		});
 		if (smallestDifference > 60000) ALL_UNIT_MOVEMENT[koord].push([10000, hungarianDate, 0])
 	}
-	if (nyers!=='') ALL_VIJE_SAVED[koord] = hungarianDate;
+	if (nyers!=='') ALL_VIJE_SAVED[koord] = hungarianDate.getTime();
 }catch(e){debug("VIJE_adatbeir","Hiba: "+e);}}
 function szem4_VIJE_2elemzes(adatok){try{
 	/*Adatok: [0]jelentés azon;[1]célpont koord;[2]jelentés SZÍNe;[3]volt e checkbox-olt jeli;[4]régi jeli e? (igen->nincs nyerselem)*/
@@ -1506,7 +1507,7 @@ function szem4_VIJE_2elemzes(adatok){try{
 	var defUnits = VIJE_REF2.document.getElementById('attack_info_def_units');
 	if (defUnits && defUnits.textContent.match(/[1-9]+/g)) adatok[2] = 'Sereg a faluban!';
 	hungarianDate = new Date(Date.parse(hungarianDate.replace(/jan\./g, "Jan").replace(/febr?\./g, "Feb").replace(/márc\./g, "Mar").replace(/ápr\./g, "Apr").replace(/máj\./g, "May").replace(/jún\./g, "Jun").replace(/júl\./g, "Jul").replace(/aug\./g, "Aug").replace(/szept\./g, "Sep").replace(/okt\./g, "Oct").replace(/nov\./g, "Nov").replace(/dec\./g, "Dec")));
-	if (ALL_VIJE_SAVED[adatok[1]] >= hungarianDate.getTime()) isOld = true;;
+	if (ALL_VIJE_SAVED[adatok[1]] >= hungarianDate.getTime()) isOld = true;
 	if (!isOld && VIJE_REF2.document.getElementById("attack_spy_resources")) {
 		var x=VIJE_REF2.document.getElementById("attack_spy_resources").rows[0].cells[1];
 		if (adatok[4]) {var nyersossz="";debug("VIJE2","Nem kell elemezni (régi)"); } else {
@@ -2106,7 +2107,7 @@ function szem4_ADAT_sys_save(){try{
 		} else eredmeny+=adat[i].value;
 		if (i<adat.length-1) eredmeny+="..";
 	}
-	eredmeny+='..'+JSON.stringify(ALL_VIJE_SAVED);
+	eredmeny+='.'+JSON.stringify(ALL_VIJE_SAVED);
 	eredmeny+=";";
 	
 	/*Adatmentő*/
@@ -2336,7 +2337,7 @@ function szem4_ADAT_sys_load(){ try{
 	if(localStorage.getItem(AZON+"_sys")) var suti=localStorage.getItem(AZON+"_sys"); else return;
 	/*VIJE*/
 	var adat=document.getElementById("vije").getElementsByTagName("input");
-	var resz=suti.split(";")[0].split("..");
+	var resz=suti.split(";")[0].split(".");
 	for (var i=0;i<resz.length-2;i++) {
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false; else
@@ -2551,6 +2552,7 @@ Kos: Falszintenként megadjuk pontosan a sereget mit küldjön. Megadjuk mely fa
 Sikeres elküldés esetén zöldíti a hátteret ahogy mi is tennénk, +ugye csak azokat nézi ami nem zöld hátteres
 (! akár már most!)VIJE: falszint változás észlelésekor kiszedi a zöld jelzést 
 
+ADDME: Színezést is mentsen a Farmoló
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
 ADDME: New kieg.: Tőzsdefigyelő (Csak hang)
 ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
@@ -2561,6 +2563,7 @@ ADDME: Határszám emelése megbízhatóság/2 percnyi termelésig
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 ADDME: VIJE opciók: [ ] csak kém (csak kémes jelik nézése), [ ] low-mode (zöldeket ne nézze)
 REMOVE: Min sereg/falu, helyette minimum <határszám>-nyi nyersanyag elvétele
+REFACTOR: Kiegészítő választó rész: felkészülés több kieg.-re, dobozok legyenek
 REFACTOR: farm_opts inputoknak adj ID-kat, esetleg form az miért nem jó?
 ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
 FIXME: Utolsó visszatérő sereget nézzen, ne default <10p> pihit falu_helye.cells[2].innerHTML=d;
