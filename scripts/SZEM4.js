@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = '4.5 Build 23.05.04';
+var VERZIO = '4.5 Build 23.05.05';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -835,6 +835,7 @@ function getProdHour(banyaszintek) {
 	return prodHour;
 }
 function getResourceProduction(banyaszintek, idoPerc) {try{
+	// idoPerc alatt termelt mennyiség. idoperc MAX=megbízhatósági idő, vagy amennyi idő megtermelni határszám-nyi nyerset
 	var corrigatedMaxIdoPerc = getCorrigatedMaxIdoPerc(banyaszintek);
 	if (idoPerc == 'max' || idoPerc > corrigatedMaxIdoPerc) idoPerc = corrigatedMaxIdoPerc;
 
@@ -861,6 +862,8 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 	}
 
 	allAttack = JSON.parse(JSON.stringify(ALL_UNIT_MOVEMENT[farmCoord]));
+	// Vonat:   [ ---- lastBefore ----]        [ ---- firstAfter ---- ]
+	//                         [ ---- arriveTime ----]
 	var closests = findClosestTimes(allAttack, arriveTime);
 	var lastBefore = closests[0],
 		firstAfter = closests[1];
@@ -881,7 +884,7 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 	}
 	return foszthatoNyers;
 }catch(e) {debug('calculateNyers', e);}}
-function findClosestTimes(allAttack, arriveTime) { //@AI
+function findClosestTimes(allAttack, arriveTime) { //@AI_Generated
 	// Initialize variables to store the closest array before and after the target epoch time
 	var closestBefore = null;
 	var closestAfter = null;
@@ -1045,6 +1048,9 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 			var nyers_termeles = calculateNyers(farmCoord, a[i].cells[1].textContent, closest_vill.traverTime);
 			if ((nyers_VIJE + nyers_termeles) < hatarszam) continue;
 			par = [closest_vill.traverTime, closest_vill.units, closest_vill.coord, farmCoord, nyers_VIJE+nyers_termeles];
+			if (verszem && (nyers_VIJE+nyers_termeles) < (hatarszam*5)) {
+				debug('szem4_farmolo_1kereso', 'Mégsem vérszem!? '+nyers_VIJE+' + '+nyers_termeles+' ('+ farmCoord +')');
+			}
 		}
 		if (verszem && par.length > 1) { debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[3] + ' ('+ par[4] + ')'); break;}
 	}
@@ -1198,6 +1204,7 @@ function szem4_farmolo_3egyeztet(adatok){try{
 		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("table")[0].rows[2].cells[1].getElementsByTagName("a")[0].href.indexOf("info_player")>-1) {
 			if (!farm_helye.cells[4].getElementsByTagName("input")[0].checked) {
 				naplo("Farmoló","Játékos "+maplink(adatok[3])+" helyen: "+FARM_REF.document.getElementById("content_value").getElementsByTagName("table")[0].rows[2].cells[1].innerHTML.replace("href",'target="_BLANK" href')+". Tovább nem támadom");
+				FARM_REF = windowOpener('farm', VILL1ST.replace("screen=overview","screen=place"), AZON+"_Farmolo"); // Ki kell ütni a nézetből
 				farm_helye.cells[0].style.backgroundColor="red";
 				FARM_LEPES=0;
 				return "";
@@ -1847,7 +1854,7 @@ function szem4_EPITO_addIdo(sor, perc){try{
 		if (perc == 0) perc = 30;
 		var d=new Date();
 		d.setMinutes(d.getMinutes()+Math.round(perc));
-		sor.cells[2].innerHTML=d;
+		sor.cells[2].innerHTML=d.toLocaleString();
 	}
 }catch(e){debug("epito_addIdo",e); return false;}}
 
