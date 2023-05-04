@@ -99,6 +99,15 @@ function init(){try{
 			width: 18px;
 		}
 		#global_notifications img { width: 18px; }
+		#global_notifications img.rotate { animation: rotation 2s infinite linear; }
+		@keyframes rotation {
+			from {
+			  transform: rotate(0deg);
+			}
+			to {
+			  transform: rotate(360deg);
+			}
+		  }
 		table.menuitem {
 			vertical-align:top;
 			text-align: top;
@@ -565,8 +574,8 @@ function hattercsere(cella){
 	multipricer("hova","hcser",szin);
 }
 function addFreezeNotification() {
+	if (!USER_ACTIVITY) document.getElementById('global_notifications').innerHTML = `<img src="${pic('freeze.png')}" class="rotate" onmouseover="sugo(this,'Amíg SZEM keretrendszert piszkálod, SZEM pihen hogy fókuszálni tudj (automata)')">`;
 	USER_ACTIVITY = true;
-	document.getElementById('global_notifications').innerHTML = `<img src="${pic('freeze.png')}" onmouseover="sugo(this,'Amíg SZEM keretrendszert piszkálod, SZEM pihen hogy fókuszálni tudj (automata)')">`;
 	clearTimeout(USER_ACTIVITY_TIMEOUT);
 	USER_ACTIVITY_TIMEOUT = setTimeout(() => {
 		USER_ACTIVITY = false;
@@ -1081,7 +1090,8 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 	/*Listaösszeállítás*/
 	var sslw=10;
 	var ny=adatok[4];
-	var debugstr=""; var debugzsak=0;
+	// var debugstr="";
+	var debugzsak=0;
 	var betesz_ossz=0;
 	
 	if (adatok[1]=="all") {
@@ -1092,7 +1102,7 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 				if (kellene>van) var betesz=van; else var betesz=kellene;
 				ny-=(betesz*TEHER[i]);
 				debugzsak+=betesz*TEHER[i];
-				debugstr+=UNITS[i]+":"+betesz+"; ";
+				// debugstr+=UNITS[i]+":"+betesz+"; ";
 				FARM_REF.document.getElementById("unit_input_"+UNITS[i]).value=betesz;
 				betesz_ossz+=TANYA[i]*betesz;
 				if (sslw<E_SEB[i]) sslw=E_SEB[i];
@@ -1106,7 +1116,7 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 				if (kellene>van) var betesz=van; else var betesz=kellene;
 				ny-=(betesz*TEHER[i]);
 				debugzsak+=betesz*TEHER[i];
-				debugstr+=UNITS[i]+":"+betesz+"; ";
+				// debugstr+=UNITS[i]+":"+betesz+"; ";
 				FARM_REF.document.getElementById("unit_input_"+UNITS[i]).value=betesz;
 				/*debug("illeszto",i+". Kellene: "+kellene+", van: "+elerheto[i]+". Betesz: "+betesz+". Ny--"+ny);*/
 				betesz_ossz+=TANYA[i]*betesz;
