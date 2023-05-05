@@ -32,7 +32,6 @@ try{ /*Rendszeradatok*/
 		self.TIMERS = {};
 		self.addEventListener("message", function(e) {
 			if (e.data.id == 'stopTimer') {
-				e.data.timers = self.TIMERS;
 				clearTimeout(self.TIMERS[e.data.value]);
 			} else {
 				self.TIMERS[e.data.id] = setTimeout(() => { postMessage(e.data); }, e.data.time);
@@ -66,8 +65,12 @@ function init(){try{
 	if (document.getElementById("production_table"))  var PFA=document.getElementById("production_table"); else 
 	if (document.getElementById("combined_table"))  var PFA=document.getElementById("combined_table"); else 
 	if (document.getElementById("buildings_table"))  var PFA=document.getElementById("buildings_table"); else 
-	if (document.getElementById("techs_table"))  var PFA=document.getElementById("techs_table"); else 
-	{alert("Ilyen nézetbe való futtatás nem támogatott. Kísérlet az áttekintés betöltésére...\n\nLaunching from this view is not supported. Trying to load overview..."); document.location.href=document.location.href.replace(/screen=[a-zA-Z]+/g,"screen=overview_villages"); return false;}
+	if (document.getElementById("techs_table"))  var PFA=document.getElementById("techs_table");
+	else {
+		alert("Ilyen nézetbe való futtatás nem támogatott. Kísérlet az áttekintés betöltésére...\n\nLaunching from this view is not supported. Trying to load overview...");
+		document.location.href=document.location.href.replace(/screen=[a-zA-Z]+/g,"screen=overview_villages");
+		return false;
+	}
 	var patt = new RegExp(/[0-9]+(\|)[0-9]+/);
 	if (patt.test(PFA.rows[1].cells[0].textContent)) var oszl=0; else
 	if (patt.test(PFA.rows[1].cells[1].textContent)) var oszl=1; else
@@ -132,8 +135,7 @@ function init(){try{
 			width:130px;
 		}
 		#farm_hova tr td:last-child {
-			font-size:50%;
-			width:130px;
+			width: 135px;
 		}
 		textarea {
 			background-color: #020;
@@ -169,6 +171,16 @@ function init(){try{
 			font-size: 10pt;
 		}
 		#vije_opts input[type="checkbox"] { width: 17px; height: 17px; }
+
+		.tooltip-wrapper { display: flex; flex-wrap: wrap; gap: 10px 0; }
+		.tooltip_hover { position: relative; }
+		.tooltip_text { position: absolute; z-index: 1; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; font-style: normal; background: gray; padding: 5px 8px; border-radius: 3px; margin-bottom: 5px; color: white; opacity: 0; border: 1px solid black; }
+		.bottom-tooltip .tooltip_text { top: 100%; bottom: auto; }
+		.tooltip_text:after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-top: 5px solid gray; border-left: 5px solid transparent; border-right: 5px solid transparent }
+		.bottom-tooltip .tooltip_text:after { top: auto; bottom: 100%; border-bottom: 5px solid gray; border-top: 5px solid transparent;  }
+		table.no-bg-table td {
+			background: transparent;
+		}
 		</style>`;
 	document.getElementsByTagName("body")[0].innerHTML=`
 		<div id="alert2" style="width: 300px; background-color: #60302b; color: #FFA; position: fixed; left:40%; top:40%; border:3px solid black; font-size: 11pt; padding: 5px; z-index:200; display:none">
@@ -637,8 +649,77 @@ function isPageLoaded(ref,faluid,address){try{
 function windowOpener(id, url, windowId) {
 	return window.open(url, windowId);
 }
+function addTooltip(el, text) {
+	removeTooltip(el.closest('.tooltip-wrapper'));
+	$(el).children('.tooltip_text').css({"opacity": "1"});
+	// var thisText = $(el).attr('title');
+	// $(el).removeAttr('title');
+	$(el).children('.tooltip_text').html(text);
+}
+function removeTooltip(el) {
+	$(el).find('.tooltip_hover').each(function(i, el) {
+		var thisText = $(el).children('.tooltip_text').html();
+		if (thisText == "") return;
+		$(el).attr('title', thisText);
+		$(el).children('.tooltip_text').html("");
+		$(el).children('.tooltip_text').css({"opacity": "0"});
+	});
+}
 
 /* ------------------- FARMOLÓ ----------------------- */
+function drawWagons(koord) {
+	let farms = document.getElementById('farm_hova').rows;
+	if (!koord) {
+		for (var i=1;i<farms.length;i++) {
+			addWagons(farms[i]);
+		}
+	} else {
+		for (var i=1;i<farms.length;i++) {
+			if (farms[i].cells[0].textContent == koord) {
+				addWagons(farms[i]);
+				break;
+			}
+		}
+	}
+}
+function addWagons(farmRow) {
+	let koord = farmRow.cells[0].textContent;
+	let attacks = ALL_UNIT_MOVEMENT[koord];
+
+	farmRow.cells[5].innerHTML = ''; //Fixme: Nem csak ez van itt, ne töröld az egészet
+	//onmouseleave="removeTooltip(this)"
+	const tmp = document.createElement('div');
+	tmp.setAttribute('class', 'tooltip-wrapper');
+	let tmp_content = '';
+	attacks.forEach((element, index) => {
+		tmp_content += `
+		<span onmouseenter="setTooltip(this, ${index})" class="tooltip_hover">
+			<img src="${pic('wagon.png')}" width="40px">
+			<span class="tooltip_text"></span>
+		</span>`
+	});
+	tmp.innerHTML = tmp_content;
+	farmRow.cells[5].appendChild(tmp);
+}
+function setTooltip(el, index) {
+	let farmRow = el.closest('tr');
+	let farmCoord = farmRow.cells[0].textContent;
+	let attack = ALL_UNIT_MOVEMENT[farmCoord][index];
+	let min = convertTbToTime(farmRow.cells[1].textContent, attack[0]);
+	let kezdet = new Date(attack[1]);
+	kezdet.setMinutes(kezdet.getMinutes() - min);
+	min = min.toFixed(2);
+
+	let content =  `<table class="no-bg-table">
+		<tr><td>Szerelvény hossza</td><td>${min} perc</td></tr>
+		<tr><td>Szerelvény kezdete</td><td>${kezdet.toLocaleString()}</td></tr>
+		<tr><td>Érkezés</td><td>${new Date(attack[1]).toLocaleString()}</td></tr>
+		<tr><td>Extra nyers</td><td>${attack[2]}</td></tr>
+		<tr><td>Nyertermelés/óra</td><td>${getProdHour(farmRow.cells[1].textContent)}</td></tr>
+	</table>
+	<i>Utolsó jelentés: ${new Date(ALL_VIJE_SAVED[farmCoord]).toLocaleString()}</i>`;
+	addTooltip(el, content);
+}
 function add_farmolo(){ try{
 	var datas=document.getElementById("farm_opts");
 	var faluk=datas.rows[1].cells[0].getElementsByTagName("input")[0].value;
@@ -710,7 +791,7 @@ function add_farmolando(){try{
 		var c=b.insertCell(2); c.innerHTML="0"; c.setAttribute("ondblclick","hattercsere(this)");
 		var c=b.insertCell(3); c.innerHTML="0"; c.setAttribute("ondblclick",'modosit_szam(this)');
 		var c=b.insertCell(4); c.innerHTML='<input type="checkbox" onclick="szem4_farmolo_multiclick(0,\'hova\',this.checked)">';
-		var c=b.insertCell(5); c.innerHTML=""; c.setAttribute("ondblclick",'urit(this,"hova")');
+		var c=b.insertCell(5); c.innerHTML=""; c.setAttribute("onmouseleave",'removeTooltip(this)');
 	}
 		
 	datas.rows[1].cells[1].getElementsByTagName("input")[0].value="";
@@ -810,6 +891,7 @@ function clearAttacks() {try{
 		ALL_UNIT_MOVEMENT[item] = ALL_UNIT_MOVEMENT[item].filter(function(array) {
 			return array[1] >= closestArray[1];
 		});
+		drawWagons(item);
 	}
 	for (let item in ALL_VIJE_SAVED) {
 		if (ALL_VIJE_SAVED[item] < currentTime - (3 * 60 * 60000)) {
@@ -934,6 +1016,7 @@ function addCurrentMovementToList(formEl, farmCoord, farmHelyRow) {
 	} else {
 		allAttack.push([teherbiras, arriveTime, VIJE_teher]);
 	}
+	drawWagons(farmCoord);
 	// KÉM?
 	if (!FARM_REF.document.getElementById('place_confirm_units').querySelector('[data-unit="spy"]').getElementsByTagName('img')[0].classList.contains('faded')) {
 		if (!ALL_SPY_MOVEMENTS[farmCoord] || ALL_SPY_MOVEMENTS[farmCoord] < arriveTime) ALL_SPY_MOVEMENTS[farmCoord] = arriveTime;
@@ -1046,18 +1129,22 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		}
 		if (closest_vill.traverTime <= maxspeed && closest_vill.traverTime > 0 && (verszem || par.length == 0 || closest_vill.traverTime < par[0])) {
 			var nyers_termeles = calculateNyers(farmCoord, a[i].cells[1].textContent, closest_vill.traverTime);
+			if (isNaN(nyers_termeles)) {nyers_termeles = 0; debug('', 'nyers_termeles = NaN '+farmCoord);} 
+			if (isNaN(nyers_VIJE)) {nyers_VIJE = 0; debug('', 'nyers_VIJE = NaN '+farmCoord);} 
 			if ((nyers_VIJE + nyers_termeles) < hatarszam) continue;
 			par = [closest_vill.traverTime, closest_vill.units, closest_vill.coord, farmCoord, nyers_VIJE+nyers_termeles];
-			if (verszem && (nyers_VIJE+nyers_termeles) < (hatarszam*5)) {
+			if (verszem && ((nyers_VIJE+nyers_termeles) < (hatarszam*5))) {
 				debug('szem4_farmolo_1kereso', 'Mégsem vérszem!? '+nyers_VIJE+' + '+nyers_termeles+' ('+ farmCoord +')');
 			}
 		}
-		if (verszem && par.length > 1) { debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[3] + ' ('+ par[4] + ')'); break;}
+		if (verszem && par.length > 1) {
+			debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[3] + ' ('+ par[4] + ')');
+			break;
+		}
 	}
 	if (par.length==0) return ""; /*Nincs munka*/
 	
 	if (par[0]>maxspeed) return "";
-	console.info('Támadás '+par[3], JSON.stringify(par), JSON.stringify(ALL_UNIT_MOVEMENT[par[3]]));
 	return par;
 }catch(e){debug("szem4_farmolo_1kereso()",e); return "";}}
 
@@ -1485,8 +1572,9 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 			farm_helye.cells[2].backgroundColor="#f4e4bc";
 		farm_helye.cells[2].innerHTML=fal;
 	}
-	if (nyers!=="")	{
-		farm_helye.cells[3].innerHTML=nyers; 
+	if (ALL_VIJE_SAVED[koord] < hungarianDate)	{
+		farm_helye.cells[3].innerHTML=nyers;
+		ALL_VIJE_SAVED[koord] = hungarianDate;
 		if (nyers>parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10)*50)
 			naplo("VIJE_adatbeír","Sok nyers van itt, lehet hiba? "+koord+" falunál: ", nyers);
 	}
@@ -1494,7 +1582,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 	if (szin==="yellow") farm_helye.cells[0].style.backgroundColor="yellow"; else 
 	if (szin!="blue") {
 		farm_helye.cells[0].style.backgroundColor="red";
-		naplo("Jelentés Elemző",koord+" farm veszélyesnek ítélve. Jelentésének színe "+szin+".");
+		naplo("Jelentés Elemző", koord+" farm veszélyesnek ítélve. Jelentésének színe "+szin+".");
 	}
 
 	// Mockolt támadás beillesztése ha nem regisztrált támadásról jött jelentés
@@ -1510,7 +1598,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 		});
 		if (smallestDifference > 60000) ALL_UNIT_MOVEMENT[koord].push([10000, hungarianDate, 0])
 	}
-	if (nyers!=='') ALL_VIJE_SAVED[koord] = hungarianDate.getTime();
+	drawWagons(koord);
 }catch(e){debug("VIJE_adatbeir","Hiba: "+e);}}
 function szem4_VIJE_2elemzes(adatok){try{
 	/*Adatok: [0]jelentés azon;[1]célpont koord;[2]jelentés SZÍNe;[3]volt e checkbox-olt jeli;[4]régi jeli e? (igen->nincs nyerselem)*/
@@ -1524,7 +1612,8 @@ function szem4_VIJE_2elemzes(adatok){try{
 	var defUnits = VIJE_REF2.document.getElementById('attack_info_def_units');
 	if (defUnits && defUnits.textContent.match(/[1-9]+/g)) adatok[2] = 'Sereg a faluban!';
 	hungarianDate = new Date(Date.parse(hungarianDate.replace(/jan\./g, "Jan").replace(/febr?\./g, "Feb").replace(/márc\./g, "Mar").replace(/ápr\./g, "Apr").replace(/máj\./g, "May").replace(/jún\./g, "Jun").replace(/júl\./g, "Jul").replace(/aug\./g, "Aug").replace(/szept\./g, "Sep").replace(/okt\./g, "Oct").replace(/nov\./g, "Nov").replace(/dec\./g, "Dec")));
-	if (ALL_VIJE_SAVED[adatok[1]] >= hungarianDate.getTime()) isOld = true;
+	hungarianDate = hungarianDate.getTime();
+	if (ALL_VIJE_SAVED[adatok[1]] >= hungarianDate) isOld = true;
 	if (!isOld && VIJE_REF2.document.getElementById("attack_spy_resources")) {
 		var x=VIJE_REF2.document.getElementById("attack_spy_resources").rows[0].cells[1];
 		if (adatok[4]) {var nyersossz="";debug("VIJE2","Nem kell elemezni (régi)"); } else {
@@ -1710,23 +1799,28 @@ ujkieg("idtamad","Bejövő támadások",'<tr><td align="center" ><table class="v
 /*-----------------ÉPÍTŐ--------------------*/
 function szem4_EPITO_perccsokkento(){try{
 	var hely=document.getElementById("epit").getElementsByTagName("table")[1].rows;
-	var patt=/[0-9]+( perc)/g; var sz=0;
+	var patt=/[0-9]+\:[0-9]+/g;
 	for (var i=1;i<hely.length;i++) {
-		if (hely[i].cells[3].textContent.search(patt)>-1) {
-			sz=hely[i].cells[3].textContent.match(/[0-9]+/g)[0];
-			if (sz=="0") continue;
-			sz=parseInt(sz,10); 
-			sz--;
-			if (sz>0) {
-				sz=sz+"";
-				if (sz.length==1) sz="000"+sz;
-				if (sz.length==2) sz="00"+sz;
-				if (sz.length==3) sz="0"+sz;
-			}
-			hely[i].cells[3].innerHTML=hely[i].cells[3].innerHTML.replace(/[0-9]+/,sz);
+		let currentCell = hely[i].cells[3];
+		if (currentCell.textContent.search(patt)>-1) {
+			let time = currentCell.textContent.match(patt)[0];
+			time = time.split(':').map(a => parseInt(a,10));
+			time = time[0] * 60 + time[1];
+			time--;
+			currentCell.textContent = currentCell.textContent.replace(patt, writeAllBuildTime(time, true));
 		}
 	}
 }catch(e){debug("Építő_pcsökk",e); setTimeout("szem4_EPITO_perccsokkento()",60000);}}
+function writeAllBuildTime(minutes, isDateOnly=false) {
+	let sixty = 60;
+	let hours = Math.floor(minutes / sixty);
+	let mins = minutes % sixty;
+	let toDate = hours.toString().padStart(2, '0') + ':' + mins.toString().padStart(2, '0');
+	if (isDateOnly) {
+		return toDate;
+	}
+	return '<span class="writeOutDate">Hátralévő építési idő: ' + toDate + '</span>';
+}
 
 function szem4_EPITO_getlista(){try{
 	var ret='<select>';
@@ -1773,7 +1867,7 @@ function szem4_EPITO_ujFalu(){try{
 		var ZR=Z.insertRow(-1);
 		var ZC=ZR.insertCell(0); ZC.innerHTML=f_nev[i]; ZC.setAttribute("ondblclick","sortorol(this)");
 			ZC=ZR.insertCell(1); ZC.innerHTML=lista; ZC.getElementsByTagName("select")[0].value=adat.getElementsByTagName("select")[0].value;
-			ZC=ZR.insertCell(2); ZC.style.fontSize="x-small"; var d=new Date(); ZC.innerHTML=d; ZC.setAttribute("ondblclick","szem4_EPITO_most(this)");
+			ZC=ZR.insertCell(2); ZC.style.fontSize="x-small"; var d=new Date(); ZC.innerHTML=d.toLocaleString(); ZC.setAttribute("ondblclick","szem4_EPITO_most(this)");
 			ZC=ZR.insertCell(3); ZC.innerHTML="<i>Feldolgozás alatt...</i>"+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+koordTOid(f_nev[i])).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';; ZC.setAttribute("ondblclick",'szem4_EPITO_infoCell(this.parentNode,\'alap\',"")');
 	}
 	if (str!="") alert2("Dupla megadások/nem létező faluk kiszűrve: "+str);
@@ -1821,7 +1915,7 @@ function szem4_EPITO_cscheck(alma){try{
 
 function szem4_EPITO_most(objektum){try{
 	var d=new Date();
-	objektum.innerHTML=d;
+	objektum.innerHTML=d.toLocaleString();
 	return;
 }catch(e){alert2("Hiba lépett fel:\n"+e);}}
 
@@ -1899,12 +1993,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 		}catch(e){}}
 
 		allBuildTime=Math.round(allBuildTime);
-		allBuildTime=allBuildTime+"";
-		if (allBuildTime!="0") {
-			if (allBuildTime.length==1) allBuildTime="000"+allBuildTime;
-			if (allBuildTime.length==2) allBuildTime="00"+allBuildTime;
-			if (allBuildTime.length==3) allBuildTime="0"+allBuildTime;
-		}
+
 		firstBuildTime = Math.ceil(firstBuildTime);
 		if (firstBuildTime>180) firstBuildTime=180;
 	}catch(e){var buildList=";"; var allBuildTime=0; var firstBuildTime=0;}
@@ -1913,7 +2002,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	buildList=buildList.split(";");
 	buildList.pop();
 	if (buildList.length>4) {
-		szem4_EPITO_infoCell(PMEP[2],"alap","Építési sor megtelt. Építés még"+allBuildTime+" percig.");
+		szem4_EPITO_infoCell(PMEP[2],"alap","Építési sor megtelt. " + writeAllBuildTime(allBuildTime));
 		szem4_EPITO_addIdo(PMEP[2],firstBuildTime);
 		return;
 	}
@@ -1966,7 +2055,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	/* Cél szükségeletének lekérése */
 	var nextToBuildRow = EPIT_REF.document.getElementById('main_buildrow_' + nextToBuild);
 	if (!nextToBuildRow) {
-		szem4_EPITO_infoCell(PMEP[2],firstBuildTime==0?"red":"yellow", nextToBuild+" nem építhető. Előfeltétel szükséges? Építés még "+allBuildTime+" percig.");
+		szem4_EPITO_infoCell(PMEP[2],firstBuildTime==0?"red":"yellow", nextToBuild+" nem építhető. Előfeltétel szükséges? " + writeAllBuildTime(allBuildTime));
 		szem4_EPITO_addIdo(PMEP[2], firstBuildTime>0?firstBuildTime:60);
 		return;
 	}
@@ -1979,12 +2068,12 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	if (Math.max(resNeed.wood, resNeed.stone, resNeed.iron) > EPIT_REF.game_data.village.storage_max) nextToBuild = 'storage+';
 	if (resNeed.pop > (EPIT_REF.game_data.village.pop_max - EPIT_REF.game_data.village.pop)) nextToBuild = 'farm+';
 	if (nextToBuild == 'farm+' && EPIT_REF.game_data.village.buildings.farm == 30) {
-		szem4_EPITO_infoCell(PMEP[2],"red","Tanya megtelt, építés nem folytatható. Építés még "+allBuildTime+" percig.");
+		szem4_EPITO_infoCell(PMEP[2],"red","Tanya megtelt, építés nem folytatható. " + writeAllBuildTime(allBuildTime));
 		szem4_EPITO_addIdo(PMEP[2], 120);
 		return;
 	}
 	if (nextToBuild == 'farm+' && buildList.includes('farm')) {
-		szem4_EPITO_infoCell(PMEP[2],'yellow', 'Tanya megtelt, de már építés alatt... Építés még '+allBuildTime+' percig.');
+		szem4_EPITO_infoCell(PMEP[2],'yellow', 'Tanya megtelt, de már építés alatt... ' + writeAllBuildTime(allBuildTime));
 		szem4_EPITO_addIdo(PMEP[2], 120);
 		return;
 	}
@@ -2011,7 +2100,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	}
 
 	if (EPIT_REF.game_data.village.wood < resNeed.wood || EPIT_REF.game_data.village.stone < resNeed.stone || EPIT_REF.game_data.village.iron < resNeed.iron) {
-		szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány lépett fel. Építés még "+allBuildTime+" percig.");
+		szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány lépett fel. " + writeAllBuildTime(allBuildTime));
 		szem4_EPITO_addIdo(PMEP[2],firstBuildTime>0?Math.min(firstBuildTime, 60):60);
 		return;
 	} 
@@ -2021,9 +2110,9 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	var buildBtn = nextToBuildRow.querySelector('.btn.btn-build');
 	if (buildBtn.style.display == 'none') {
 		if (buildList.length < 2) {
-			szem4_EPITO_infoCell(PMEP[2],"red","Ismeretlen hiba. Építés még "+allBuildTime+" percig.");
+			szem4_EPITO_infoCell(PMEP[2],"red","Ismeretlen hiba. " + writeAllBuildTime(allBuildTime));
 		} else {
-			szem4_EPITO_infoCell(PMEP[2],"alap","Építkezési sor megtelt. Építés még "+allBuildTime+" percig.");
+			szem4_EPITO_infoCell(PMEP[2],"alap","Építkezési sor megtelt. " + writeAllBuildTime(allBuildTime));
 		}
 		szem4_EPITO_addIdo(PMEP[2],firstBuildTime>0?firstBuildTime:60);
 		return;
@@ -2258,15 +2347,17 @@ function szem4_ADAT_farm_load(){try{
 	for (var i=adat.rows.length-1;i>0;i--) adat.deleteRow(i);
 	adat=document.getElementById("farm_hova");
 	for (var i=adat.rows.length-1;i>0;i--) adat.deleteRow(i);
-/*Honnan: kitölti a hozzáadást, 1 1ség bepipálásával (az első jó lesz), majd végigmegy a 2. oszlopon pipálgatni*/
+/*Honnan: kitölti a hozzáadást, 1 1ség bepipálásával (az első jó lesz)*/
 	document.getElementById("farm_opts").rows[1].cells[0].getElementsByTagName("input")[0].value=suti.split(";")[1];
 	document.getElementById("farm_opts").rows[2].cells[0].getElementsByTagName("input")[0].checked=true;
 	add_farmolo();
 	
-/*Hova: Hozzáadás használata koordikkal, később bánya;fal állítás; nyers-et pedig a határszámra állítja.*/	
+/*Hova: Hozzáadás használata koordikkal, később bánya;fal állítás*/	
 	document.getElementById("farm_opts").rows[1].cells[1].getElementsByTagName("input")[0].value=suti.split(";")[3];
 	add_farmolando();
 	
+	// Kiütni a VIJE MOTOR-t, majd újraindítani
+	worker.postMessage({'id': 'stopTimer', 'value': 'vije'});
 	setTimeout(function(){try{
 		var suti=localStorage.getItem(AZON+"_farm");
 		var resz=suti.split(";")[0].split(".");
@@ -2301,6 +2392,7 @@ function szem4_ADAT_farm_load(){try{
 		resz=suti.split(";")[9];
 		if (resz)  {
 			resz = resz.split('.');
+			clearAttacks();
 			for (var i=0;i<resz.length;i++) {
 				if (ALL_VIJE_SAVED[adat[i+1].cells[0].textContent]) {
 					adat[i+1].cells[3].textContent=resz[i];
@@ -2311,8 +2403,14 @@ function szem4_ADAT_farm_load(){try{
 		}
 		
 		document.getElementById("farm_opts").rows[2].cells[0].getElementsByTagName("input")[0].checked=false;
+		drawWagons();
 		alert2("Farmolási adatok betöltése kész.");
-	}catch(e){alert("ERROR_LOAD\n"+e);}},1000);
+	} catch(e){
+		alert("ERROR_LOAD\n"+e);
+	} finally {
+		szem4_VIJE_motor();
+	}
+	},600);
 }catch(e){debug("ADAT_farm_load",e);}void(0);}
 
 function szem4_ADAT_epito_load(){try{

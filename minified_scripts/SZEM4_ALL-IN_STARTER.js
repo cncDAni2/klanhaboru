@@ -3,6 +3,6 @@ fetch('https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/minified_scrip
   .then(response => response.arrayBuffer())
   .then(buffer => {
     const decoder = new TextDecoder('UTF-8');
-	window.eval(decoder.decode(buffer));
+	  window.eval(decoder.decode(buffer));
   });
 void(0);
