@@ -179,7 +179,12 @@ function init(){try{
 		.tooltip_text:after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-top: 5px solid gray; border-left: 5px solid transparent; border-right: 5px solid transparent }
 		.bottom-tooltip .tooltip_text:after { top: auto; bottom: 100%; border-bottom: 5px solid gray; border-top: 5px solid transparent;  }
 		table.no-bg-table td {
+			vertical-align: middle;
 			background: transparent;
+		}
+		table.no-bg-table td .flex_middle {
+			display: flex;
+			align-items: center;
 		}
 		</style>`;
 	document.getElementsByTagName("body")[0].innerHTML=`
@@ -711,10 +716,10 @@ function setTooltip(el, index) {
 	min = min.toFixed(2);
 
 	let content =  `<table class="no-bg-table">
-		<tr><td>Szerelvény hossza</td><td>${min} perc (${pic('resource.png')} ${attack[0]})</td></tr>
+		<tr><td>Szerelvény hossza</td><td><div class="flex_middle">${min} perc (<img src="${pic('resource.png')}"> ${attack[0]})</div></td></tr>
 		<tr><td>Szerelvény kezdete</td><td>${kezdet.toLocaleString()}</td></tr>
 		<tr><td>Érkezés</td><td>${new Date(attack[1]).toLocaleString()}</td></tr>
-		<tr><td>Extra nyers</td><td>${pic('resource.png')} ${attack[2]}</td></tr>
+		<tr><td>Extra nyers</td><td><div class="flex_middle"><img src="${pic('resource.png')}"> ${attack[2]}</div></td></tr>
 		<tr><td>Nyertermelés/óra</td><td>${getProdHour(farmRow.cells[1].textContent)}</td></tr>
 	</table>
 	<i>Utolsó jelentés: ${ALL_VIJE_SAVED[farmCoord] ? new Date(ALL_VIJE_SAVED[farmCoord]).toLocaleString() : 'Nincs'}</i>`;
