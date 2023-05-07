@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = '4.5 Build 23.05.06';
+var VERZIO = '4.5 Build 23.05.07';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -692,14 +692,13 @@ function addWagons(farmRow) {
 	let attacks = ALL_UNIT_MOVEMENT[koord];
 
 	farmRow.cells[5].innerHTML = ''; //Fixme: Nem csak ez van itt, ne töröld az egészet
-	//onmouseleave="removeTooltip(this)"
 	const tmp = document.createElement('div');
 	tmp.setAttribute('class', 'tooltip-wrapper');
 	let tmp_content = '';
 	attacks.forEach((element, index) => {
 		tmp_content += `
 		<span onmouseenter="setTooltip(this, ${index})" class="tooltip_hover">
-			<img src="${pic('wagon.png')}" width="40px">
+			<img src="${pic('wagon.png')}" title="" width="40px">
 			<span class="tooltip_text"></span>
 		</span>`
 	});
@@ -1084,7 +1083,6 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		if (nyers_VIJE > 0) nyers_VIJE -= getAllResFromVIJE(farmCoord);
 		verszem = false;
 		if (nyers_VIJE > (hatarszam * 5)) {
-			debug('szem4_farmolo_1kereso', `${nyers_VIJE} nyers ${farmCoord} faluba -- VÉRSZEM MODE IS ON!`);
 			verszem = true;
 		}
 		
@@ -1137,20 +1135,16 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 				};
 			}
 		}
-		if (closest_vill.traverTime <= maxspeed && closest_vill.traverTime > 0 && (verszem || par.length == 0 || closest_vill.traverTime < par[0])) {
+		if (closest_vill.traverTime <= maxspeed && closest_vill.traverTime > 0 && (verszem === true || par.length == 0 || closest_vill.traverTime < par[0])) {
 			var nyers_termeles = calculateNyers(farmCoord, a[i].cells[1].textContent, closest_vill.traverTime);
 			if (isNaN(nyers_termeles)) {nyers_termeles = 0; debug('szem4_farmolo_1kereso', 'nyers_termeles = NaN '+farmCoord);} 
 			if (isNaN(nyers_VIJE)) {nyers_VIJE = 0; debug('szem4_farmolo_1kereso', 'nyers_VIJE = NaN '+farmCoord);} 
 			if ((nyers_VIJE + nyers_termeles) < hatarszam) continue;
 			if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('szem4_farmolo_1kereso', 'Nem is szám: nyers_VIJE='+nyers_VIJE+' -- nyers_termeles='+nyers_termeles);
 			par = [closest_vill.traverTime, closest_vill.units, closest_vill.coord, farmCoord, (nyers_VIJE+nyers_termeles)];
-			if (verszem && ((par[4]) < (hatarszam * 5))) {
-				debug('szem4_farmolo_1kereso', 'Mégsem vérszem!? '+nyers_VIJE+' + '+nyers_termeles+' ('+ farmCoord +')');
+			if (verszem === true && par.length > 1) {
+				break;
 			}
-		}
-		if (verszem === true && par.length > 1) {
-			debug('szem4_farmolo_1kereso', 'Vérszemet kaptam, sok nyers: '+ par[3] + ' ('+ par[4] + ')');
-			break;
 		}
 	}
 	if (par.length==0) return ""; /*Nincs munka*/
@@ -1593,7 +1587,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 		farm_helye.cells[3].innerHTML=nyers;
 		ALL_VIJE_SAVED[koord] = hungarianDate;
 		if (nyers>parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10)*50)
-			naplo("VIJE_adatbeír","Sok nyers van itt, lehet hiba? "+koord+" falunál: ", nyers);
+			naplo("VIJE_adatbeír","Sok nyers van itt, lehet hiba? "+koord+" falunál: " + nyers);
 	}
 	if (szin==="green") farm_helye.cells[0].style.backgroundColor="#f4e4bc"; else 
 	if (szin==="yellow") farm_helye.cells[0].style.backgroundColor="yellow"; else 
