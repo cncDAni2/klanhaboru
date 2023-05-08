@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = '4.5 Build 23.05.07';
+var VERZIO = 'v4.5 Build 23.05.08';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -1082,9 +1082,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		var nyers_VIJE = parseInt(a[i].cells[3].textContent,10);
 		if (nyers_VIJE > 0) nyers_VIJE -= getAllResFromVIJE(farmCoord);
 		verszem = false;
-		if (nyers_VIJE > (hatarszam * 5)) {
-			verszem = true;
-		}
+		if (nyers_VIJE > (hatarszam * 5)) verszem = true;
 		
 		/*Farm vizsgálat (a[i]. sor), legközelebbi saját falu keresés hozzá (van e egyátalán (par.length==3?))*/
 		var hogyok="";
@@ -1491,7 +1489,6 @@ var FARM_LEPES=0, FARM_REF, FARM_HIBA=0, FARM_GHIBA=0,
 szem4_farmolo_motor();
 
 /* --------------------- JELENTÉS ELEMZŐ ----------------------- */
-
 function VIJE_FarmElem(koord){try{
 	var farm_helye=document.getElementById("farm_hova").rows;
 	var BenneVanE=false;
@@ -1691,7 +1688,7 @@ function szem4_VIJE_2elemzes(adatok){try{
 }catch(e){debug("VIJE2","Elemezhetetlen jelentés: "+adatok[0]+":"+adatok[1]+". Hiba: "+e); VIJE_adatbeir(adatok[1],nyersossz,"","",adatok[2]); return false;}}
 
 function szem4_VIJE_3torol(){try{
-	if (document.getElementById("vije").getElementsByTagName("input")[4].checked) {
+	if (document.getElementById("vije").getElementsByTagName("input")[6].checked) {
 		try{VIJE_REF1.document.forms[0].del.click();}catch(e){VIJE_REF1.document.getElementsByName("del")[0].click();}
 	}
 }catch(e){debug("VIJE3","Hiba: "+e);return;}}
@@ -1992,7 +1989,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	var firstBuildTime=0; /*Az első épület építési ideje*/
 	var textTime;
 
-	try{
+	try {
 		if (!EPIT_REF.document.getElementById("buildqueue")) throw 'No queue';
 		var buildQueueRows=EPIT_REF.document.getElementById("buildqueue").rows;
 		for (var i=1;i<buildQueueRows.length;i++) {try{
@@ -2462,7 +2459,7 @@ function szem4_ADAT_sys_load(){ try{
 	/*VIJE*/
 	var adat=document.getElementById("vije").getElementsByTagName("input");
 	var resz=suti.split(";")[0].split(".");
-	for (var i=0;i<resz.length-2;i++) {
+	for (var i=0;i<resz.length-1;i++) {
 		if (resz[i]=="true") adat[i].checked=true; else
 		 if (resz[i]=="false") adat[i].checked=false; else
 		  adat[i].value=resz[i];
@@ -2588,7 +2585,8 @@ function saveLocalDataToCloud() {
 		vije: localStorage.getItem(AZON+"_sys")
 	};
 	updateData(jsonToSave).then(() => {
-		var d=new Date(); document.getElementById("adat_opts").rows[4].cells[2].textContent=d.toLocaleString();
+		var d=new Date();
+		document.getElementById("adat_opts").rows[4].cells[2].textContent=d.toLocaleString();
 	});
 }
 
