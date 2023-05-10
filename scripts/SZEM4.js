@@ -1080,7 +1080,7 @@ function getSlowestUnit(faluRow) {try{
 		lastChecked = new Date(lastChecked);
 		if (!(lastChecked instanceof Date && !isNaN(lastChecked.valueOf()))) lastChecked = '';
 	}
-	const resetMinute = parseInt(document.getElementById('farmolo_options').sebesseg_p,10);
+	const resetMinute = parseInt(document.getElementById('farmolo_options').sebesseg_p.value,10);
 	if (lastChecked == '' || new Date() - lastChecked > resetMinute * 60000) {
 		isOld = true;
 	}
