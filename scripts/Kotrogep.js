@@ -33,7 +33,34 @@ $("body").children(":not(#contentContainer)").remove();
 $("#ds_body").width((curr_width + 200) + 'px').css('margin','auto').css('background', '#363');
 var ELEM=document.createElement("div");
 ELEM.setAttribute('id', 'kotrogep-header');
-ELEM.innerHTML = '<p align="center"><audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio><br><img src="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/kotrogep/excavator.gif" height="221px"></p> <h1 align="center">KOTRÓGÉP</h1><h4 align="center"><i>...és érmeverő</i></h3><br><p style="padding-left:25px">Minimum nyers/falu: <img alt="Fa" title="Fa" src="http://hu17.tribalwars.net/graphic/holz.png"> <input type="text" id="fa_" size="5" value="50000"><img alt="Agyag" title="Agyag" src="http://hu17.tribalwars.net/graphic/lehm.png?6c9bd"> <input type="text" id="agyag_" size="5" value="50000"> <img alt="Vas" title="Vas" src="http://hu17.tribalwars.net/graphic/eisen.png?0e9e5"> <input type="text" id="vas_" size="5" value="50000"> &nbsp;&nbsp;&nbsp;Feltöltési mód? <input type="checkbox" onclick=set_balance()> <a onclick="javascript: alert(\'Az opció bepipálása után a BE oszlopba megjelölt falukat a script továbbra is feltölti nyersanyaggal, de ügyel arra, hogy ne léphesse túl a raktár kapacitását. Megfelelő pipálással egy jó balance hozható létre.\')">Mi ez?</a> &nbsp;&nbsp;&nbsp; Feltöltés a raktár kapacitásának <input type="text" size="2" id="maxup" value="80">%-áig. Max szállítási távolság: <input type="text" value="30" size="2" id="maxtav"> mező. <input id="rapid_value" size="2" value="10"> perc múlva nézem újra a falut, ha nem volt munkája.</p>\  <p id="newrowarea"><b>Új külső falu megadása:</b> Koordináta <input type="text" size="7"> Kezdeti nyers <img alt="Fa" title="Fa" src="http://hu17.tribalwars.net/graphic/holz.png"> <input type="text" size="5" value="0"><img alt="Agyag" title="Agyag" src="http://hu17.tribalwars.net/graphic/lehm.png?6c9bd"> <input type="text" size="5" value="0"> <img alt="Vas" title="Vas" src="http://hu17.tribalwars.net/graphic/eisen.png?0e9e5"> <input type="text" size="5" value="0"> <input type="button" onclick=addNewRow() value="Felvisz"> <input type="button" onclick=addMoreRow() value="Tömeges felvitel"></p>\  <p id="kot_uzi"><b>Üzenetek:</b></p>';
+ELEM.innerHTML = `<p align="center">
+	<audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio><br>
+	<img src="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/kotrogep/excavator.gif" height="221px"></p>
+	<h1 align="center">KOTRÓGÉP</h1>
+	<h4 align="center"><i>...és érmeverő</i></h4><br>
+	<p style="padding-left:25px">
+		Minimum nyers/falu:
+		<img alt="Fa" title="Fa" src="graphic/holz.png"> <input type="text" id="fa_" size="5" value="50000">
+		<img alt="Agyag" title="Agyag" src="graphic/lehm.png"> <input type="text" id="agyag_" size="5" value="50000">
+		<img alt="Vas" title="Vas" src="graphic/eisen.png"> <input type="text" id="vas_" size="5" value="50000">
+		&nbsp;&nbsp;&nbsp;Feltöltési mód? <input type="checkbox" onclick=set_balance()> <a onclick="javascript: alert(\'Az opció bepipálása után a BE oszlopba megjelölt falukat a script továbbra is feltölti nyersanyaggal, de ügyel arra, hogy ne léphesse túl a raktár kapacitását. Megfelelő pipálással egy jó balance hozható létre.\')">Mi ez?</a>
+		&nbsp;&nbsp;&nbsp; Feltöltés a raktár kapacitásának <input type="text" size="2" id="maxup" value="80">%-áig.
+		Max szállítási távolság: <input type="text" value="30" size="2" id="maxtav"> mező.
+		<input id="rapid_value" size="2" value="10"> perc múlva nézem újra a falut, ha nem volt munkája.
+	</p>
+	<p id="newrowarea">
+		<b>Új külső falu megadása:</b>
+		Koordináta <input type="text" size="7">
+		Kezdeti nyers
+		<img alt="Fa" title="Fa" src="graphic/holz.png"> <input type="text" size="5" value="0">
+		<img alt="Agyag" title="Agyag" src="graphic/lehm.png"> <input type="text" size="5" value="0">
+		<img alt="Vas" title="Vas" src="graphic/eisen.png"> <input type="text" size="5" value="0">
+		<input type="button" onclick=addNewRow() value="Felvisz">
+		<input type="button" onclick=addMoreRow() value="Tömeges felvitel">
+	</p>
+	<p id="kot_uzi">
+		<b>Üzenetek:</b>
+	</p>`;
 document.body.insertBefore(ELEM, document.body.firstChild);
 ELEM = document.createElement("div");
 ELEM.innerHTML += '<a href="https://github.com/cncDAni2/klanhaboru" target="_BLANK">c&cDAni2 GITHub</a><p id="db"></p>';
