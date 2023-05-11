@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.05.11';
+var VERZIO = 'v4.5 Build 23.05.12';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -131,8 +131,8 @@ function init(){try{
 		table.vis { color:black; }
 		table.vis td, table.vis th { padding: 3px 6px 3px 6px; }
 		#farm_honnan tr td:last-child {
-			font-size:50%;
-			width:130px;
+			font-size: 60%;
+			width: 130px;
 		}
 		#farm_hova tr td:last-child {
 			width: 135px;
@@ -173,8 +173,8 @@ function init(){try{
 		#vije_opts input[type="checkbox"] { width: 17px; height: 17px; }
 
 		.tooltip-wrapper { display: flex; flex-wrap: wrap; gap: 10px 0; }
-		.tooltip-wrapper img { padding-left: 0; padding-right: 0; }
-		.tooltip_hover { position: relative; }
+		.tooltip-wrapper img { padding-left: 2px; padding-right: 0; display: table-cell; }
+		.tooltip_hover { position: relative; display: table; border-collapse: collapse; }
 		.tooltip_text { position: absolute; z-index: 1; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; font-style: normal; background: gray; padding: 5px 8px; border-radius: 3px; margin-bottom: 5px; color: white; opacity: 0; border: 1px solid black; }
 		.bottom-tooltip .tooltip_text { top: 100%; bottom: auto; }
 		.tooltip_text:after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-top: 5px solid gray; border-left: 5px solid transparent; border-right: 5px solid transparent }
@@ -699,15 +699,12 @@ function windowOpener(id, url, windowId) {
 function addTooltip(el, text) {
 	removeTooltip(el.closest('.tooltip-wrapper'));
 	$(el).children('.tooltip_text').css({"opacity": "1"});
-	// var thisText = $(el).attr('title');
-	// $(el).removeAttr('title');
 	$(el).children('.tooltip_text').html(text);
 }
 function removeTooltip(el) {
 	$(el).find('.tooltip_hover').each(function(i, el) {
 		var thisText = $(el).children('.tooltip_text').html();
 		if (thisText == "") return;
-		$(el).attr('title', thisText);
 		$(el).children('.tooltip_text').html("");
 		$(el).children('.tooltip_text').css({"opacity": "0"});
 	});
@@ -738,10 +735,15 @@ function addWagons(farmRow) {
 	const tmp = document.createElement('div');
 	tmp.setAttribute('class', 'tooltip-wrapper');
 	let tmp_content = '';
-	attacks.forEach((element, index) => {
+	let hatarszam = parseInt(document.getElementById('farmolo_options').hatarszam.value,10);
+	attacks.forEach((attack, index) => {
+		let wagonType = 'wagon_normal.png';
+		if (attack[2] > (hatarszam * 5)) wagonType = 'wagon_nuclear.png';
+		else if (attack[2] > (hatarszam * 0.66)) wagonType = 'wagon_coal.png';
+		else if (attack[2] < 5 && attack[0] < 5) wagonType = 'wagon_empty.png';
 		tmp_content += `
 		<span onmouseenter="setTooltip(this, ${index})" class="tooltip_hover">
-			<img src="${pic('wagon.png')}" title="" width="40px">
+			<img src="${pic(wagonType)}" title="" width="40px">
 			<span class="tooltip_text"></span>
 		</span>`
 	});
@@ -1058,6 +1060,9 @@ function addCurrentMovementToList(formEl, farmCoord, farmHelyRow) {
 		}
 	}
 
+	if (teherbiras < 10 && VIJE_teher < 10) {
+		debug('addCurrentMovementToList', `ERROR: ${formEl.querySelector('.icon.header.ressources').parentElement.innerText} -- teherbírás=0; Farm: ${farmCoord} | Innen: ${FARM_REF.game_data.village.display_name}`);
+	}
 	var allAttack = ALL_UNIT_MOVEMENT[farmCoord];
 	if (!allAttack) {
 		ALL_UNIT_MOVEMENT[farmCoord] = [[teherbiras, arriveTime, VIJE_teher]];
