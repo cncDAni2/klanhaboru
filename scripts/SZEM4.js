@@ -742,8 +742,8 @@ function addWagons(farmRow) {
 		else if (attack[2] > (hatarszam * 0.66)) wagonType = 'wagon_coal.png';
 		else if (attack[2] < 5 && attack[0] < 5) wagonType = 'wagon_empty.png';
 		tmp_content += `
-		<span onmouseenter="setTooltip(this, ${index})?v=3" class="tooltip_hover">
-			<img src="${pic(wagonType)}" title="" width="40px">
+		<span onmouseenter="setTooltip(this, ${index})" class="tooltip_hover">
+			<img src="${pic(wagonType)}?v=4" title="" width="40px">
 			<span class="tooltip_text"></span>
 		</span>`
 	});
