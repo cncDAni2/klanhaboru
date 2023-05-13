@@ -1331,10 +1331,11 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 	} else {
 		// MIN SEREG ELLENŐRZÉS (FIXME: Nem fog kelleni, mert jelzőrendszer lesz)
 		let optionsForms = document.getElementById('farmolo_options');
+		debugger;
 		if (parseInt(optionsForms.minsereg.value,10) > resultInfo.betesz_ossz && adatok[1] <= E_SEB[7])  { // lovak
 			ezt=adatok[1]+"|semmi";
 			setNoUnits(falu_row, 'horse');
-		} else if (parseInt(optionsForms.minsereg.value,10)) { // gyalog
+		} else if (parseInt(optionsForms.minsereg.value,10) > resultInfo.betesz_ossz) { // gyalog
 			ezt=adatok[1]+"|semmi";
 			setNoUnits(falu_row, 'troop');
 		} else {
