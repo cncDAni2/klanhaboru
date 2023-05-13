@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.05.12';
+var VERZIO = 'v4.5 Build 23.05.13';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -175,7 +175,9 @@ function init(){try{
 		.tooltip-wrapper { display: flex; flex-wrap: wrap; gap: 10px 0; }
 		.tooltip-wrapper img { padding-left: 2px; padding-right: 0; display: table-cell; }
 		.tooltip_hover { position: relative; display: table; border-collapse: collapse; }
-		.tooltip_text { position: absolute; z-index: 1; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; font-style: normal; background: gray; padding: 5px 8px; border-radius: 3px; margin-bottom: 5px; color: white; opacity: 0; border: 1px solid black; }
+		.tooltip_text {
+			position: absolute; z-index: 1; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; font-style: normal; background: gray; padding: 5px 8px; border-radius: 3px; margin-bottom: 5px; color: white; display: none; border: 1px solid black;
+		}
 		.bottom-tooltip .tooltip_text { top: 100%; bottom: auto; }
 		.tooltip_text:after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-top: 5px solid gray; border-left: 5px solid transparent; border-right: 5px solid transparent }
 		.bottom-tooltip .tooltip_text:after { top: auto; bottom: 100%; border-bottom: 5px solid gray; border-top: 5px solid transparent; }
@@ -698,7 +700,7 @@ function windowOpener(id, url, windowId) {
 }
 function addTooltip(el, text) {
 	removeTooltip(el.closest('.tooltip-wrapper'));
-	$(el).children('.tooltip_text').css({"opacity": "1"});
+	$(el).children('.tooltip_text').css({"display": "block"})
 	$(el).children('.tooltip_text').html(text);
 }
 function removeTooltip(el) {
@@ -706,7 +708,7 @@ function removeTooltip(el) {
 		var thisText = $(el).children('.tooltip_text').html();
 		if (thisText == "") return;
 		$(el).children('.tooltip_text').html("");
-		$(el).children('.tooltip_text').css({"opacity": "0"});
+		$(el).children('.tooltip_text').css({"display": "none"});
 	});
 }
 
@@ -1327,23 +1329,24 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 		setNoUnits(falu_row, 'all');
 		naplo('Farmoló', 'Raktár túltelített ebben a faluban: ' + adatok[2] + '. (' + Math.round(nyersarany*100) + '% > ' + parseInt(opts[10].value) + '%)');
 	} else {
-		/*FIXME::MIN LIMIT!? Küldd vissza a pontos egységszámot is, párkereső találjon ez alapján párokat*/
-		/*console.info('Össz:', betesz_ossz, parseInt(opts[7].value), betesz_ossz>parseInt(opts[7].value));*/
-		// if (resultInfo.betesz_ossz>=parseInt(opts[7].value)) {
+		// MIN SEREG ELLENŐRZÉS (FIXME: Nem fog kelleni, mert jelzőrendszer lesz)
+		let optionsForms = document.getElementById('farmolo_options');
+		if (parseInt(optionsForms.minsereg.value,10) > resultInfo.betesz_ossz && adatok[1] <= E_SEB[7])  { // lovak
+			ezt=adatok[1]+"|semmi";
+			setNoUnits(falu_row, 'horse');
+		} else if (parseInt(optionsForms.minsereg.value,10)) { // gyalog
+			ezt=adatok[1]+"|semmi";
+			setNoUnits(falu_row, 'troop');
+		} else {
 			if (parseInt(C_form.spy.value,10)>0 && farm_helye.cells[1].innerHTML=="") kek=true;
 			
-			/*debug("Farmolo()","Seregküldés "+adatok[3]+"-re. Nyers_faluba: "+adatok[4]+". Egység küldés: "+debugstr+". Teherbírás: "+debugzsak);*/
 			if ((resultInfo.debugzsak-100)>adatok[4]) debug("Farmolo()","<b>ERROR: TOO MANY UNITS</b>");
 			updateAvailableUnits(falu_row);
 			C_form.attack.click();
 			ezt=adatok[1]; 						
-		// } else {
-		// 	setNoUnits(falu_row, adatok[1] <= E_SEB[7] ? 'horse' : 'troop');
-		// 	ezt=adatok[1]+"|semmi";
-		// }
+		}
 	}}
 	
-	/*console.info('Beillesztve', [ny,ezt,adatok[2],adatok[3],sslw,kek,debugzsak]);*/
 	return [resultInfo.requiredNyers,ezt+'',adatok[2],adatok[3],slowestUnit,kek,resultInfo.debugzsak]; /*nyers_maradt;all/gyalog/semmi;honnan;hova;speed_slowest;kém ment e;teherbírás*/
 
 	function addUnits(x, i) {
@@ -2830,6 +2833,7 @@ Kos: Falszintenként megadjuk pontosan a sereget mit küldjön. Megadjuk mely fa
 Sikeres elküldés esetén zöldíti a hátteret ahogy mi is tennénk, +ugye csak azokat nézi ami nem zöld hátteres
 (! akár már most!)VIJE: falszint változás észlelésekor kiszedi a zöld jelzést 
 
+ADDME: VIJE: Felderített nyersből vonja majd ki azt, amit a szerelvény már elvisz (MIN 0!) --> "Nyers? Ja ok, tudok róla"
 ADDME: Színezést is mentsen a Farmoló
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
 ADDME: New kieg.: Tőzsdefigyelő (Csak hang)
