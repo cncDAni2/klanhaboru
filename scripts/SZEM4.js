@@ -21,6 +21,28 @@ try{ /*Rendszeradatok*/
 	var CONFIG=loadXMLDoc(BASE_URL+"interface.php?func=get_config");
 	var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
 	var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
+
+	var KTID=new Array(), /*Koord-ID párosok*/
+	TERMELES=new Array(5,30,35,41,47,55,64,74,86,100,117,136,158,184,214,249,289,337,391,455,530,616,717,833,969,1127,1311,1525,1774,2063,2400),
+	UNITS=new Array("spear","sword","axe","archer","spy","light","marcher","heavy"),
+	TEHER=new Array(25,15,10,10,0,80,50,50),
+	TANYA=new Array(1,1,1,1,2,4,5,6),
+	E_SEB_ARR=new Array(18,22,18,18,9,10,10,11),
+	E_SEB = {
+		spear: 18,
+		sword: 22,
+		axe: 18,
+		archer: 18,
+		spy: 9,
+		light: 10,
+		marcher: 10,
+		heavy: 11
+	};
+	BOT=false,
+	FARMOLO_TIMER,
+	ALL_UNIT_MOVEMENT = {}, //{..., hova(koord): [[ mennyi_termelésből(teherbírás), mikorra(getTime()), mennyi_VIJE_miatt(teherbírás) ], ...], ...}
+	ALL_SPY_MOVEMENTS = {}; // hova(koord): mikor
+
 	var VILL1ST="";
 	var ALTBOT=true;
 	var MAX_IDO_PERC = 20; // MOCKED DATA: SHOULD BE A FARM SETTING
@@ -959,9 +981,9 @@ function getCorrigatedMaxIdoPerc(banyaszintek) {
 }
 function getProdHour(banyaszintek) {
 	var prodHour = 0;
-	if (banyaszintek.split(',').length<3) {
-		prodHour=document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[0].value;
-		if (prodHour!="") prodHour=parseInt(prodHour); else prodHour=1000;
+	if (banyaszintek.split(',').length < 3) {
+		prodHour=document.getElementById("farmolo_options").termeles.value;
+		if (prodHour!="") prodHour=parseInt(prodHour, 10); else prodHour=1000;
 	} else {
 		var r=banyaszintek.split(",").map(item => parseInt(item, 10));
 		prodHour=(TERMELES[r[0]]+TERMELES[r[1]]+TERMELES[r[2]])*SPEED;
@@ -1078,6 +1100,67 @@ function addCurrentMovementToList(formEl, farmCoord, farmHelyRow) {
 	}
 }
 
+function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
+// Megtervezi, miből mennyit küldjön SZEM. Falu megnyitása után intelligensen még módosíthatja ezt (2. lépés) (nem változtatva a MAX_SPEED-et)
+	const attackers = document.getElementById('farm_honnan').rows;
+	let farmCoord = farmRow.cells[0].textContent;
+	const allOptions = document.getElementById('farmolo_options');
+	const hatarszam = parseInt(allOptions.hatarszam.value,10);
+	const maxTavPerc = parseInt(allOptions.maxtav_ora.value,10) * 60 + parseInt(allOptions.maxtav_p.value,10);
+
+	for (var i=0;i<attackers.length;i++) {
+		let attacker = attackers[i];
+		let unifiedTraverTime = (1/SPEED)*(1/UNIT_S);
+		unifiedTraverTime = unifiedTraverTime*(distCalc(farmCoord.split("|"), attacker.cells[0].textContent.split("|"))); /*a[i]<->fromVillRow távkeresés*/
+		
+		// Távolásszűrő: MAX távon belüli, legjobb?
+		let priority = getSlowestUnit(attacker);
+		if (priority == '') continue;
+		if (unifiedTraverTime * E_SEB[priority] > maxTavPerc) {
+			if (priority == 'heavy') {
+				if (unifiedTraverTime * E_SEB.light > maxTavPerc) continue;
+				priority = 'light'; // Talán!
+			} else if (priority == 'sword') {
+				if (unifiedTraverTime * E_SEB.spear > maxTavPerc) continue;
+				priority = 'spear'; // Talán!
+			} else continue;
+		}
+		let myTime = unifiedTraverTime * E_SEB[priority];
+		if (bestSpeed !== 0 && myTime > bestSpeed) continue;
+
+		// Mennyi nyerset tudnék hozni? Határszámon belül van?
+		let nyers_termeles = calculateNyers(farmCoord, farmRow.cells[1].textContent, myTime);
+		if (isNaN(nyers_termeles)) { nyers_termeles = 0; debug('szem4_farmolo_1kereso', `nyers_termeles = NaN - ${farmCoord}`); }
+		if (isNaN(nyers_VIJE)) { nyers_VIJE = 0; debug('szem4_farmolo_1kereso', `nyers_VIJE = NaN - ${farmCoord}`); } 
+		if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('szem4_farmolo_1kereso', `Nem is szám: nyers_VIJE=${nyers_VIJE} -- nyers_termeles=${nyers_termeles}`);
+		if ((nyers_VIJE + nyers_termeles) < hatarszam) /* Vissza kéne ugorni, ha ló volt akkor gyalogosokra... */continue;
+
+		// buildArmy
+		
+	}
+	//	Megállapítani, mennyi nyersért kell menni , prió heavy > light > sword ...
+	//		Megnézi pl. heavy-vel, ha nem 0 van belőle: erre számol egyet.
+	//			Ha a távolság > min(eddigi_legjobb_terv, bestSpeed): újratervezés kl-ekkel (csak heavy/sword esetén!) (!! bestSpeed=0 -> nincs még legjobb)
+	//			Ha ez határszám alatti: újratervezés gyalogosokkal
+	//			Ha max táv-on túl van: újratervezés light/march-al (csak heavy esetén!)
+	//			Ha TERV során nem tudtunk elég egységet megfogni, újratervezés gyalogosokkal
+	//	Ha a végén üres az eddigi_legjobb_terv, akkor return "NO_PLAN"; -> ugrás a következő farmra
+
+	/* return {
+		fromVill: xxx|xxx
+		units: { // Ezt egy külön függvény számolja, (fromRow, slowestUnit, nyersToFarm) alapján, mivel újra lesz számolva 2. lépésbe
+			heavy: 12,
+			march: 5,
+			light: 55
+		},
+		travelTime: xx minute,
+		slowestUnit: UNITS.heavy,
+		nyersToFarm: xxx teherbírás
+	} */
+	function getUnitPriority(attacker) {
+
+	}
+}catch(e) {console.error(e); debug('planAttack', e);}}
 function getSlowestUnit(faluRow) {try{
 	// Get unit speed of the smallest available, but priorize horse
 	// heavy > light,marcher > sword > spear,axe,archer
@@ -1102,12 +1185,12 @@ function getSlowestUnit(faluRow) {try{
 			isUnit = true;
 		}
 	});
-	if (available_units.heavy) return E_SEB[7];
-	if (available_units.light || available_units.marcher) return E_SEB[5];
-	if (available_units.sword) return E_SEB[1];
-	if (isUnit)	return E_SEB[0];
-	return -1;
-}catch(e) { debug('getSlowestUnit','Nem megállapítható egységsebesség, kl-t feltételezek ' + e); return E_SEB[5];}}
+	if (available_units.heavy) return 'heavy';
+	if (available_units.light || available_units.marcher) return 'light';
+	if (available_units.sword) return 'sword';
+	if (isUnit) return 'spear';
+	return '';
+}catch(e) { debug('getSlowestUnit','Nem megállapítható egységsebesség, kl-t feltételezek ' + e); return E_SEB_ARR[5];}}
 function updateAvailableUnits(faluRow, isError=false) {try{
 	var units = faluRow.cells[1].querySelectorAll('.szem4_unitbox');
 	units.forEach(el => {
@@ -1166,18 +1249,18 @@ function setNoUnits(faluRow, unitType) {try{
 }catch(e){debug('getLastDate', e)}}
 */
 function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
-	var a=document.getElementById("farm_hova").rows;
-	var b=document.getElementById("farm_honnan").rows;
+	var farmList=document.getElementById("farm_hova").rows;
+	var attackerList=document.getElementById("farm_honnan").rows;
 	var par=[]; /*Becsült útidő;Gyalogosok e?;koord-honnan;koord-hova;nyers_termelésből*/
-	if (a.length==1 || b.length==1) return "zero";
+	if (farmList.length==1 || attackerList.length==1) return "zero";
 	var maxspeed=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[1].value)*60+(parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[2].value));
 	var hatarszam=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10);
 	var verszem = false;
 
-	for (var i=1;i<a.length;i++) {
-		if (a[i].cells[0].style.backgroundColor=="red") continue;
-		var farmCoord = a[i].cells[0].textContent;
-		var nyers_VIJE = parseInt(a[i].cells[3].textContent,10);
+	for (var i=1;i<farmList.length;i++) {
+		if (farmList[i].cells[0].style.backgroundColor=="red") continue;
+		var farmCoord = farmList[i].cells[0].textContent;
+		var nyers_VIJE = parseInt(farmList[i].cells[3].textContent,10);
 		if (nyers_VIJE > 0) nyers_VIJE -= getAllResFromVIJE(farmCoord);
 		verszem = false;
 		if (nyers_VIJE > (hatarszam * 5)) verszem = true;
@@ -1186,16 +1269,19 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		var closest_vill = {
 			coord: '',
 			traverTime: 0,
-			unit: -1
+			unit: -1,
+			plan: {}
 		};
-		for (var j=1;j<b.length;j++) {
-			var fromVillRow = b[j];
+		let attackPlan = planAttack(farmList[i], nyers_VIJE, closest_vill.traverTime);
+		for (var j=1;j<attackerList.length;j++) {
+			var fromVillRow = attackerList[j];
 			
 			/*Távolság kiszámítása*/
 			let c_unitSpeed = getSlowestUnit(fromVillRow);
 			if (c_unitSpeed == -1) continue;
 			let distance = c_unitSpeed*(1/SPEED)*(1/UNIT_S);
 			distance=distance*(distCalc(farmCoord.split("|"), fromVillRow.cells[0].textContent.split("|"))); /*a[i]<->fromVillRow távkeresés*/
+			if (distance > maxspeed) continue;
 
 			if (closest_vill.coord == '' || closest_vill.traverTime > distance) {
 				closest_vill = {
@@ -1206,7 +1292,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 			}
 		}
 		if (closest_vill.traverTime <= maxspeed && closest_vill.traverTime > 0 && (verszem === true || par.length == 0 || closest_vill.traverTime < par[0])) {
-			var nyers_termeles = calculateNyers(farmCoord, a[i].cells[1].textContent, closest_vill.traverTime);
+			var nyers_termeles = calculateNyers(farmCoord, farmList[i].cells[1].textContent, closest_vill.traverTime);
 			if (isNaN(nyers_termeles)) {nyers_termeles = 0; debug('szem4_farmolo_1kereso', 'nyers_termeles = NaN '+farmCoord);} 
 			if (isNaN(nyers_VIJE)) {nyers_VIJE = 0; debug('szem4_farmolo_1kereso', 'nyers_VIJE = NaN '+farmCoord);} 
 			if ((nyers_VIJE + nyers_termeles) < hatarszam) continue;
@@ -1269,8 +1355,8 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 		betesz_ossz: 0
 	}
 	
-	if (adatok[1] <= E_SEB[7]) { //lovak
-		if (adatok[1] == E_SEB[7]) {
+	if (adatok[1] <= E_SEB_ARR[7]) { //lovak
+		if (adatok[1] == E_SEB_ARR[7]) {
 			if (elerheto[7] == 0) {
 				updateAvailableUnits(falu_row);
 				FARM_LEPES = 0;
@@ -1282,7 +1368,7 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 		if (resultInfo.requiredNyers > 20 && elerheto[6] != 0) addUnits(resultInfo, 6);
 		if (resultInfo.requiredNyers > 30 && elerheto[5] != 0) addUnits(resultInfo, 5);
 	} else { // gyalogosok
-		if (adatok[1] == E_SEB[1]) {
+		if (adatok[1] == E_SEB_ARR[1]) {
 			if (elerheto[1] == 0) {
 				updateAvailableUnits(falu_row);
 				FARM_LEPES = 0;
@@ -1332,7 +1418,7 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 		// MIN SEREG ELLENŐRZÉS (FIXME: Nem fog kelleni, mert jelzőrendszer lesz)
 		let optionsForms = document.getElementById('farmolo_options');
 		debugger;
-		if (parseInt(optionsForms.minsereg.value,10) > resultInfo.betesz_ossz && adatok[1] <= E_SEB[7])  { // lovak
+		if (parseInt(optionsForms.minsereg.value,10) > resultInfo.betesz_ossz && adatok[1] <= E_SEB_ARR[7])  { // lovak
 			ezt=adatok[1]+"|semmi";
 			setNoUnits(falu_row, 'horse');
 		} else if (parseInt(optionsForms.minsereg.value,10) > resultInfo.betesz_ossz) { // gyalog
@@ -1463,7 +1549,7 @@ function szem4_farmolo_4visszaell(adatok){try{
 	var fastest=22;
 	for (var i=0;i<a.length;i++) {
 		if (i==4) continue;
-		if (a[i].checked && E_SEB[i]<fastest) fastest=E_SEB[i];
+		if (a[i].checked && E_SEB_ARR[i]<fastest) fastest=E_SEB_ARR[i];
 	}
 	fastest = fastest*(1/SPEED)*(1/UNIT_S);
 	
@@ -1569,17 +1655,6 @@ try{
 	worker.postMessage({'id': 'farm', 'time': nexttime});
 }catch(e){debug('farm', 'Worker engine error: ' + e);setTimeout(function(){szem4_farmolo_motor();}, 3000);}}
 
-var KTID=new Array(), /*Koord-ID párosok*/
-	TERMELES=new Array(5,30,35,41,47,55,64,74,86,100,117,136,158,184,214,249,289,337,391,455,530,616,717,833,969,1127,1311,1525,1774,2063,2400),
-	UNITS=new Array("spear","sword","axe","archer","spy","light","marcher","heavy"),
-	TEHER=new Array(25,15,10,10,0,80,50,50),
-	TANYA=new Array(1,1,1,1,2,4,5,6),
-	E_SEB=new Array(18,22,18,18,9,10,10,11),
-	BOT=false,
-	FARMOLO_TIMER,
-	ALL_UNIT_MOVEMENT = {}, //{..., hova(koord): [[ mennyi_termelésből(teherbírás), mikorra(getTime()), mennyi_VIJE_miatt(teherbírás) ], ...], ...}
-	ALL_SPY_MOVEMENTS = {}; // hova(koord): mikor
-	
 init();
 ujkieg_hang("Alaphangok","naplobejegyzes;bot2");
 ujkieg("farm","Farmoló",`<tr><td>
@@ -1603,7 +1678,7 @@ ujkieg("farm","Farmoló",`<tr><td>
 			<td>
 				<form id="farmolo_options">
 					Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="3600" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik')">
-					Max táv: <input name="maxtav_p" type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">óra <input name="maxtav_mp" onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">perc.
+					Max táv: <input name="maxtav_ora" type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">óra <input name="maxtav_p" onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">perc.
 					Határszám: <input name="hatarszam" type="text" onkeypress="validate(event)" onmouseover="sugo(this,'Az új farmok ennyi nyersanyaggal lesznek felvíve. Másrész, ez alatti nyersanyagért még nem indulok el.')" value="3600" size="5"><br>
 					Kém/falu: <input name="kemdb" onkeypress="validate(event)" type="text" value="1" size="2" onmouseover="sugo(this,'Minden támadással ennyi kém fog menni')">
 					Kényszerített?<input name="isforced" type="checkbox" onmouseover="sugo(this,'Kémek nélkül nem indít támadást, ha kéne küldenie az időlimit esetén. Kémeket annak ellenére is fog vinni, ha nincs bepipálva a kém egység.')">
