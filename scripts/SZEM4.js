@@ -22,12 +22,32 @@ try{ /*Rendszeradatok*/
 	var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
 	var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
 
-	var KTID=new Array(), /*Koord-ID párosok*/
-	TERMELES=new Array(5,30,35,41,47,55,64,74,86,100,117,136,158,184,214,249,289,337,391,455,530,616,717,833,969,1127,1311,1525,1774,2063,2400),
-	UNITS=new Array("spear","sword","axe","archer","spy","light","marcher","heavy"),
-	TEHER=new Array(25,15,10,10,0,80,50,50),
-	TANYA=new Array(1,1,1,1,2,4,5,6),
-	E_SEB_ARR=new Array(18,22,18,18,9,10,10,11),
+	var KTID=[], /*Koord-ID párosok*/
+	TERMELES=[5,30,35,41,47,55,64,74,86,100,117,136,158,184,214,249,289,337,391,455,530,616,717,833,969,1127,1311,1525,1774,2063,2400],
+	UNITS=["spear","sword","axe","archer","spy","light","marcher","heavy"],
+	TEHERARR=[25,15,10,10,0,80,50,50],
+	TEHER = {
+		spear: 25,
+		sword: 15,
+		axe: 10,
+		archer: 10,
+		spy: 0,
+		light: 80,
+		marcher: 50,
+		heavy: 50
+	},
+	TANYAARR=[1,1,1,1,2,4,5,6],
+	TANYA = {
+		spear: 1,
+		sword: 1,
+		axe: 1,
+		archer: 1,
+		spy: 2,
+		light: 4,
+		marcher: 5,
+		heavy: 6
+	},
+	E_SEB_ARR=[18,22,18,18,9,10,10,11],
 	E_SEB = {
 		spear: 18,
 		sword: 22,
@@ -1108,7 +1128,7 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 	const hatarszam = parseInt(allOptions.hatarszam.value,10);
 	const maxTavPerc = parseInt(allOptions.maxtav_ora.value,10) * 60 + parseInt(allOptions.maxtav_p.value,10);
 
-	for (var i=0;i<attackers.length;i++) {
+	attackerFor: for (var i=0;i<attackers.length;i++) {
 		let attacker = attackers[i];
 		let unifiedTraverTime = (1/SPEED)*(1/UNIT_S);
 		unifiedTraverTime = unifiedTraverTime*(distCalc(farmCoord.split("|"), attacker.cells[0].textContent.split("|"))); /*a[i]<->fromVillRow távkeresés*/
@@ -1116,26 +1136,39 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 		// Távolásszűrő: MAX távon belüli, legjobb?
 		let priority = getSlowestUnit(attacker);
 		if (priority == '') continue;
-		if (unifiedTraverTime * E_SEB[priority] > maxTavPerc) {
-			if (priority == 'heavy') {
-				if (unifiedTraverTime * E_SEB.light > maxTavPerc) continue;
-				priority = 'light'; // Talán!
-			} else if (priority == 'sword') {
-				if (unifiedTraverTime * E_SEB.spear > maxTavPerc) continue;
-				priority = 'spear'; // Talán!
-			} else continue;
+		innerCycle: while(true) {
+			if (unifiedTraverTime * E_SEB[priority] > maxTavPerc) {
+				if (priority == 'heavy') {
+					if (unifiedTraverTime * E_SEB.light > maxTavPerc) continue attackerFor;
+					priority = 'light'; // Talán!
+				} else if (priority == 'sword') {
+					if (unifiedTraverTime * E_SEB.spear > maxTavPerc) continue attackerFor;
+					priority = 'spear'; // Talán!
+				} else continue attackerFor;
+			}
+			let myTime = unifiedTraverTime * E_SEB[priority];
+			if (bestSpeed !== 0 && myTime > bestSpeed) continue attackerFor;
+
+			// Mennyi nyerset tudnék hozni? Határszámon belül van?
+			let nyers_termeles = calculateNyers(farmCoord, farmRow.cells[1].textContent, myTime);
+			if (isNaN(nyers_termeles)) { nyers_termeles = 0; debug('szem4_farmolo_1kereso', `nyers_termeles = NaN - ${farmCoord}`); }
+			if (isNaN(nyers_VIJE)) { nyers_VIJE = 0; debug('szem4_farmolo_1kereso', `nyers_VIJE = NaN - ${farmCoord}`); } 
+			if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('szem4_farmolo_1kereso', `Nem is szám: nyers_VIJE=${nyers_VIJE} -- nyers_termeles=${nyers_termeles}`);
+			let teher = nyers_VIJE + nyers_termeles;
+			if (teher < hatarszam) {
+				if (priority == 'heavy' || priority == 'light') {
+					priority = 'sword';
+					continue innerCycle;
+				}
+				continue attackerFor;
+			}
+
+			// buildArmy
+			let plannedArmy = buildArmy(attacker, priority, teher);
+
+			break;
 		}
-		let myTime = unifiedTraverTime * E_SEB[priority];
-		if (bestSpeed !== 0 && myTime > bestSpeed) continue;
-
-		// Mennyi nyerset tudnék hozni? Határszámon belül van?
-		let nyers_termeles = calculateNyers(farmCoord, farmRow.cells[1].textContent, myTime);
-		if (isNaN(nyers_termeles)) { nyers_termeles = 0; debug('szem4_farmolo_1kereso', `nyers_termeles = NaN - ${farmCoord}`); }
-		if (isNaN(nyers_VIJE)) { nyers_VIJE = 0; debug('szem4_farmolo_1kereso', `nyers_VIJE = NaN - ${farmCoord}`); } 
-		if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('szem4_farmolo_1kereso', `Nem is szám: nyers_VIJE=${nyers_VIJE} -- nyers_termeles=${nyers_termeles}`);
-		if ((nyers_VIJE + nyers_termeles) < hatarszam) /* Vissza kéne ugorni, ha ló volt akkor gyalogosokra... */continue;
-
-		// buildArmy
+		console.info("Hello");
 		
 	}
 	//	Megállapítani, mennyi nyersért kell menni , prió heavy > light > sword ...
@@ -1157,14 +1190,56 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 		slowestUnit: UNITS.heavy,
 		nyersToFarm: xxx teherbírás
 	} */
-	function getUnitPriority(attacker) {
-
-	}
 }catch(e) {console.error(e); debug('planAttack', e);}}
+function buildArmy(attackerRow, priorityType, teher) {try{
+	const unitEls = attackerRow.cells[1].querySelectorAll('.szem4_unitbox');
+	const availableUnits = UNITS.reduce((obj, unit) => {
+		obj[unit] = 0;
+		return obj;
+	}, {});
+	unitEls.forEach(unitEl => {
+		if (unitEl.querySelector('input').checked) {
+			availableUnits[unitEl.getAttribute('name')] = parseInt(unitEl.getAttribute('data-allunit'), 10);
+		}
+	});
+
+	const unitToSend = { pop: 0 };
+	switch (priorityType) {
+		case 'heavy':
+			if (availableUnits.heavy < 1) return null;
+			if (availableUnits.heavy * TEHER.heavy > teher) {
+				unitToSend.heavy = Math.round(teher / TEHER.heavy);
+				unitToSend.pop += unitToSend.heavy * TANYA.heavy;
+				return unitToSend;
+			} else {
+				unitToSend.heavy = availableUnits.heavy;
+				teher -= unitToSend.heavy * TEHER.heavy;
+			}
+		break;
+	}
+
+	function useUpUnit(type, teher) {
+		const usedUp = {
+			pop: 0,
+			unit: 0,
+			teher: 0
+		}
+		if (availableUnits[type] < 1) return usedUp;
+		if (availableUnits[type] * TEHER[type] > teher) {
+			usedUp.unit = Math.round(teher / TEHER[type]);
+		} else {
+			usedUp.unit = availableUnits[type];
+		}
+		usedUp.pop = usedUp.unit * TANYA[type];
+		usedUp.teher = usedUp.unit * TEHER[type];
+		return usedUp;
+	}
+}catch(e) {console.error(e); debug('buildArmy', e);}}
+
 function getSlowestUnit(faluRow) {try{
 	// Get unit speed of the smallest available, but priorize horse
 	// heavy > light,marcher > sword > spear,axe,archer
-	let isOld = false;
+	let isOld = false; // FIXME: Ha isOld, akkor futtassunk egy CLEAR-t, ami leszedi a class-t, és 999-re teszi a unitokat. OLD az 15p * (1/világ_sebesség) legyen már!
 	let lastChecked = faluRow.cells[2].textContent;
 	if (lastChecked != '') {
 		lastChecked = new Date(lastChecked);
@@ -1437,17 +1512,17 @@ function szem4_farmolo_2illeszto(adatok){try{/*FIXME: határszám alapján szám
 	return [resultInfo.requiredNyers,ezt+'',adatok[2],adatok[3],slowestUnit,kek,resultInfo.debugzsak]; /*nyers_maradt;all/gyalog/semmi;honnan;hova;speed_slowest;kém ment e;teherbírás*/
 
 	function addUnits(x, i) {
-		var kellene = Math.ceil(x.requiredNyers/TEHER[i]);
+		var kellene = Math.ceil(x.requiredNyers/TEHERARR[i]);
 		var betesz = 0;
 		if (kellene > elerheto[i]) {
 			betesz = elerheto[i];
 		} else {
 			betesz = kellene;
 		}
-		x.requiredNyers -= (TEHER[i] * betesz);
-		x.debugzsak += betesz*TEHER[i];
+		x.requiredNyers -= (TEHERARR[i] * betesz);
+		x.debugzsak += betesz*TEHERARR[i];
 		FARM_REF.document.getElementById("unit_input_"+UNITS[i]).value = betesz;
-		x.betesz_ossz += TANYA[i]*betesz;
+		x.betesz_ossz += TANYAARR[i]*betesz;
 	}
 }catch(e){debug("Illeszto()",e);FARM_LEPES=0;return "";}}
 
