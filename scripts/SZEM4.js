@@ -2883,6 +2883,7 @@ $(document).ready(function(){
 	document.addEventListener('click', addFreezeNotification);
 	document.addEventListener('keypress', addFreezeNotification);
 	addFreezeNotification();
+	window.onbeforeunload = function() {return true;}
 });
 /*
 

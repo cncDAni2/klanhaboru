@@ -141,8 +141,7 @@ if (TIPUS=="B") {
 }
 
 kieg=document.createElement("p");
-kieg.innerHTML="Felülbírálva:<br>c&amp;c időzítő beállítva erre:<br><b>" + writeoutDate(dateforOutput, false) + "</b><br>" + indIdoText + "Pontosítás: <font style='color: red;'>"+PONTOS+"ms</font>"; 
-document.getElementById("date_arrival").setAttribute('style', 'background: #f4e4bc url(http://cncdani2.000webhostapp.com/!Files/images/ido_dead2.png) no-repeat; background-position: right top; background-size: 40px;');
+kieg.innerHTML=`Felülbírálva:<br>c&amp;c időzítő beállítva erre:<br><b>${writeoutDate(dateforOutput, false)}</b><br>${indIdoText}<br>Pontosítás: <font style='color: red;'>${PONTOS}ms</font>`;
 document.getElementById("date_arrival").innerHTML="";
 document.getElementById("date_arrival").appendChild(kieg);
 
