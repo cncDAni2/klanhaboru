@@ -109,8 +109,11 @@ function init() {try{
 			text-align:center;
 			width: 800px;
 		}
+		#bagoly-teszt > table {
+			margin: auto;
+		}
 		#bagoly-teszt td {
-			width: 400px;
+			width: 350px;
 			padding-bottom: 10px;
 		}
 		.naplobox {
@@ -121,14 +124,15 @@ function init() {try{
 		.naplobox h2 {
 			text-align: center;
 			margin-bottom: 5px;
-		}`;
+	}`;
 	const styleElement = document.createElement('style');
 	styleElement.textContent = styleContent;
+	document.getElementById('favicon').href=pic('moon.png');
 	document.head.appendChild(styleElement);
 
 	document.getElementsByTagName("body")[0].innerHTML=`
 		<div class="bagoly_header">
-			<img id="bagoly_img" data-state="normal" src="${pic('header_own_normal.png')}">
+			<img id="bagoly_img" onclick="playSound('huhogas')" data-state="normal" src="${pic('header_own_normal.png')}">
 			<span>
 				<h1>Éjjeli őr</h1>
 				<img height="40px" src="${pic('warning.png')}" title="Ez egy szuperfegyver script.\nSemmilyen prémium funkció nem képes működését helyettesíteni, és vélhetőleg nem is fog ilyen lenni. Túlzott használata ugyan nagyban javít teljesítményeden, de átalakítja játékmódod mely negatív hatással lehet">
@@ -144,7 +148,8 @@ function init() {try{
 						<td><strong>Cél falu</strong> (egy létező falu, mindegy mi) </td></tr>
 					<tr><td><input type="text" value="486|440" name="forras"><br></td>
 					<td><input type="text" value="507|405" name="cel"></td></tr>
-					<tr><td colspan="2"><button type="button" onclick="triggerProbaMotor()">Automata pontosítás indítása most</button> <button type="button" onclick="setManualPontos()">Saját érték megadása</button></td></tr>
+					<tr><td style="text-align: right"><button type="button" onclick="triggerProbaMotor()">Automata pontosítás indítása most</button></td>
+						<td style="text-align: left"><button type="button" onclick="setManualPontos()">Saját érték megadása</button></td></tr>
 					<tr><td colspan="2" id="pontos_display">PONTOS = ${PONTOS}</td></tr>
 				</table></form>
 			</div>
