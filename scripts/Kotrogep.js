@@ -907,7 +907,7 @@ function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltőd�
 			//setTimeout("eloszto()", 500);
 			return;
 		}
-		if (A.document.getElementById('bot_check') || A.document.title == "Bot védelem") {
+		if (A.document.getElementById('bot_check') || A.document.getElementById('popup_box_bot_protection') || A.document.title == "Bot védelem") {
 			var date = new Date();
 			botriado(false);
 			document.getElementById("kot_uzi").innerHTML += "<br>BOT RIADÓ! " + date;

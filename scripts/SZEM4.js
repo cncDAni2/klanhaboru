@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.05.20';
+var VERZIO = 'v4.5 Build 23.05.23';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -710,7 +710,7 @@ function BotvedelemKi(){
 
 function isPageLoaded(ref,faluid,address){try{
 	if (ref.closed) return false;
-	if (ref.document.getElementById('bot_check') || ref.document.title=="Bot védelem") {
+	if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
 		naplo("Globális","Bot védelem aktív!!!");
 		document.getElementById("audio1").volume=0.2;
 		BotvedelemBe();

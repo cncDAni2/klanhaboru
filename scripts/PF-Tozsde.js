@@ -397,7 +397,7 @@ function isPageLoaded(ref){try{
 	
 	if (ref.document.readyState !== "complete") return false;
 	
-    if (ref.document.getElementById('bot_check') || ref.document.title=="Bot védelem") {
+    if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
         BotvedelemBe();
         return false;
     }

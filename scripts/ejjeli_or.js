@@ -287,7 +287,7 @@ function alert2(szov){
 }
 function isPageLoaded(ref,faluid,address){try{
 	if (ref.closed) return false;
-	if (ref.document.getElementById('bot_check') || ref.document.title=="Bot védelem") {
+	if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
 		naplo("Globális","Bot védelem aktív!!!");
 		document.getElementById("audio1").volume=0.2;
 		BotvedelemBe();

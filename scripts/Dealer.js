@@ -272,7 +272,7 @@ function insertRatio(selectedRatio) {
 }
 function isPageLoaded(ref,faluid,address){try{
 	if (ref.closed) return false;
-	if (ref.document.getElementById('bot_check') || ref.document.title=="Bot védelem") {
+	if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
 		displayMessage("Dealer: Bot védelem","Bot védelem aktív!<br>Idő: "+new Date());
 		document.getElementById("audio1").volume=0.1;
 		BotvedelemBe();
