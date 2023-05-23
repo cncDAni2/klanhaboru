@@ -25,6 +25,7 @@ var worker = createWorker(function(self){
 	}, false);
 });
 var PONTOS = 0;
+var PONTOS_DATE = new Date('2000.01.01 12:00:00');
 worker.onmessage = function(worker_message) {
 	worker_message = worker_message.data;
 	switch(worker_message.id) {
@@ -124,7 +125,62 @@ function init() {try{
 		.naplobox h2 {
 			text-align: center;
 			margin-bottom: 5px;
-	}`;
+		}
+		.sereg_options {
+			margin-top: 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+		.unitTable {
+			color: black;
+		}
+		.unitTable .units th {
+			text-align: center;
+		}
+		.sereg_option {
+			padding: 12px 20px;
+			margin-bottom: 10px;
+			background: rgb(30,30,30);
+			border-radius: 10px;
+		}
+		.sereg_option .btn.btn-target-action {
+			padding: 6px 10px;
+		}
+		.sereg_option.unarmed {
+			border-left: 2px solid red;
+			animation: unarmedAnimation 1s infinite;
+		}
+		@keyframes unarmedAnimation {
+			0% {
+				box-shadow: 0 0 0 rgba(250, 0, 0, 0);
+			}
+			50% {
+				box-shadow: 0 0 10px rgba(250, 0, 0, 1);
+			}
+			100% {
+				box-shadow: 0 0 0 rgba(250, 0, 0, 0);
+			}
+		}
+		.sereg_quick_buttons {
+			display: flex;
+			margin-bottom: 10px;
+		}
+		.bagoly_button {
+			padding: 5px 14px;
+			margin: 0 10px;
+			background: rgb(180,180,255);
+			border-radius: 10px;
+			opacity: 0.7;
+			cursor: pointer;
+		}
+		.bagoly_button:hover {
+			opacity: 1;
+		}
+		.sereg_quick_buttons button.bagoly_button.all_arm {
+			background: rgb(235,0,0);
+		}
+	`;
 	const styleElement = document.createElement('style');
 	styleElement.textContent = styleContent;
 	document.getElementById('favicon').href=pic('moon.png');
@@ -146,12 +202,24 @@ function init() {try{
 				<form id="bagoly-teszt"><table>
 					<tr><td><strong>Forrás falu</strong> (itt legyen mindig legalább 1 egység)</td>
 						<td><strong>Cél falu</strong> (egy létező falu, mindegy mi) </td></tr>
-					<tr><td><input type="text" value="486|440" name="forras"><br></td>
-					<td><input type="text" value="507|405" name="cel"></td></tr>
-					<tr><td style="text-align: right"><button type="button" onclick="triggerProbaMotor()">Automata pontosítás indítása most</button></td>
-						<td style="text-align: left"><button type="button" onclick="setManualPontos()">Saját érték megadása</button></td></tr>
+					<tr><td><input type="text" class="input-nicer" value="486|440" name="forras"><br></td>
+					<td><input class="input-nicer" type="text" value="507|405" name="cel"></td></tr>
+					<tr><td style="text-align: right"><button type="button" class="bagoly_button" onclick="triggerProbaMotor()">Automata pontosítás indítása most</button></td>
+						<td style="text-align: left"><button type="button" class="bagoly_button" onclick="setManualPontos()">Saját érték megadása</button></td></tr>
 					<tr><td colspan="2" id="pontos_display">PONTOS = ${PONTOS}</td></tr>
 				</table></form>
+			</div>
+
+			<div class="sereg_options">
+		  		<div class="sereg_quick_buttons">
+					<button type="button" class="bagoly_button">Egyediek Nuke-ra</button>
+					<button type="button" class="bagoly_button">Egyediek Fake-ra</button>
+					<button type="button" class="bagoly_button">Egyediek Nemes-re</button>
+					<button type="button" class="bagoly_button">Rendezés</button>
+					<button type="button" class="bagoly_button all_arm">Összes élesítése</button>
+				</div>
+				<div id="bagoly_sereg"></div>
+				<button type="button" onclick="addBagolyAttack()">+ Új időzés hozzáadása</button>
 			</div>
 
 			<div class="naplobox">
@@ -307,6 +375,41 @@ function setManualPontos() {
 		PONTOS = parseInt(ido, 10);
 		document.getElementById("pontos_display").innerHTML = `PONTOS = ${PONTOS}`;
 	}
+}
+function addBagolyAttack() {
+	let attackEl = document.getElementById('bagoly_sereg');
+	let newEl = document.createElement('div');
+	newEl.className = 'sereg_option unarmed';
+	let unitsRow = '';
+	let inputrow = '';
+	for (let i=0;i<UNITS.length;i++) {
+		unitsRow += `<th><img src="graphic/unit/unit_${UNITS[i]}.png"></th>`;
+		inputrow += `<td><input class="input-nicer" type="text" size="5" placeholder="0" name="${UNITS[i]}"></td>`;
+	}
+	unitsRow += '<th>Típus</th>';
+	inputrow += `<td>
+		<select class="input-nicer" name="attacktype">
+			<option value="nuke">Full támadó</option>
+			<option value="nemes">Nemes</option>
+			<option value="fake">Fake</option>
+			<option value="normal" selected="selected">Egyedi/pontos</option>
+		</select>
+	</td>`;
+	newEl.innerHTML = `<form>
+		<div class="unitRowCalculations">
+			Honnan: <input class="input-nicer" type="text" size="8" placeholder="0" name="forras">
+			Hova: <input class="input-nicer" type="text" size="8" placeholder="0" name="forras">
+			Mikor: <input class="input-nicer" type="text" size="18" value="${new Date().toLocaleString()}:000" placeholder="0" name="forras">
+			<button type="button" name="arm_button" class="btn btn-target-action">ÉLESÍTÉS</button>
+			<button type="button" name="remove_button" class="bagoly_button">❌ Törlés</button>
+			Indítás: <span class="print_out_text print_important">...</span>
+		</div>
+		<table class="vis unitTable">
+			<tr class="units">${unitsRow}</tr>
+			<tr>${inputrow}</tr>
+		</table>
+	</form>`;
+	attackEl.appendChild(newEl);
 }
 /* ----------- KÉSLELTETÉS MEGÁLLAPÍTÓ --------------- */
 function getIdotartam(ref) {
