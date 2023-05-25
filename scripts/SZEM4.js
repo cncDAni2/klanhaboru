@@ -1608,6 +1608,11 @@ function szem4_farmolo_motor(){try{
 				} else {FARM_HIBA++;}
 				break;
 		case 2: /*Confirm: nem e jött piros szöveg, játékos e -> OK-ézás.*/ 
+				if (!PM1.plannedArmy || !PM1.plannedArmy.fromVill) {
+					FARM_LEPES = 0;
+					debug('szem4_farmolo_motor', 'Érvénytelen állapot' + (typeof PM1 === 'object' ? JSON.parse(PM1) : PM1));
+					break;
+				}
 				if (isPageLoaded(FARM_REF,koordTOid(PM1.plannedArmy.fromVill),"try=confirm")) {
 					FARM_HIBA=0; FARM_GHIBA=0;
 					PM1=szem4_farmolo_3egyeztet(PM1);
