@@ -1,12 +1,24 @@
 function stop(){
 	var x = setTimeout('',100); for (var i = 0 ; i < x ; i++) clearTimeout(i);
 }
+function loadXMLDoc(dname) {
+	if (window.XMLHttpRequest) xhttp=new XMLHttpRequest();
+		else xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	xhttp.open("GET",dname,false);
+	xhttp.send();
+	return xhttp.responseXML;
+}
 stop(); /*Időstop*/
 document.getElementsByTagName("html")[0].setAttribute("class","");
 var KTID = {};
 var VILL1ST;
 var BOT = false;
+var T_ID = 0;
 UNITS=["spear","sword","axe","archer","spy","light","marcher","heavy", 'ram', 'catapult', 'snob'];
+var BASE_URL=document.location.href.split("game.php")[0];
+var CONFIG=loadXMLDoc(BASE_URL+"interface.php?func=get_config");
+var SPEED=parseFloat(CONFIG.getElementsByTagName("speed")[0].textContent);
+var UNIT_S=parseFloat(CONFIG.getElementsByTagName("unit_speed")[0].textContent);
 var STATES = {
 	no: 0,
 	refs: [],
@@ -69,7 +81,7 @@ function init() {try{
 		};
 	}
 	const styleContent = `
-		body { background: black; color: white; }
+		body { background: black; color: white; background-image: linear-gradient(90deg, rgba(0,28,67,1) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, rgba(0,28,67,1) 100%);}
 		.bagoly_header {
 			margin: auto;
 			width: 300px;
@@ -98,6 +110,7 @@ function init() {try{
 			margin-top: 30px;
 			border: 1px solid green;
 			padding: 20px;
+			box-shadow: 0 0 12px rgb(0,80,0);
 		}
 		.bagoly_teszt {
 			background: rgb(30,30,30);
@@ -134,15 +147,36 @@ function init() {try{
 		}
 		.unitTable {
 			color: black;
+			margin: auto;
+			margin-top: 5px;
 		}
 		.unitTable .units th {
 			text-align: center;
 		}
+		#bagoly_sereg {
+			width: 100%;
+		}
 		.sereg_option {
 			padding: 12px 20px;
+			width: calc(100% - 40px);
 			margin-bottom: 10px;
 			background: rgb(30,30,30);
 			border-radius: 10px;
+		}
+		.sereg_option.armed {
+			position: relative;
+			background-position: top right;
+			background-repeat: no-repeat;
+			background-size: 60px;
+		}
+		.sereg_option.armed.attack {
+			background-image: url('${pic('fejsze.png')}');
+		}
+		.sereg_option.armed.support {
+			background-image: url('${pic('pajzs.png')}');
+		}
+		.sereg_option form {
+			width: 95%;
 		}
 		.sereg_option .btn.btn-target-action {
 			padding: 6px 10px;
@@ -162,9 +196,23 @@ function init() {try{
 				box-shadow: 0 0 0 rgba(250, 0, 0, 0);
 			}
 		}
+		.unitRowCalculations {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.unitRowCalculations img {
+			cursor: pointer;
+			padding: 3px;
+			border: 1px solid transparent;
+		}
+		.unitRowCalculations .bagoly-active-type {
+			border: 1px solid red;
+		}
 		.sereg_quick_buttons {
 			display: flex;
 			margin-bottom: 10px;
+			align-items: center;
 		}
 		.bagoly_button {
 			padding: 5px 14px;
@@ -179,6 +227,11 @@ function init() {try{
 		}
 		.sereg_quick_buttons button.bagoly_button.all_arm {
 			background: rgb(235,0,0);
+		}
+		.sereg_buttons_group {
+			border: 1px solid rgb(168,151,188);
+			margin-right: 10px;
+			padding: 5px;
 		}
 	`;
 	const styleElement = document.createElement('style');
@@ -206,20 +259,34 @@ function init() {try{
 					<td><input class="input-nicer" type="text" value="507|405" name="cel"></td></tr>
 					<tr><td style="text-align: right"><button type="button" class="bagoly_button" onclick="triggerProbaMotor()">Automata pontosítás indítása most</button></td>
 						<td style="text-align: left"><button type="button" class="bagoly_button" onclick="setManualPontos()">Saját érték megadása</button></td></tr>
-					<tr><td colspan="2" id="pontos_display">PONTOS = ${PONTOS}</td></tr>
+					<tr><td colspan="2" id="pontos_display">PONTOS = ${PONTOS} ( <i>Méretlen</i> )</td></tr>
 				</table></form>
 			</div>
 
 			<div class="sereg_options">
 		  		<div class="sereg_quick_buttons">
-					<button type="button" class="bagoly_button">Egyediek Nuke-ra</button>
-					<button type="button" class="bagoly_button">Egyediek Fake-ra</button>
-					<button type="button" class="bagoly_button">Egyediek Nemes-re</button>
-					<button type="button" class="bagoly_button">Rendezés</button>
+					<div class="sereg_buttons_group">
+						Egyedi típusok átalakítása erre:
+						<select class="input-nicer">
+							<option value="nuke">Full támadó</option>
+							<option value="nemes">Nemes</option>
+							<option value="fake">Fake</option>
+						</select>
+						<button type="button" class="bagoly_button">Átalakítás</button>
+					</div>
+					<div class="sereg_buttons_group">
+						Rendezés/csoportosítás ez alapján:
+						<select class="input-nicer">
+							<option value="honnan">Forrás faluk alapján</option>
+							<option value="hova">Célpont faluk alapján</option>
+							<option value="ido">Indítási idő alapján</option>
+						</select>
+						<button type="button" class="bagoly_button">Rendezés</button>
+					</div>
 					<button type="button" class="bagoly_button all_arm">Összes élesítése</button>
 				</div>
 				<div id="bagoly_sereg"></div>
-				<button type="button" onclick="addBagolyAttack()">+ Új időzés hozzáadása</button>
+				<button type="button" class="bagoly_button" onclick="addBagolyAttack()">+ Új időzés hozzáadása</button>
 			</div>
 
 			<div class="naplobox">
@@ -325,6 +392,44 @@ function BotvedelemKi(){
 	clearTimeout(BOTORA);
 	return;
 }
+function writeoutDate(d, isOnlyTime) {
+	var date = "";
+	d=new Date(d);
+	if (!isOnlyTime) date = d.getFullYear() + "." + leadNull((d.getMonth()+1)) + "." + leadNull(d.getDate()) + " ";
+	return date +
+		leadNull(d.getHours()) + ":" + leadNull(d.getMinutes()) + ":" + leadNull(d.getSeconds()) + ":" + leadNull(d.getMilliseconds(), true);
+	
+	function leadNull(num, triple) {
+		num = parseInt(num, 10);
+		if (triple && num<10) return "00" + num;
+		if (triple && num<100) return "0" + num;
+		if (num<10) return "0" + num;
+		return num;
+	}
+}
+function _getVillageLink(koord, screen='place') {
+	return VILL1ST
+		.replace(/village=[0-9]+/,"village="+KTID[koord].id)
+		.replace('screen=overview', `screen=${screen}`);
+}
+function _distCalc(S,D){
+	S[0]=parseInt(S[0]);
+	S[1]=parseInt(S[1]);
+	D[0]=parseInt(D[0]);
+	D[1]=parseInt(D[1]);
+	return Math.abs(Math.sqrt(Math.pow(S[0]-D[0],2)+Math.pow(S[1]-D[1],2)));
+}
+function _checkvillage(villFormEl, isForras=false) {
+	const patt = /[0-9]{1,3}\|[0-9]{1,3}/g;
+	let falu = villFormEl.value;
+	if (patt.test(falu)) falu = falu.match(patt)[0];
+	if (!patt.test(falu) || (isForras === true && !KTID[falu])) {
+		return false;
+	}
+	villFormEl.value = falu;
+	return true;
+}
+/* ---------------------- UI ------------------------- */
 function bagolyImageSwitcher() {
 	let nexttime = 3000;
 	try {
@@ -349,32 +454,59 @@ function bagolyImageSwitcher() {
 	}catch(e){console.error('bagolyImageSwitcher', e); }
 	setTimeout(() => bagolyImageSwitcher(), nexttime)
 }
-function getVillageLink(koord, screen='place') {
-	return VILL1ST
-		.replace(/village=[0-9]+/,"village="+KTID[koord].id)
-		.replace('screen=overview', `screen=${screen}`);
-}
-function writeoutDate(d, isOnlyTime) {
-	var date = "";
-	d=new Date(d);
-	if (!isOnlyTime) date = d.getFullYear() + "." + leadNull((d.getMonth()+1)) + "." + leadNull(d.getDate()) + " ";
-	return date +
-		leadNull(d.getHours()) + ":" + leadNull(d.getMinutes()) + ":" + leadNull(d.getSeconds()) + ":" + leadNull(d.getMilliseconds(), true);
-	
-	function leadNull(num, triple) {
-		num = parseInt(num, 10);
-		if (triple && num<10) return "00" + num;
-		if (triple && num<100) return "0" + num;
-		if (num<10) return "0" + num;
-		return num;
-	}
-}
 function setManualPontos() {
 	let ido = prompt('Pontosítás mértéke?');
 	if (ido && !isNaN(ido)) {
 		PONTOS = parseInt(ido, 10);
-		document.getElementById("pontos_display").innerHTML = `PONTOS = ${PONTOS}`;
+		PONTOS_DATE = new Date();
+		document.getElementById("pontos_display").innerHTML = `PONTOS = ${PONTOS} (${PONTOS_DATE.toLocaleTimeString()})`;
 	}
+}
+function changeAttackType(atype, id) {
+	let images = document.getElementById(`timer${id}`).querySelectorAll('.unitRowCalculations img');
+	images[0].classList.remove('bagoly-active-type');
+	images[1].classList.remove('bagoly-active-type');
+	if (atype == 'tamadas') images[0].classList.add('bagoly-active-type');
+	if (atype == 'erosites') images[1].classList.add('bagoly-active-type');
+}
+function removeAttack(id) {
+	document.getElementById(`timer${id}`).parentElement.remove();
+}
+function armAttack(id) {
+	const attackForm = document.getElementById(`timer${id}`);
+	if (!_checkvillage(attackForm.forras, true)) {
+		alert2('Forrás falu érvénytelen vagy nincs megadva');
+		return false;
+	}
+	if (!_checkvillage(attackForm.cel)) {
+		alert2('Célfalu érvénytelen vagy nincs megadva');
+		return false;
+	}
+
+	let forrasFalu = attackForm.forras.value;
+	let celFalu = attackForm.cel.value;
+	if (celFalu == forrasFalu) {
+		alert2('A megadott forrás- és célfalu ugyanaz!');
+		return false;
+	}
+
+	let idozites = attackForm.ido.value;
+	let datumSplit=idozites.match(/[0-9]+/g).map(r => parseInt(r, 10));
+	if ((datumSplit.length == 3 || datumSplit.length == 4)) {
+		if (datumSplit.length == 3) datumSplit[3] = 0;
+		if (datumSplit[0] > 23 || datumSplit[1] > 59 || datumSplit[2] > 59 || datumSplit[3] > 999) {
+			alert2("Érvénytelen időpontmegadás");
+			return false;
+		}
+		let now = new Date();
+		let beadott_ido = new Date();
+		let unifiedTraverTime = (1/SPEED)*(1/UNIT_S);
+			unifiedTraverTime = unifiedTraverTime*(_distCalc(forrasFalu.split("|"), celFalu.cells[0].textContent.split("|")));
+
+	}
+	// let datum = convert_beIdo(, ut_idotartam);
+	// let dateforOutput = new Date(datum[0],datum[1]-1,datum[2],datum[3],datum[4],datum[5],datum[6]);
+
 }
 function addBagolyAttack() {
 	let attackEl = document.getElementById('bagoly_sereg');
@@ -395,13 +527,16 @@ function addBagolyAttack() {
 			<option value="normal" selected="selected">Egyedi/pontos</option>
 		</select>
 	</td>`;
-	newEl.innerHTML = `<form>
+	T_ID++;
+	newEl.innerHTML = `<form id="timer${T_ID}">
 		<div class="unitRowCalculations">
 			Honnan: <input class="input-nicer" type="text" size="8" placeholder="0" name="forras">
-			Hova: <input class="input-nicer" type="text" size="8" placeholder="0" name="forras">
-			Mikor: <input class="input-nicer" type="text" size="18" value="${new Date().toLocaleString()}:000" placeholder="0" name="forras">
-			<button type="button" name="arm_button" class="btn btn-target-action">ÉLESÍTÉS</button>
-			<button type="button" name="remove_button" class="bagoly_button">❌ Törlés</button>
+			Hova: <input class="input-nicer" type="text" size="8" placeholder="0" name="cel">
+			Mikorra: <input class="input-nicer" type="text" size="20" value="${new Date().toLocaleString()}:000" placeholder="0" name="ido">
+			<img src="${pic('tamadas.png')}" onclick="changeAttackType('tamadas', ${T_ID})" title="Támadás" class="bagoly-active-type">
+			<img src="${pic('erosites.png')}" onclick="changeAttackType('erosites', ${T_ID})" title="Erősítés">
+			<button type="button" class="btn btn-target-action" onclick="armAttack(${T_ID})">ÉLESÍTÉS</button>
+			<button type="button" class="bagoly_button" onclick="removeAttack(${T_ID})">❌ Törlés</button>
 			Indítás: <span class="print_out_text print_important">...</span>
 		</div>
 		<table class="vis unitTable">
@@ -441,6 +576,10 @@ function bagoly_teszt_1openVillage(no, refArray) {try{
 		naplo('openVillage', 'Teszteslére való cél falu érvénytelen vagy nincs megadva');
 		return false;
 	}
+	if (celFalu == forrasFalu) {
+		naplo('openVillage', 'Tesztelésre megadott forrás- és célfalu ugyanaz!');
+		return false;
+	}
 	patt.lastIndex = 0;
 	celFalu = tesztForm.cel.value.match(patt)[0];
 	tesztForm.cel.value = celFalu;
@@ -449,7 +588,7 @@ function bagoly_teszt_1openVillage(no, refArray) {try{
 		villageId: KTID[forrasFalu].id,
 		targetVillage: celFalu
 	};
-	refArray[no] = window.open(getVillageLink(forrasFalu), `bagoly-teszt-${no}`);
+	refArray[no] = window.open(_getVillageLink(forrasFalu), `bagoly-teszt-${no}`);
 	return true;
 }catch(e) {console.error(e); naplo('openVillage', 'Error: ' + e); }}
 
@@ -504,7 +643,8 @@ function bagoly_teszt_4searchTestResult(no, refArray) {
 				let time = allAttack[i].cells[1].textContent.match(/[0-9]+/g).map(str => parseInt(str, 10));
 				PONTOS += calculateDifference(originalTargetTime, time);
 				naplo('Bemérés', `Időbemérés megtörtént, pontosítás ${PONTOS}ms-re állítva`);
-				document.getElementById("pontos_display").innerHTML = `PONTOS = ${PONTOS}`;
+				PONTOS_DATE = new Date();
+				document.getElementById("pontos_display").innerHTML = `PONTOS = ${PONTOS} (${PONTOS_DATE.toLocaleTimeString()})`;
 				allAttack[i].querySelector('.command-cancel').click();
 				setTimeout(() => TEST_STATE.refs[no].close(), 1000);
 				break;
@@ -596,7 +736,7 @@ function bagolyStartAttack(ref) {try{
 
 if (init()) {
 	bagolyImageSwitcher();
-	naplo('Indítás', 'Éjjeli őr elindult. <ALFA VERZIÓ>');
+	naplo('Indítás', 'Éjjeli őr elindult. &lt;ALFA VERZIÓ&gt;');
 
 	$(document).ready(function(){
 		$(function() {
@@ -605,5 +745,5 @@ if (init()) {
 			$('#fejresz').mouseover(function() {sugo(this,"");});
 		});
 	});
-	//window.onbeforeunload = () => true;
+	window.onbeforeunload = () => true;
 }
