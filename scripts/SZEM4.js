@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.05.23';
+var VERZIO = 'v4.5 Build 23.05.26';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -473,6 +473,10 @@ function debug(script,szoveg){
 	cell3.innerHTML=szoveg;
 	if (table.rows.length > 300) {
 		$("#debugger").find('tr:gt(150)').remove();
+	}
+	if (d - new Date(`${d.getFullYear()} ${table.rows[10].cells[0].textContent}`) < 180000) {
+		playSound('kritikus_hiba');
+		naplo('Auto-error', 'Túl sok hiba valahol?');
 	}
 }
 
