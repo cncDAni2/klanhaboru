@@ -305,6 +305,40 @@ function init(){try{
 		.szem4_farmolo_datatable_wrapper table {
 			margin: 0;
 		}
+		.nopadding_td {
+			padding: 0 !important;
+		}
+		.heartbeat_wrapper {
+			height: 18px;
+			width: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		.heartbeat_icon {
+			height: 15px;
+			padding: 0 2px;
+			margin-right: 5px;
+			animation: heartbeatanimation 1.0s infinite;
+		}
+		@keyframes heartbeatanimation {
+			0% {
+				height: 15px;
+				padding: 0 2px;
+			}
+			33% {
+				height: 15px;
+				padding: 0 2px;
+			}
+			50% {
+				height: 19px;
+				padding: 0;
+			}
+			66% {
+				height: 15px;
+				padding: 0 2px;
+			}
+		}
 		</style>`;
 	document.getElementsByTagName("body")[0].innerHTML=`
 		<div id="alert2">
@@ -370,14 +404,15 @@ function soundVolume(vol){
 	document.getElementById("audio1").volume=vol;
 }
 
-function playSound(hang){try{
+function playSound(hang, ext='wav'){try{
 	var ison=document.getElementsByName(hang)[0];
 	if (ison==undefined) {debug("hanghiba","Nem definiált hang: "+hang); return}
 	if (ison.checked==false) return;
-	var play="https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/"+hang+".wav";
+	var play = `https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/${hang}.${ext}`;
 	document.getElementById("wavhang").src=play;
 	document.getElementById("audio1").load();
-	setTimeout(function() { if (document.getElementById("audio1").paused) document.getElementById("audio1").play()}, 666);
+	document.getElementById("audio1").play();
+	//setTimeout(function() { if (document.getElementById("audio1").paused) document.getElementById("audio1").play()}, 500);
 }catch(e){alert2(e);}}
 
 function validate(evt) {
@@ -1511,7 +1546,7 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	/*debug("Illeszt","Nyersarány: "+Math.round(nyersarany*100)+", limit: "+parseInt(raktarLimit));*/
 	if (Math.round(nyersarany*100)>parseInt(raktarLimit)) {
 		setNoUnits(falu_row, 'all');
-		naplo('Farmoló', 'Raktár túltelített ebben a faluban: ' + bestPlan[2] + '. (' + Math.round(nyersarany*100) + '% > ' + raktarLimit + '%)');
+		naplo('Farmoló', 'Raktár túltelített ebben a faluban: ' + bestPlan.fromVill + '. (' + Math.round(nyersarany*100) + '% > ' + raktarLimit + '%)');
 		return "semmi";
 	}
 
@@ -1578,6 +1613,8 @@ function szem4_farmolo_3egyeztet(adatok){try{
 
 	addCurrentMovementToList(FARM_REF.document.getElementById('command-data-form'), adatok.plannedArmy.farmVill, farm_helye);
 	FARM_REF.document.getElementById("troop_confirm_submit").click();
+	document.getElementById('cnc_farm_heartbeat').innerHTML = new Date().toLocaleString();
+	playSound('farmolas', 'mp3');
 	// return [nez,sarga,adatok[2],adatok[3]];
 	/*Legyen e 3. lépés;sárga hátteres idő lesz?;honnan;---*/
 }catch(e){debug("szem4_farmolo_3egyeztet()",e); FARM_LEPES=0;}}
@@ -1646,7 +1683,9 @@ function szem4_farmolo_motor(){try{
 				PM1=szem4_farmolo_1kereso();
 				if (PM1=="zero") {nexttime=10000; break;} /* Ha nincs még tábla feltöltve */
 				if (PM1.travelTime == -1) { // Nincs munka
-						nexttime=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[8].value,10)*60000;
+						nexttime=parseInt(document.getElementById("farmolo_options").sebesseg_p.value,10);
+						debug('Farmoló', `Farmoló pihenni megy ${nexttime} percre`);
+						nexttime*=60000;
 						isPageLoaded(FARM_REF, -1);
 						try{FARM_REF.document.title = 'Szem4/farmoló';}catch(e){}
 						break;
@@ -1701,7 +1740,7 @@ try{
 }catch(e){debug('farm', 'Worker engine error: ' + e);setTimeout(function(){szem4_farmolo_motor();}, 3000);}}
 
 init();
-ujkieg_hang("Alaphangok","naplobejegyzes;bot2");
+ujkieg_hang("Alaphangok","naplobejegyzes;bot2;farmolas");
 ujkieg("farm","Farmoló",`<tr><td>
 	<table class="vis" id="farm_opts" style="width:100%; margin-bottom: 50px;">
 		<tr>
@@ -1733,6 +1772,13 @@ ujkieg("farm","Farmoló",`<tr><td>
 					Ha a raktár &gt;<input name="raktar" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this,'Figyeli a raktár telítettségét, és ha a megadott % fölé emelkedik, nem indít támadást onnan. Telítettség össznyersanyag alapján számolva. Min: 20. Ne nézze: 100-nál több érték megadása esetén.')" value="90">%, nem foszt.
 					Megbízhatóság: <input name="megbizhatosag" value="20" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'Legalább ennyi perc időt hagy a támadások között az egyes falukra, ha az a nyersanyag termelésért megy, valamint max ennyi ideig létrejött termelésért indul (hacsaknem ez kevesebb mint a határszám).')">p
 				</form>
+			</td>
+		</tr><tr>
+			<td colspan="2" class="nopadding_td">
+				<div class="heartbeat_wrapper">
+					<img src="${pic("heart.png")}" class="heartbeat_icon">
+					<span id="cnc_farm_heartbeat">---</span>
+				</div>
 			</td>
 		</tr>
 	</table>
