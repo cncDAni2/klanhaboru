@@ -405,8 +405,10 @@ function soundVolume(vol){
 }
 
 function playSound(hang, ext='wav'){try{
-	var ison=document.getElementsByName(hang)[0];
-	if (ison==undefined) {debug("hanghiba","Nem definiált hang: "+hang); return}
+	let hang2 = hang;
+	if (hang.includes('farmolas')) hang2 ='farmolas';
+	var ison=document.getElementsByName(hang2)[0];
+	if (ison==undefined) {debug("hanghiba","Nem definiált hang: "+hang2); return}
 	if (ison.checked==false) return;
 	var play = `https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/${hang}.${ext}`;
 	document.getElementById("wavhang").src=play;
