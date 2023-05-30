@@ -1154,29 +1154,20 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 	}
 	return foszthatoNyers;
 }catch(e) {debug('calculateNyers', e);}}
-function findClosestTimes(allAttack, arriveTime) { //@AI_Generated
-	// Initialize variables to store the closest array before and after the target epoch time
-	var closestBefore = null;
-	var closestAfter = null;
+function findClosestTimes(allAttack, arriveTime) {
+	let lastBefore = null;
+	let firstAfter = null;
 
-	// Use reduce() to iterate over the array of arrays
-	allAttack.reduce(function(prev, current) {
-		// Calculate the difference between the current epoch time and the target epoch time
-		var diff = current[1] - arriveTime;
-
-		// If the current epoch time is before the target epoch time and closer than the current closest before, update closestBefore
-		if (diff < 0 && (closestBefore === null || diff > closestBefore[1] - arriveTime)) {
-			closestBefore = current;
+	for (let i=0; i<allAttack.length; i++) {
+		let d = allAttack[i][1];
+		if (d < arriveTime) {
+			if (!lastBefore || lastBefore[1] < d) lastBefore = allAttack[i];
+		} else if (d > arriveTime) {
+			if (!firstAfter || d < firstAfter[1]) firstAfter = allAttack[i];
 		}
-		// If the current epoch time is after the target epoch time and closer than the current closest after, update closestAfter
-		else if (diff > 0 && (closestAfter === null || diff < closestAfter[1] - arriveTime)) {
-			closestAfter = current;
-		}
-		return prev;
-	}, null);
+	}
 
-	// Return the closest before and after arrays
-	return [closestBefore, closestAfter];
+	return [lastBefore, firstAfter];
 }
 function addCurrentMovementToList(formEl, farmCoord, farmHelyRow) {
 	var patternOfIdo = /<td>[0-9]+:[0-9]+:[0-9]+<\/td>/g;
@@ -1260,7 +1251,7 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 			}
 
 			// buildArmy - mivel getSlowestUnit kérés volt, így ebből az egységből biztos van, nem lehet 0
-			let plannedArmy = buildArmy(attacker, priority, teher);
+			let plannedArmy = buildArmy(attacker, priority, teher); // FIXME: Minsereg-et nem veszi figyelembe! Csak h határszámnyi termelődik, de.. az nem elég! A minSereg több
 			if (plannedArmy.pop == 0) {
 				continue attackerFor;
 			}
@@ -1285,18 +1276,6 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 	//			Ha max táv-on túl van: újratervezés light/march-al (csak heavy esetén!)
 	//			Ha TERV során nem tudtunk elég egységet megfogni, újratervezés gyalogosokkal
 	//	Ha a végén üres az eddigi_legjobb_terv, akkor return "NO_PLAN"; -> ugrás a következő farmra
-
-	/* return {
-		fromVill: xxx|xxx
-		units: { // Ezt egy külön függvény számolja, (fromRow, slowestUnit, nyersToFarm) alapján, mivel újra lesz számolva 2. lépésbe
-			heavy: 12,
-			march: 5,
-			light: 55
-		},
-		travelTime: xx minute,
-		slowestUnit: UNITS.heavy,
-		nyersToFarm: xxx teherbírás
-	} */
 }catch(e) {console.error(e); debug('planAttack', e);}}
 function buildArmy(attackerRow, priorityType, teher) {try{
 	const unitEls = attackerRow.cells[1].querySelectorAll('.szem4_unitbox');
