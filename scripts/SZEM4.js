@@ -891,7 +891,7 @@ function addWagons(farmRow) {
 function setTooltip(el, index) {
 	let farmRow = el.closest('tr');
 	let farmCoord = farmRow.cells[0].textContent;
-	let attack = ALL_UNIT_MOVEMENT[farmCoord][index];
+	let attack = [...ALL_UNIT_MOVEMENT[farmCoord][index]];
 	let min = convertTbToTime(farmRow.cells[1].textContent, attack[0]);
 	let kezdet = new Date(attack[1]);
 	kezdet.setMinutes(kezdet.getMinutes() - min);
@@ -1028,6 +1028,7 @@ function getAllResFromVIJE(coord) {
 	for (let att in allAttack) {
 		allRes+=allAttack[att][2];
 	}
+
 	if (isNaN(allRes)) {debug('getAllResFromVIJE', 'allRes is NaN at ' + coord + ': ' + JSON.stringify(allAttack)); return 0;}
 	return allRes;
 }
@@ -1051,7 +1052,7 @@ function clearAttacks() {try{
 		// Current utáni érkezések kivágása
 		var outdatedArrays = [];
 		for (var i=ALL_UNIT_MOVEMENT[item].length-1;i>=0;i--) {
-			if (ALL_UNIT_MOVEMENT[item][i][1] <= currentTime - (MAX_IDO_PERC * 3 * 60000)) { // Kuka, ha nagyon régi
+			if (ALL_UNIT_MOVEMENT[item][i][1] <= currentTime - (MAX_IDO_PERC * 60000 * 2)) { // Kuka, ha nagyon régi
 				ALL_UNIT_MOVEMENT[item].splice(i, 1);
 				drawWagons(item);
 				continue;
@@ -1069,6 +1070,7 @@ function clearAttacks() {try{
 				movement[2] = 0;
 			}
 		}
+		//ALL_UNIT_MOVEMENT['484|440'].sort((a, b) => a[1] - b[1]);
 
 		if (outdatedArrays.length < 2) continue;
 		// Leghamarábbi keresése
@@ -1130,16 +1132,21 @@ function calculateNyers(farmCoord, banyaszintek, travelTime, isDebugger=false) {
 		foszthatoNyers = getResourceProduction(banyaszintek, 'max');
 		return foszthatoNyers;
 	}
-
-	if (isDebugger) debugger;
-	allAttack = [...ALL_UNIT_MOVEMENT[farmCoord]];
-	// Vonat:   [ ---- lastBefore ----]        [ ---- firstAfter ---- ]
-	//                         [ ---- arriveTime ----]
+	if (isDebugger) {
+		playSound('kritikus_hiba');
+		debugger;
+	}
+	allAttack = ALL_UNIT_MOVEMENT[farmCoord];
+	// Vonat:   [ ---- lastBefore ----|]        [ ---- firstAfter ---- |]
+	//                         [ ---- arriveTime ----|]
 	var closests = findClosestTimes(allAttack, arriveTime);
 	var lastBefore = closests[0],
 		firstAfter = closests[1];
 	if (isDebugger) {
-		debug('calculateNyers', `Searhing...ArriveTime: ${new Date(arriveTime).toLocaleString()} <br> lastBefore=${JSON.stringify(lastBefore)}(${new Date(lastBefore).toLocaleString()}) <br> firstAfter=${JSON.stringify(firstAfter)}(${new Date(firstAfter).toLocaleString()})`);
+		debug('calculateNyers', `Searhing...ArriveTime: ${new Date(arriveTime).toLocaleString()} <br>
+			lastBefore=${JSON.stringify(lastBefore)}(${lastBefore?new Date(lastBefore[1]).toLocaleString():''}) <br>
+			firstAfter=${JSON.stringify(firstAfter)}(${firstAfter?new Date(firstAfter[1]).toLocaleString():''})<br>
+			Termelés/óra = ${getProdHour(banyaszintek)}`);
 	}
 	if (lastBefore) {
 		foszthatoNyers+=getResourceProduction(banyaszintek, (arriveTime - lastBefore[1]) / 60000);
@@ -1148,13 +1155,18 @@ function calculateNyers(farmCoord, banyaszintek, travelTime, isDebugger=false) {
 	}
 
 	if (firstAfter) {
-		var lefedesPerc = convertTbToTime(banyaszintek, firstAfter[0]);
-		var corrigatedMaxIdoPerc = getCorrigatedMaxIdoPerc(banyaszintek);
-		if (lefedesPerc > corrigatedMaxIdoPerc) lefedesPerc = corrigatedMaxIdoPerc;
-		firstAfter[1]-=(lefedesPerc * 60000);
-		if (firstAfter[1] < arriveTime) {
-			foszthatoNyers-=getResourceProduction(banyaszintek, (arriveTime - firstAfter[1]) / 60000);
+		let prodHour = getProdHour(banyaszintek);
+		let minimumFrom = 0;
+
+		for (let i=0; i<allAttack.length; i++) {
+			if (allAttack[i][1] > arriveTime) {
+				let lefedesIdo = (allAttack[i][0] / prodHour) * 60 * 60000
+				let from = allAttack[i][1] - lefedesIdo;
+				if (minimumFrom == 0 || minimumFrom > from) timeFrameAttack[0] = from;
+			}
 		}
+		if (minimumFrom < arriveTime)
+			foszthatoNyers -= getResourceProduction(banyaszintek, (arriveTime - minimumFrom) / 60000);
 	}
 	return foszthatoNyers;
 }catch(e) {debug('calculateNyers', e);}}
@@ -1166,7 +1178,7 @@ function findClosestTimes(allAttack, arriveTime) {
 		if (allAttack[i][0] < 50) continue;
 		let d = allAttack[i][1];
 		if (d < arriveTime) {
-			if (!lastBefore || lastBefore[1] < d) lastBefore = allAttack[i];
+			if (!lastBefore || d > lastBefore[1]) lastBefore = allAttack[i];
 		} else if (d > arriveTime) {
 			if (!firstAfter || d < firstAfter[1]) firstAfter = allAttack[i];
 		}
@@ -1220,7 +1232,7 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 	const maxTavPerc = parseInt(allOptions.maxtav_ora.value,10) * 60 + parseInt(allOptions.maxtav_p.value,10);
 	let plan = {};
 
-	attackerFor: for (var i=1;i<attackers.length;i++) {
+	for (var i=1;i<attackers.length;i++) {
 		let attacker = attackers[i];
 		let unifiedTraverTime = (1/SPEED)*(1/UNIT_S);
 		unifiedTraverTime = unifiedTraverTime*(distCalc(farmCoord.split("|"), attacker.cells[0].textContent.split("|"))); /*a[i]<->fromVillRow távkeresés*/
@@ -1228,18 +1240,18 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 		// Távolásszűrő: MAX távon belüli, legjobb?
 		let priority = getSlowestUnit(attacker);
 		if (priority == '') continue;
-		innerCycle: while(true) {
+		while(true) {
 			if (unifiedTraverTime * E_SEB[priority] > maxTavPerc) {
 				if (priority == 'heavy') {
-					if (unifiedTraverTime * E_SEB.light > maxTavPerc) continue attackerFor;
+					if (unifiedTraverTime * E_SEB.light > maxTavPerc) break;
 					priority = 'light'; // Talán!
 				} else if (priority == 'sword') {
-					if (unifiedTraverTime * E_SEB.spear > maxTavPerc) continue attackerFor;
+					if (unifiedTraverTime * E_SEB.spear > maxTavPerc) break;
 					priority = 'spear'; // Talán!
-				} else continue attackerFor;
+				} else break;
 			}
 			let myTime = unifiedTraverTime * E_SEB[priority];
-			if (bestSpeed !== -1 && myTime > bestSpeed) continue attackerFor;
+			if (bestSpeed !== -1 && myTime > bestSpeed) break;
 
 			// Mennyi nyerset tudnék hozni? Határszámon belül van?
 			let nyers_termeles = calculateNyers(farmCoord, farmRow.cells[1].textContent, myTime);
@@ -1250,17 +1262,17 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 			if (teher < hatarszam) {
 				if (priority == 'heavy' || priority == 'light') {
 					priority = 'sword';
-					continue innerCycle;
+					continue;
 				}
-				continue attackerFor;
+				break;
 			}
 
 			// buildArmy - mivel getSlowestUnit kérés volt, így ebből az egységből biztos van, nem lehet 0
 			let plannedArmy = buildArmy(attacker, priority, teher); // FIXME: Minsereg-et nem veszi figyelembe! Csak h határszámnyi termelődik, de.. az nem elég! A minSereg több
 			if (plannedArmy.pop == 0) {
-				continue attackerFor;
+				break;
 			}
-			if (plannedArmy.pop < minSereg) continue attackerFor;
+			if (plannedArmy.pop < minSereg) break;
 			bestSpeed = myTime;
 			plan = {
 				fromVill: attacker.cells[0].textContent,
@@ -1494,6 +1506,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 					Close attack: ${JSON.stringify(allAttack[i])} (${new Date( allAttack[i][1] ).toLocaleString()})<br>
 					re-calculated Nyers: ${theNyers}`);
 				debugger;
+				break;
 				// return 'ERROR';
 			}
 		}
