@@ -867,6 +867,7 @@ function drawWagons(koord) {
 function addWagons(farmRow) {
 	let koord = farmRow.cells[0].textContent;
 	let attacks = ALL_UNIT_MOVEMENT[koord];
+	attacks.sort((a, b) => a[1] - b[1]);
 	
 	farmRow.cells[5].innerHTML = ''; //Fixme: Nem csak ez van itt, ne töröld az egészet
 	if (!attacks) return;
