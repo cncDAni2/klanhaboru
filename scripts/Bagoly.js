@@ -243,7 +243,7 @@ function init() {try{
 		<div class="bagoly_header">
 			<img id="bagoly_img" onclick="playSound('huhogas')" data-state="normal" src="${pic('header_own_normal.png')}">
 			<span>
-				<h1>Éjjeli őr</h1>
+				<h1>Bagoly</h1>
 				<img height="40px" src="${pic('warning.png')}" title="Ez egy szuperfegyver script.\nSemmilyen prémium funkció nem képes működését helyettesíteni, és vélhetőleg nem is fog ilyen lenni. Túlzott használata ugyan nagyban javít teljesítményeden, de átalakítja játékmódod mely negatív hatással lehet">
 			</span>
 		</div>
@@ -251,7 +251,7 @@ function init() {try{
 
 		<div class="bagoly_body">
 			<div class="bagoly_teszt">
-				Ahhoz, hogy pontosan tudjon támadni, az éjjeli őr próbatámadásokat (erősítéseket) fog küldeni, ez által kiszámítva a szerver-rendszer idő közti különbséget. Adj meg egy forrás- és egy cél falut, amit zavartalanul lehet használni ez ügyben
+				Ahhoz, hogy pontosan tudjon támadni, a bagoly próbatámadásokat (erősítéseket) fog küldeni, ez által kiszámítva a szerver-rendszer idő közti különbséget. Adj meg egy forrás- és egy cél falut, amit zavartalanul lehet használni ez ügyben
 				<form id="bagoly-teszt"><table>
 					<tr><td><strong>Forrás falu</strong> (itt legyen mindig legalább 1 egység)</td>
 						<td><strong>Cél falu</strong> (egy létező falu, mindegy mi) </td></tr>
@@ -308,7 +308,7 @@ function init() {try{
 			<p id="alert2szov"></p>
 		</div>
 	`;
-	document.title="Éjjeli őr";
+	document.title="Bagoly";
 	preloadImage(pic('header_own_closed.png'));
 	preloadImage(pic('header_own_leftclosed.png'));
 	preloadImage(pic('header_own_rightclosed.png'));
@@ -736,7 +736,7 @@ function bagolyStartAttack(ref) {try{
 
 if (init()) {
 	bagolyImageSwitcher();
-	naplo('Indítás', 'Éjjeli őr elindult. &lt;ALFA VERZIÓ&gt;');
+	naplo('Indítás', 'A Bagoly elindult. &lt;ALFA VERZIÓ&gt;');
 
 	$(document).ready(function(){
 		$(function() {

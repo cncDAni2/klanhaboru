@@ -1119,7 +1119,7 @@ function convertTbToTime(banyaszintek, tb) {
 	var idoPerc = (tb / termeles) * 60;
 	return idoPerc;
 }
-function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
+function calculateNyers(farmCoord, banyaszintek, travelTime, isDebugger=false) {try{
 	// Kiszámolja a többi támadásokhoz képest, mennyi a lehetséges nyers, kivonva amiért már megy egység.
 	// Az érkezési idő +-X perc közötti rablási lefedettséget néz
 	var foszthatoNyers = 0;
@@ -1131,12 +1131,16 @@ function calculateNyers(farmCoord, banyaszintek, travelTime) {try{
 		return foszthatoNyers;
 	}
 
-	allAttack = JSON.parse(JSON.stringify(ALL_UNIT_MOVEMENT[farmCoord]));
+	if (isDebugger) debugger;
+	allAttack = [...ALL_UNIT_MOVEMENT[farmCoord]];
 	// Vonat:   [ ---- lastBefore ----]        [ ---- firstAfter ---- ]
 	//                         [ ---- arriveTime ----]
 	var closests = findClosestTimes(allAttack, arriveTime);
 	var lastBefore = closests[0],
 		firstAfter = closests[1];
+	if (isDebugger) {
+		debug('calculateNyers', `Searhing...ArriveTime: ${new Date(arriveTime).toLocaleString()} <br> lastBefore=${JSON.stringify(lastBefore)}(${new Date(lastBefore).toLocaleString()}) <br> firstAfter=${JSON.stringify(firstAfter)}(${new Date(firstAfter).toLocaleString()})`);
+	}
 	if (lastBefore) {
 		foszthatoNyers+=getResourceProduction(banyaszintek, (arriveTime - lastBefore[1]) / 60000);
 	} else {
@@ -1159,6 +1163,7 @@ function findClosestTimes(allAttack, arriveTime) {
 	let firstAfter = null;
 
 	for (let i=0; i<allAttack.length; i++) {
+		if (allAttack[i][0] < 50) continue;
 		let d = allAttack[i][1];
 		if (d < arriveTime) {
 			if (!lastBefore || lastBefore[1] < d) lastBefore = allAttack[i];
@@ -1449,6 +1454,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 	if (farmList.length==1 || attackerList.length==1) return "zero";
 	var hatarszam=parseInt(document.getElementById("farm_opts").rows[2].cells[1].getElementsByTagName("input")[3].value,10);
 	var verszem = false;
+	var debug_banyalvls = [0, ''];
 
 	let bestPlan = { travelTime: -1 };
 	for (var i=1;i<farmList.length;i++) {
@@ -1462,14 +1468,38 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		/*Farm vizsgálat (a[i]. sor), legközelebbi saját falu keresés hozzá (van e egyátalán (par.length==3?))*/
 		let attackPlan = planAttack(farmList[i], nyers_VIJE, verszem ? -1 : bestPlan.travelTime);
 		
-		if (attackPlan.travelTime && (bestPlan.travelTime == -1 || attackPlan.travelTime < bestPlan.travelTime)) bestPlan = {...attackPlan};
+		if (attackPlan.travelTime && (bestPlan.travelTime == -1 || attackPlan.travelTime < bestPlan.travelTime)) {
+			bestPlan = {...attackPlan};
+			debug_banyalvls = [nyers_VIJE, farmList[i].cells[1].textContent];
+		}
 		if (verszem && attackPlan.travelTime) {
 			bestPlan = {...attackPlan};
+			debug_banyalvls = [nyers_VIJE, farmList[i].cells[1].textContent];
 			break;
 		}
 	}
+
+	/* DEBUG: Any other attack? */
+	let allAttack = ALL_UNIT_MOVEMENT[bestPlan.farmVill];
+	if (allAttack) {
+		var d = new Date();
+		d.setMinutes(d.getMinutes() + bestPlan.travelTime);
+		for (let i=0;i<allAttack.length;i++) {
+			if (allAttack[i][0] > 50 && debug_banyalvls[0] < 50 && Math.abs(allAttack[i][1] - d.getTime()) < 300000) {
+				let theNyers = calculateNyers(bestPlan.farmVill, debug_banyalvls[1], bestPlan.travelTime, true)
+				debug('szem4_farmolo_1kereso', `Invalid támadás küldési kísérlet: DUPLIKÁCIÓS HIBA. TIMEDIFF: ${Math.abs(allAttack[i][1] - d.getTime()) / 1000}mp<br>
+					Expected arrive: ${d.toLocaleString()}<br>
+					VIJE: ${debug_banyalvls[1]}<br>
+					Terv: ${JSON.stringify(bestPlan)}<br>
+					Close attack: ${JSON.stringify(allAttack[i])} (${new Date( allAttack[i][1] ).toLocaleString()})<br>
+					re-calculated Nyers: ${theNyers}`);
+				debugger;
+				// return 'ERROR';
+			}
+		}
+	}
 	return bestPlan;
-}catch(e){debug("szem4_farmolo_1kereso()",e); return "";}}
+}catch(e){debug('szem4_farmolo_1kereso()',e); return 'ERROR';}}
 
 function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján számolódjon a min. sereg*/
 	/*adatok: [0:Becsült útidő; 1:Használandó egység alapsebessége; 2:koord-honnan; 3:koord-hova; 4:nyers]*/
@@ -1547,7 +1577,6 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 }catch(e){debug("Illeszto()",e);FARM_LEPES=0;return "";}}
 
 function szem4_farmolo_3egyeztet(adatok){try{
-	
 	var falu_helye=document.getElementById("farm_honnan").rows;
 	for (var i=1;i<falu_helye.length;i++) {
 		if (falu_helye[i].cells[0].textContent==adatok.plannedArmy.fromVill) {falu_helye=falu_helye[i]; break;}
@@ -1582,7 +1611,17 @@ function szem4_farmolo_3egyeztet(adatok){try{
 			}
 		}
 	}catch(e){ /* Nem az... */ }
-	
+
+	/* TravelTime egyezik? */
+	let timeFormatted = FARM_REF.document.querySelector('#content_value .vis').rows[2].cells[1].textContent;
+	let writedTime = timeFormatted.split(':').map((a) => parseInt(a, 10));
+	writedTime = writedTime[0] * 60 + writedTime[1] + (writedTime[2] / 60);
+	if (Math.abs(writedTime - adatok.plannedArmy.travelTime) > 0.05) {
+		debug('szem4_farmolo_3egyeztet', `A tervezett idő (${adatok.plannedArmy.travelTime} perc) nem egyezik a küldendő idővel: ${timeFormatted}.`);
+		debugger;
+		return "ERROR";
+	}
+
 	/* Teherbírás egyezik? */
 	// try{
 	// 	var a = FARM_REF.document.getElementById("content_value").getElementsByTagName("table")[0].rows;
@@ -1666,7 +1705,7 @@ function szem4_farmolo_motor(){try{
 	switch (FARM_LEPES) {
 		case 0: /*Meg kell nézni mi lesz a célpont, +nyitni a HONNAN-t.*/
 				PM1=szem4_farmolo_1kereso();
-				if (PM1=="zero") {nexttime=10000; break;} /* Ha nincs még tábla feltöltve */
+				if (PM1=="zero" || PM1=="ERROR") {nexttime=10000; break;} /* Ha nincs még tábla feltöltve */
 				if (PM1.travelTime == -1) { // Nincs munka
 						nexttime=parseInt(document.getElementById("farmolo_options").sebesseg_p.value,10);
 						debug('Farmoló', `Farmoló pihenni megy ${nexttime} percre`);
@@ -1929,6 +1968,10 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 		farm_helye.cells[1].backgroundColor="#f4e4bc";
 		if (fal=="") fal=0;
 	}
+	if (szin == 'SEREG') {
+		farm_helye.cells[0].style.backgroundColor = 'red';
+		naplo('VIJE', `${koord} -- Sereg a faluban!`);
+	}
 	if (fal!=="") {
 		if (parseInt(farm_helye.cells[2].innerHTML)!==parseInt(fal))
 			farm_helye.cells[2].backgroundColor="#f4e4bc";
@@ -1968,7 +2011,7 @@ function szem4_VIJE_2elemzes(adatok){try{
 	}
 	var hungarianDate = reportTable.rows[1].cells[1].innerText;
 	var defUnits = VIJE_REF2.document.getElementById('attack_info_def_units');
-	if (defUnits && defUnits.textContent.match(/[1-9]+/g)) adatok[2] = 'Sereg a faluban!';
+	if (defUnits && defUnits.textContent.match(/[1-9]+/g)) adatok[2] = 'SEREG';
 	hungarianDate = new Date(Date.parse(hungarianDate.replace(/jan\./g, "Jan").replace(/febr?\./g, "Feb").replace(/márc\./g, "Mar").replace(/ápr\./g, "Apr").replace(/máj\./g, "May").replace(/jún\./g, "Jun").replace(/júl\./g, "Jul").replace(/aug\./g, "Aug").replace(/szept\./g, "Sep").replace(/okt\./g, "Oct").replace(/nov\./g, "Nov").replace(/dec\./g, "Dec")));
 	hungarianDate = hungarianDate.getTime();
 	if (ALL_VIJE_SAVED[adatok[1]] >= hungarianDate) isOld = true;
