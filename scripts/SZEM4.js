@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.05.29';
+var VERZIO = 'v4.5 Build 23.06.02';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -1053,6 +1053,13 @@ function clearAttacks() {try{
 		// Current utáni érkezések kivágása
 		var outdatedArrays = [];
 		for (var i=ALL_UNIT_MOVEMENT[item].length-1;i>=0;i--) {
+			// Ha VIJE nyersért ment csak, töröljük
+			if (ALL_UNIT_MOVEMENT[item][i][1] <= currentTime && ALL_UNIT_MOVEMENT[item][i][0] < 30) {
+				subtractNyersValue(item, ALL_UNIT_MOVEMENT[item][i][2]);
+				ALL_UNIT_MOVEMENT[item].splice(i, 1);
+				drawWagons(item);
+				continue;
+			}
 			if (ALL_UNIT_MOVEMENT[item][i][1] <= currentTime - (MAX_IDO_PERC * 60000 * 2)) { // Kuka, ha nagyon régi
 				ALL_UNIT_MOVEMENT[item].splice(i, 1);
 				drawWagons(item);
@@ -1067,11 +1074,10 @@ function clearAttacks() {try{
 				debug('clearAttacks', 'Anomaly, nem szabályszerű mozgás ('+item+'):'+JSON.stringify(movement)+' -- össz:'+JSON.stringify(outdatedArrays));
 			}
 			if (movement[2] > 0) {
-				subtractNyersValue(movement[0], movement[2]);
+				subtractNyersValue(item, movement[2]);
 				movement[2] = 0;
 			}
 		}
-		//ALL_UNIT_MOVEMENT['484|440'].sort((a, b) => a[1] - b[1]);
 
 		if (outdatedArrays.length < 2) continue;
 		// Leghamarábbi keresése
@@ -1163,7 +1169,7 @@ function calculateNyers(farmCoord, banyaszintek, travelTime, isDebugger=false) {
 			if (allAttack[i][1] > arriveTime) {
 				let lefedesIdo = (allAttack[i][0] / prodHour) * 60 * 60000
 				let from = allAttack[i][1] - lefedesIdo;
-				if (minimumFrom == 0 || minimumFrom > from) timeFrameAttack[0] = from;
+				if (minimumFrom == 0 || minimumFrom > from) minimumFrom = from;
 			}
 		}
 		if (minimumFrom < arriveTime)
