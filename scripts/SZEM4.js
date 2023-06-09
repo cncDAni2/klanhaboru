@@ -1495,6 +1495,7 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	const kemPerMin = parseInt(allOptions.kemperc.value,10);
 	const kemdb = parseInt(allOptions.kemdb.value,10);
 	const raktarLimit = parseInt(allOptions.raktar.value,10);
+	const hatarszam = parseInt(allOptions.hatarszam.value,10);
 	var C_form=FARM_REF.document.forms["units"];
 
 	if (C_form["input"].value == undefined) {
@@ -1512,9 +1513,10 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	updateAvailableUnits(falu_row);
 	//attackerRow, priorityType, teher
 	const plannedArmy = buildArmy(falu_row, bestPlan.slowestUnit, bestPlan.nyersToFarm);
-	if (plannedArmy.pop == 0 || plannedArmy.pop < minSereg) {
+	if (plannedArmy.pop == 0 || plannedArmy.pop < minSereg || plannedArmy.nyersToFarm < hatarszam) {
 		return 'semmi'; // FIXME: Nem jó, újratervezés
 	}
+	bestPlan.nyersToFarm = plannedArmy.nyersToFarm;
 
 	Object.entries(plannedArmy).forEach(entry => {
 		const [unit, unitToSend] = entry;
@@ -1621,6 +1623,7 @@ function szem4_farmolo_3egyeztet(adatok){try{
 	FARM_REF.document.getElementById("troop_confirm_submit").click();
 	document.getElementById('cnc_farm_heartbeat').innerHTML = new Date().toLocaleString();
 	if (adatok.plannedArmy.nyersToFarm > parseInt(document.getElementById('farmolo_options').hatarszam.value, 10) * 6) {
+		debug('xxx', `${adatok.plannedArmy.nyersToFarm} --- ${JSON.stringify(adatok.plannedArmy.units)}`);
 		playSound(`farmolas_exp`, 'mp3');
 	} else {
 		playSound(`farmolas_${Math.floor(1 + Math.random() * (11 - 1 + 1))}`, 'mp3');
@@ -1771,16 +1774,17 @@ ujkieg("farm","Farmoló",`<tr><td>
 			</td>
 			<td>
 				<form id="farmolo_options">
-					Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="3600" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik')">
+					Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="800" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik ott óránként')">
 					Max táv: <input name="maxtav_ora" type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">óra <input name="maxtav_p" onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">perc.
-					Határszám: <input name="hatarszam" type="text" onkeypress="validate(event)" onmouseover="sugo(this,'Az új farmok ennyi nyersanyaggal lesznek felvíve. Másrész, ez alatti nyersanyagért még nem indulok el.')" value="3600" size="5"><br>
-					Kém/falu: <input name="kemdb" onkeypress="validate(event)" type="text" value="1" size="2" onmouseover="sugo(this,'Minden támadással ennyi kém fog menni')">
-					Kényszerített?<input name="isforced" type="checkbox" onmouseover="sugo(this,'Kémek nélkül nem indít támadást, ha kéne küldenie az időlimit esetén. Kémeket annak ellenére is fog vinni, ha nincs bepipálva a kém egység.')">
+					Határszám: <input name="hatarszam" type="text" onkeypress="validate(event)" onmouseover="sugo(this,'MIN ennyi nyersanyagért indul el')" value="400" size="5"><br>
+					Kém/falu: <input name="kemdb" onkeypress="validate(event)" type="text" value="1" size="2" onmouseover="sugo(this,'A kémes támadásokkal ennyi kém fog menni')">
+					Kényszerített?<input name="isforced" type="checkbox" onmouseover="sugo(this,'Kémek nélkül nem indít támadást, ha kéne küldenie az időlimit esetén. Kémeket annak ellenére is fog vinni, ha nincs bepipálva a kém egység')">
 					Kém/perc: <input name="kemperc" type="text" value="60" onkeypress="validate(event)" size="3" onmouseover="sugo(this,'Max ekkora időközönként küld kémet falunként')">
-					Min sereg/falu: <input name="minsereg" onkeypress="validate(event)" type="text" value="100" size="4" onmouseover="sugo(this,'Ennél kevesebb fő támadásonként nem indul. A szám tanyahely szerinti foglalásban értendő.')"><br>
-					Sebesség: <input name="sebesseg_p" onkeypress="validate(event)" type="text" size="2" value="10" onmouseover="sugo(this,'Ha a farmoló nem talál több feladatot magának megáll, ennyi időre. Érték lehet: 1-300. Javasolt érték: 10-120 perc')">perc/<input name="sebesseg_m" onkeypress="validate(event)" type="text" size="3" value="500" onmouseover="sugo(this,'Egyes utasítások/lapbetöltődések ennyi időközönként hajtódnak végre. Érték lehet: 200-6000. Javasolt: 500ms, lassabb gépek esetén 1000-2000.')">ms.
+					Min sereg/falu: <input name="minsereg" onkeypress="validate(event)" type="text" value="20" size="4" onmouseover="sugo(this,'Ennél kevesebb fő támadásonként nem indul. A szám tanyahely szerinti foglalásban értendő. Javasolt: Határszám 1/80-ad része')"><br>
+					Sebesség: <input name="sebesseg_p" onkeypress="validate(event)" type="text" size="2" value="10"  onmouseover="sugo(this,'Ha a farmoló nem talál több feladatot magának megáll, ennyi időre. Érték lehet: 1-300. Javasolt érték: 15 perc')">perc/
+							  <input name="sebesseg_m" onkeypress="validate(event)" type="text" size="3" value="900" onmouseover="sugo(this,'Egyes utasítások/lapbetöltődések ennyi időközönként hajtódnak végre. Érték lehet: 200-6000. Javasolt: gépi: 500ms, emberi: 3000.')">ms.
 					Ha a raktár &gt;<input name="raktar" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this,'Figyeli a raktár telítettségét, és ha a megadott % fölé emelkedik, nem indít támadást onnan. Telítettség össznyersanyag alapján számolva. Min: 20. Ne nézze: 100-nál több érték megadása esetén.')" value="90">%, nem foszt.
-					Megbízhatóság: <input name="megbizhatosag" value="20" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'Legalább ennyi perc időt hagy a támadások között az egyes falukra, ha az a nyersanyag termelésért megy, valamint max ennyi ideig létrejött termelésért indul (hacsaknem ez kevesebb mint a határszám).')">p
+					Megbízhatóság: <input name="megbizhatosag" value="30" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'MAX ennyi ideig létrejött termelésért indul')">p
 				</form>
 			</td>
 		</tr><tr>
@@ -2066,8 +2070,9 @@ function szem4_VIJE_2elemzes(adatok){try{
 		document.getElementById("VIJE_elemzett").innerHTML=document.getElementById("VIJE_elemzett").innerHTML.split(",").splice(100,100)+",";
 	}
 	
+	VIJE2_HIBA=0; VIJE2_GHIBA=0;
 	return true;
-}catch(e){debug("VIJE2","Elemezhetetlen jelentés: "+adatok[0]+":"+adatok[1]+". Hiba: "+e); VIJE_adatbeir(adatok[1],nyersossz,"","",adatok[2]); return false;}}
+}catch(e){debug("VIJE2","Elemezhetetlen jelentés: "+adatok[0]+":"+adatok[1]+". Hiba: "+e); VIJE_adatbeir(adatok[1],nyersossz,"","",adatok[2]); VIJE2_HIBA++; VIJE_HIBA++; return false;}}
 
 function szem4_VIJE_3torol(){try{
 	if (document.getElementById("vije").getElementsByTagName("input")[6].checked) {
@@ -2090,7 +2095,7 @@ function szem4_VIJE_motor(){try{
 		} VIJE_LEPES=0;
 	}
 	
-	if (VIJE2_HIBA>10) {VIJE2_HIBA=0; VIJE2_GHIBA++; if(VIJE2_GHIBA>3) {if (VIJE2_GHIBA>5) naplo("Globál","Nincs internet? Folyamatos hiba a jelentés elemzőnél"); VIJE_REF2.close();} VIJE_LEPES=0;}
+	if (VIJE2_HIBA>6) {VIJE2_HIBA=0; VIJE2_GHIBA++; if(VIJE2_GHIBA>3) {if (VIJE2_GHIBA>5) naplo("Globál","Nincs internet? Folyamatos hiba a jelentés elemzőnél"); VIJE_REF2.close();} VIJE_LEPES=0;}
 	if (!VIJE_REF1 || (VIJE_LEPES!=0 && VIJE_REF1.closed)) VIJE_LEPES=0;
 	
 	
@@ -2119,7 +2124,6 @@ function szem4_VIJE_motor(){try{
 		case 2: /*Megnyitott jelentés elemzése*/
 			if (isPageLoaded(VIJE_REF2,-1,PM2[0])) {
 				clearAttacks();
-				VIJE2_HIBA=0; VIJE2_GHIBA=0;
 				szem4_VIJE_2elemzes(PM2);
 				if (PM2[3]) VIJE_LEPES=3; else VIJE_LEPES=1;
 				VIJE_REF2.document.title = 'Szem4/vije2';

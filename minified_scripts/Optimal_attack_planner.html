@@ -1,0 +1,244 @@
+<?php $ut=$_SERVER['REQUEST_URI']; $pos = strpos($ut,"alkat="); if ($pos==false) exit("Alkatból kell meghívni"); ?>
+
+<script type="text/javascript">
+function roundNumber(num, dec) {
+	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+	return result;
+}
+
+function alma(){
+try{
+	var FROM=document.getElementById("innen").value;/*"521|612 527|615 518|615 500|615";*/
+	var TO  =document.getElementById("ide").value;/*"484|595 490|588 481|594 479|596";*/
+	FROM=FROM.match(/[0-9]+(\|)[0-9]+/g);
+	TO  =TO.match(/[0-9]+(\|)[0-9]+/g);
+	var GotIt=0;
+	var x=document.getElementById("calc"); x.innerHTML="";
+	if (TO.length>FROM.length)	{alert("Nem lehet támadást szervezni, mert csak "+FROM.length+" támadó falu van, de "+TO.length+" falut akarsz támadni!"); return;}
+
+	var matrix=new Array(FROM.length);
+	var Ematrix=new Array(FROM.length);
+	for (var i=0;i<FROM.length;i++){
+		matrix[i]=new Array(); //TO.length-1 hosszú
+		Ematrix[i]=new Array(); //TO.length-1 hosszú
+	}
+	var str="";
+	for (var i=0;i<FROM.length;i++){
+		for (var j=0;j<TO.length;j++){
+			matrix[i][j]=Math.abs(Math.sqrt(Math.pow(FROM[i].match(/[0-9]+/g)[0]-TO[j].match(/[0-9]+/g)[0],2)+Math.pow(FROM[i].match(/[0-9]+/g)[1]-TO[j].match(/[0-9]+/g)[1],2))); /*TO-n haladunk végig...*/
+			Ematrix[i][j]=matrix[i][j];
+			str+=matrix[i][j]+"\t";
+			if (matrix[i][j]==0) {alert("Önmagadat nem támadhatod!"); return;}
+		}
+		str+="\n";
+	}
+/*	alert(str+"\n\n"+TO+"\n"+FROM);*/
+	document.getElementById("terv").innerHTML+="<br><b>Új tervezet:</b><br>";
+	
+	/*Hátsó támadók!?*/
+	var ROSSZ=document.getElementById("reverse").checked;
+	if (ROSSZ){
+		var maxhat=document.getElementById("maxhat").value;
+		if (isNaN(maxhat)) maxhat=-1; else maxhat=parseInt(maxhat.replace(/[^0-9]/g,""));
+		var kiesett=0; var kiesettek="";
+		var atlag=new Array(); var a_szum=0;
+		for (var i=0;i<FROM.length;i++){ /*Átlagok számítása FROM-onként*/
+			for (var j=0;j<TO.length;j++){
+				a_szum+=matrix[i][j];
+			}
+			atlag[i]=a_szum/TO.length;
+			a_szum=0;
+		}
+		while ((FROM.length-kiesett)>TO.length){
+			if ((maxhat!=-1) && (maxhat<(kiesett+1))) break;
+			//Keresd a minimum átlagot
+			var min=0; //hely
+			for (var i=1;i<atlag.length;i++){
+				if (atlag[i]<atlag[min]) min=i;
+			}
+			//Töröld a sort
+			for (var i=0;i<TO.length;i++){
+				matrix[min][i]="-";
+				Ematrix[min][i]="-";
+			}
+			
+			//kiesett++; kiesettek+=BB FROM[min];
+			kiesett++;
+			atlag[min]=999;
+			kiesettek+="[coord]"+FROM[min]+"[/coord] ";
+		}
+		document.getElementById("terv").innerHTML+="Meghagyott közeli faluk: <br>"+kiesettek+"<br>";
+		var feles=FROM.length-TO.length-kiesett;
+	} else var feles=FROM.length-TO.length;
+	
+	mod=document.getElementsByName("a"); for (var i=0;i<mod.length;i++) if (mod[i].checked==true) {mod=mod[i].value; break;}
+	if (mod=="tabla") document.getElementById("terv").innerHTML+='<textarea rows="10" cols="50" onclick="select(this)"></textarea>';
+	var tabla_mod=document.getElementsByTagName("textarea");
+	var tabla_mod=tabla_mod[tabla_mod.length-1];
+	
+	/*	----   TO1   TO2
+	 *  FROM1
+	 *  FROM2
+	 *  FROM3
+	 *  FROM1(TO1,TO2), FROM2(TO1,TO2), FROM3(TO1,TO2)
+	 * matrix[i. sor][j. oszlop]
+	 */
+	
+	var eredmeny=new Array();
+	while (GotIt<TO.length){
+		//Soronkénti  MIN helyek keresése.
+		S_Min=new Array();
+		for (i=0;i<FROM.length;i++){
+			sor_min=1000;
+			helyY=-1;
+			for (j=0;j<TO.length;j++){
+				if (matrix[i][j]=="-") continue;
+				if (matrix[i][j]<sor_min){
+						sor_min=matrix[i][j];
+						helyY=j;
+				}
+			}
+			S_Min.push(helyY);
+		}
+		
+		//Oszloponkénti MIN helyek keresése.
+		O_Min=new Array();
+		for (i=0;i<TO.length;i++){
+			osz_min=1000;
+			helyY=-1;
+			for (j=0;j<FROM.length;j++){
+				if (matrix[j][i]=="-") continue;
+				if (matrix[j][i]<osz_min){
+						osz_min=matrix[j][i];
+						helyY=j;
+				}
+			}
+			O_Min[i]=helyY;
+		}
+		
+		//Megvannak a oszloponkénti és soronkénti MIN helyek (-1, ha nincs a sorba már szám)
+		
+		/* Mátrix kiírása
+		var str="";
+		for (var i=0;i<FROM.length;i++){
+			for (var j=0;j<TO.length;j++) if (matrix[i][j]=="-") str+="------- \t"; else str+=matrix[i][j].toFixed(2)+"\t";
+			str+="\n"
+		}		
+		alert(str+"\n"+O_Min);*/
+		
+		//Keressük az opszloponkénti minimumok MAX helyét
+		MAX=0; MAXh=-1;
+		for (i=0;i<O_Min.length;i++){
+			if (O_Min[i]==-1) continue;
+			if (matrix[O_Min[i]][i]>MAX) {MAX=matrix[O_Min[i]][i]; MAXh=i;}
+		}
+		
+		//Meghatározva 1 támadás:matrix[O_Min[MAXh]][MAXh] --> sorát és oszlopát töröljük, azaz "-"-ra változtatjuk a matrix értékét!
+		
+		Num=matrix[O_Min[MAXh]][MAXh];
+			for (i=0;i<TO.length;i++){
+				matrix[O_Min[MAXh]][i]="-";
+			}
+			for (j=0;j<FROM.length;j++){
+				matrix[j][MAXh]="-";
+			}
+			GotIt++;
+		
+		eredmeny.push(O_Min[MAXh]+";"+MAXh);
+	}
+	/*OPTIMALIZÁLÁS! eredmeny(sor;oszlop) VS Ematrix(teljes tábla) tömb*/
+	while (true){
+		/*Keresd meg a legnagyobb távolságot a tervbe. Ezt próbáljuk csökkenteni.*/
+		var MAX=-1; var MAXH=-1;
+		for (var i=0;i<eredmeny.length;i++){
+			var Curr=Ematrix[eredmeny[i].split(";")[0]][eredmeny[i].split(";")[1]];
+			//alert(eredmeny[i].split(";")[0]+":"+eredmeny[i].split(";")[1]+" = "+Curr);
+			if (Curr>MAX) {MAX=Curr; MAXH=i;}
+		}
+		//alert(MAX+" - "+eredmeny[MAXH]);
+		if (MAXH==-1) break;
+		
+		/*Keressünk az oszlopába tőle KISEBB értéket! Ha nincs -> vége!*/
+		var volte=false;
+		for (var i=0;i<FROM.length;i++){
+			if (Ematrix[i][eredmeny[MAXH].split(";")[1]]<MAX) {
+				
+				/*Találtunk! Nézzük meg, hogy ha cserélnénk, élesen jobban járnánk e? Ha nem -->köv. Ha igen --> csere, break!*/
+				/*alert("Ezt lehet minimalizálni: "+Ematrix[eredmeny[MAXH].split(";")[0]][eredmeny[MAXH].split(";")[1]]+
+					"\nErre lehet minimalizálni: "+Ematrix[i][eredmeny[MAXH].split(";")[1]]);*/
+				/*Ez a sor használatba van e? Ha igen, hol?*/
+				var USE=-1;
+				for (var j=0;j<TO.length;j++){
+					if (eredmeny.indexOf(i+";"+j)>-1) {
+						USE=j; 
+						//Van ilyen, de ez hanyadik eleme az eredmenynek?
+						var CSERE=eredmeny.indexOf(i+";"+j);
+						break;}
+				}
+				if (USE==-1) {eredmeny[MAXH]=i+";"+eredmeny[MAXH].split(";")[1]; break;}
+				//alert("Ezt a falu már használjuk másra ám! Méghozzá az No. "+USE+" falura! Szóval az Ematrix["+i+","+USE+"] helyen!");
+				//alert("A cserélendő: "+Ematrix[i][USE]+" - cserélődne erre: "+Ematrix[eredmeny[MAXH].split(";")[0]][USE]);
+				if (Ematrix[eredmeny[MAXH].split(";")[0]][eredmeny[MAXH].split(";")[1]] > Ematrix[eredmeny[MAXH].split(";")[0]][USE]) {
+					//OKÉ! Cseréljük!
+					volte=true;
+					//var str=eredmeny[MAXH]+" --- "+eredmeny[CSERE]+"\nCserélődik erre:\n";
+					var temp=eredmeny[MAXH];
+					eredmeny[MAXH]=i+";"+eredmeny[MAXH].split(";")[1];
+					eredmeny[CSERE]=temp.split(";")[0]+";"+USE;
+					//str+=eredmeny[MAXH]+" --- "+eredmeny[CSERE];
+					//alert(str);
+					break;
+				}
+			}
+		}
+		if (!volte) break;
+		continue;
+	}
+	//alert(eredmeny);
+	//KIÍRÁS
+	for (var i=0;i<eredmeny.length;i++){
+		var tav=roundNumber(Ematrix[eredmeny[i].split(";")[0]][eredmeny[i].split(";")[1]],2);
+		tav=tav.toString();
+		tav=tav.replace(/\./g,",");
+		switch (mod){
+			case "BB": document.getElementById("terv").innerHTML+="[coord]"+FROM[eredmeny[i].split(";")[0]]+"[/coord] --&gt; [coord]"+
+					TO[eredmeny[i].split(";")[1]]+"[/coord]. Távolság: [b]"+tav+"[/b] mező<br>"; break;
+			case "Norm": document.getElementById("terv").innerHTML+=FROM[eredmeny[i].split(";")[0]]+" támadja "+TO[eredmeny[i].split(";")[1]]+" ("+tav+" mező)<br>"; break;
+			case "tabla": tabla_mod.innerHTML+=""+FROM[eredmeny[i].split(";")[0]]+"\t"+TO[eredmeny[i].split(";")[1]]+"\t"+tav+"\n"; break;
+		}
+	}
+}catch(e){alert(e);}
+}
+</script>
+
+<li>
+<a href="#">Tutorial</a>
+<div>A támadásszervező egy komplett támadást szervez neked a legoptimálisabb módon. Ez azt jelenti, hogy FŐ céljának a minél gyorsabban lezavart támadás. Ez az idő a leghosszabb támadás idejével azonos - így ezt fogja minimalizálni. Nem játékban futtatandó script, itt helyben tervez. A weboldal a Ctrl+s segítségével lementhető, így bármikor behívhatod a weboldal használata nélkül is (ilyenkor a betűk fehérek leszneka fehér hátteren, és az ékezet nem biztos hogy látszani fog - jelöld ki a szöveget ha látni akarod)<br>
+Időfüggetlen: Nem az a célja, hogy időpontokat adjon neked, hanem az hogy megmondja, mely faluból melyikre kell támadni. Ezért mezőtávolságokban gondolkozik, a terv megjelenítésekor ezt is mutatja.<br>
+Használat: A bal oldali mezőbe megadod, mely falukból indítanád a támadást, míg a jobb oldalra, hogy mely falukat támadnál. Megadáskor a koordinátákat bárhogy elválaszthatod, lehet új sor, vessző, szóköz, BB kód, falunév - teljesen mindegy, érteni fogja. Értelemszerűen bal oldalra több, vagy egyező falu kell hogy kerüljön, mint a jobb oldalra - különben a tevezés nem hajtható végre.<br>
+Gyakran szükség lehet arra, hogy olyan támadási tervet készítsünk, ahol elől tartalék támadókat szeretnénk hagyni. Ekkor a többi, hátsó falukból intézzük a támadást, melyek a legtávolabb vannak a célponttól. Erre van a "Hátsó támadók?", mely bepipálásával elérhető, hogy a célpontokhoz legközelebbi falukat automatikusan kihúzza a listából, és a távolabban levő falukból alakítson ki egy optimális tervet. Azt hogy mely falukat hagyta ki ilyenkor, BB kóddal fogja lejegyezni neked külön. Ezt a beállítást finomhangolhatjuk is azáltal, hogy korlátozzuk, mennyi közeli támadót szedjen ki a tervezetből. Ha nem számot adsz meg, akkor a lehető legtöbb elülső falut fogja meghagyni. <i>Ha te pl. 100 faluból támadsz 50-re, de elég csak 10 közeli támadót meghagyni, akkor írd be hogy 10 - ekkor a tervező a legközelebbi 10 falut majd kilistázza neked, a maradék 90-ből pedig egy optimális tervet állít elő (ahol az 50 legközelebbit fogja használni)</i><br>
+<b>Tipp1:</b> Komplett tervezés esetén az egyes támadási típusokat szedd külön, és úgy tervezz - gondolok itt arra, hogy a fake, valódi, és nemeses támadások külön legyenek.<br>
+<b>Tipp2:</b> Ha 1 faluból több támadást szereznél indítani, vagy épp 1 falura több támadást küldeni, akkor ezek falukat add meg többször. Példa: 1 falura 4 nemest küldesz, így ezt 4x írod bele; ha 1 faludba van 3 nemes is, amit küldeni szeretnél akkor ezt 3x írod be.<br>
+<b>Tipp3:</b> A fentebb írt példában, ha az összes hátsó falut szereznéd használni, de mégis tudni szerednéd mi a meghagyottak közül a 10 legközelebbi, akkor nyugodtan tervezz 2x: egyszer a fent leírt módon 10-es számot beírva, utána pedig érték nélkül. Előbbi tervezet kiírja a 10 legközelebbi falut.<br><br><br>
+<i>A mostanra kapuit bezáró TWMentor weboldal támadás szervező ihlete alapján készült, de nem azonos azzal.</i></div>
+</li>
+
+<li>
+<a href="#">Script tulajdonságok/letöltés</a>
+<div >PF-en fut e: N/A<br>
+Nem magyar szerveren fut e: N/A<br>
+Futtatási hely: N/A<br>
+<br>
+
+<table cellspacing="20px" style="margin:auto"><tr><th align="right">Melyik falukból támadsz?</th><th>Melyik falukat támadod?</th></tr>
+<tr><td align="right"><textarea id="innen" rows="10"></textarea></td><td align="left"><textarea id="ide" rows="10"></textarea></td></tr>
+<tr><td align="right">Kiírási mód: <input type="radio" name="a" value="BB">BB kód <input type="radio" name="a" value="Norm">Szöveges <input type="radio" name="a" value="tabla" checked="true">Táblázatos</td><td align="left"><button type="button" onclick="alma()">Szervezz!</button> <input id="reverse" type="checkbox"> Hátsó támadók?</td></tr>
+<tr><td colspan="2" align="center">Hátsó támadók használata esetén <input type="text" size="15" id="maxhat" value="A lehető legtöbb"> elülső támadót hagyjon meg.</td></tr></table>
+
+<br>
+
+<table border="0"><tbody id="calc" style="font-size:60%"></tbody></table>
+
+<p id="terv" class="kod"></p>
+</div>
+</li>

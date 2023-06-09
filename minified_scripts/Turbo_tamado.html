@@ -1,0 +1,166 @@
+<?php $ut=$_SERVER['REQUEST_URI']; $pos = strpos($ut,"alkat="); if ($pos==false) exit("Alkatból kell meghívni"); ?>
+
+<style type="text/css">
+.turbotabla{
+	background: #66A;
+	border-collapse: collapse;
+}
+  
+.turbotabla td, table th {
+  border: 1px solid black;
+  padding: 3px;
+}
+.turbotabla tr:first-child th {
+  border-top: 0;
+}
+.turbotabla tr:last-child td {
+  border-bottom: 0;
+}
+.turbotabla tr td:first-child,
+.turbotabla tr th:first-child {
+  border-left: 0;
+}
+.turbotabla tr td:last-child,
+.turbotabla tr th:last-child {
+  border-right: 0;
+}
+</style>
+<script>
+function max(sor){try{
+	var d=document.getElementById("mind").rows;
+	if (d[1].cells[sor].getElementsByTagName("input")[0].value=="max") var torol=true; else var torol=false;
+	for (var i=1;i<d.length-1;i++){
+		if (torol) d[i].cells[sor].getElementsByTagName("input")[0].value=""; else d[i].cells[sor].getElementsByTagName("input")[0].value="max";
+	}
+	return;
+}catch(e){alert(e);}}
+function betesz(sor){try{
+	var d=document.getElementById("mind").rows;
+	var ertek=prompt("Milyen értéket szeretnél beilleszteni minden helyre?");
+	if (ertek==null) return;
+	for (var i=1;i<d.length-1;i++){
+		d[i].cells[sor].getElementsByTagName("input")[0].value=ertek;
+	}
+	return;
+}catch(e){alert(e);}}
+function import2(){
+	try{var FROM=document.getElementById("bal").value.match(/[0-9]+(\|)[0-9]+/g); 
+		if (FROM.length==0) throw "";}catch(e){var FROM=new Array();}
+	try{var TO=document.getElementById("jobb").value.match(/[0-9]+(\|)[0-9]+/g);
+		if (TO.length==0) throw "";}catch(e){var TO=new Array();}
+	if (TO.length==0 && FROM.length==0) return;
+	if (TO.length>FROM.length) var hossz=TO.length; else var hossz=FROM.length;
+	var d=document.getElementById("mind");
+	for (var i=0;i<hossz;i++){
+		var row=d.insertRow(d.rows.length-1);
+		var cell=row.insertCell(0); 
+			if (FROM.length<=i) cell.innerHTML='<input type="text" size="7" value="">'; else cell.innerHTML='<input type="text" size="7" value="'+FROM[i]+'">';
+		var cell=row.insertCell(1);
+			if (TO.length<=i) cell.innerHTML='<input type="text" size="7" value="">'; else cell.innerHTML='<input type="text" size="7" value="'+TO[i]+'">';
+		for (var j=2;j<14;j++){
+			var cell=row.insertCell(j); cell.innerHTML='<input type="text" size="3" value="">';
+		}
+	}
+	document.getElementById("bal").value="";
+	document.getElementById("jobb").value="";
+	return;
+}
+function ujSor(){
+	var d=document.getElementById("mind");
+	var row=d.insertRow(d.rows.length-1);
+	var cell=row.insertCell(0); cell.innerHTML='<input type="text" size="7" value="">';
+	var cell=row.insertCell(1); cell.innerHTML='<input type="text" size="7" value="">';
+	for (var j=2;j<14;j++){
+		var cell=row.insertCell(j); cell.innerHTML='<input type="text" size="3" value="">';
+	}
+}
+</script>
+
+<li>
+<a href="#">Tutorial</a>
+<div>A scriptet generálni kell. Szükséges információ az, hogy honnan támadsz, mit, és hogy milyen egységtípusból mennyit szeretnél elküldeni. Ezeket az adatokat beadhatod egyesével is, a táblázat alján található "Új sor hozzáadása" után létrejövő új sorba; vagy használhatod az importálót: itt a bal oldalra azokat a koordinátákat írod, ahonnan támadtál - jobbra pedig amiket támadnál. Az importálás után 1 az 1be behúzódik a táblázatba ez az információ, kiegészítve a meglévőt. <i>Az első megadott koordi az első megadott koordira fog párosodni, a 2. a 2.-ra és így tovább. Nem kötelező mindnek párt adni, később is megtehető!</i><br>
+Használható a "max" szócska, mellyel azt mondod majd a scriptnek, hogy abból az egységből a maximális mennyiséget szeretnéd elküldeni. Ha minden célpontra igaz ez, akkor ráklikkelve az egységek ikonjaira mindenhova beilleszti a "max" szócskát - vagy épp törli, ha még 1x ráklikkelsz. Ugyanilyen mód egyedi értéket is meg lehet adni a mellettük lévő ikonra kattintva, szintén minden oszlopra érvényes lesz az oda beírt érték.<br>
+<br>
+A script a TURBO Farmoló scripthez hasonlóan működik: a kért támadásokat 1xe elküldi (Természetesen figyel arra, hogy 1 mp alatt 5-nél több ne menjen el). A scriptet futtassuk az áttekintésbe (prémiumosok válasszák a termelői nézetet), majd futtassuk. Ekkor felugrik annyi lap ahány támadást fog küldeni. Futtassok újra a scriptet ugyanazon a lapon ahol ezt előzőleg is tetted. Ekkor beilleszti a megadott mennyiségeket, és megnyomja a támadás gombot is. Futtassuk újra ugyanott: ekkor leokézza a támadást és ahol nem tudta, kiírja nekünk felülre, valahol a falud megnevezése alá (ha minden ok, nem szól semmit se). A támadásokat 300ms-onként okézza le egymás után. Még 1x-i futtatás a megnyitott lapok bezárását eredményezi.<br>
+<br>
+<strong>Chomre esetén</strong> javasolt az ablakok háttérbe való nyitása. Ha nem tesszük, előtérbe jön a felugró ablak, darabosítja az ablakok felnyitását, ami több lap 1xe való megnyitását eredményezi, tehát a játék kiírhatja hogy blokkoltuk a kommunikációt. Természetesen egy F5 az érintett lapon megjavítja a problémát. Ezzel a kiegészítővel viszont mindig háttérbe nyílak a lapok: <a href="https://chrome.google.com/webstore/detail/force-background-tab/gidlfommnbibbmegmgajdbikelkdcmcl/related" target="_BLANK">Force Background Tab</a> - lesz felül egy gomb, amit be kell pipálni ha szeretnénk, és visszapipálni ha már nem.</div>
+</li>
+
+<li>
+<a href="#">Script tulajdonságok/letöltés</a>
+<div >PF-en fut e: Igen<br>
+Nem magyar szerveren fut e: Igen<br>
+Futtatási hely: Áttekintés/termelői nézet<br>
+<br>
+
+<form action="#" name="myForm">
+	<p align="center">
+		&lt;-- Honnan|Hová --&gt;<br>
+		<textarea rows='8' cols='30' id="bal"></textarea>
+		<textarea id="jobb" rows='8' cols='30'></textarea>
+		<br>
+		<input type="button" onclick=import2() value="Import">
+	</p>
+	<table cellspacing="0" cellpadding="0" class="turbotabla" align="center" id="mind">
+		<tr>
+			<td>Honnan</td>
+			<td>Hová</td>
+			<td><img onclick=max(2) src="images/units/unit_spear.png"> <img onclick=betesz(2) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(3) src="images/units/unit_sword.png"> <img onclick=betesz(3) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(4) src="images/units/unit_axe.png"> <img onclick=betesz(4) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(5) src="images/units/unit_archer.png"> <img onclick=betesz(5) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(6) src="images/units/unit_spy.png"> <img onclick=betesz(6) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(7) src="images/units/unit_light.png"> <img onclick=betesz(7) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(8) src="images/units/unit_marcher.png"> <img onclick=betesz(8) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(9) src="images/units/unit_heavy.png"> <img onclick=betesz(9) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(10) src="images/units/unit_ram.png"> <img onclick=betesz(10) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(11) src="images/units/unit_catapult.png"> <img onclick=betesz(11) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(12) src="images/units/unit_snob.png"> <img onclick=betesz(12) src="images/fork-32.png" width="16px"></td>
+			<td><img onclick=max(13) src="images/units/unit_knight.png"> <img onclick=betesz(13) src="images/fork-32.png" width="16px"></td>
+		</tr>
+		<tr>
+			<td colspan="14"><input type="button" onclick=ujSor() value="Új sor hozzáadása"></td>
+		</tr>
+	</table>
+	<br>Parancs: 
+		<input type="radio" name="parancs" value="attack" checked> <img src="images/units/attack.png"> Támadás
+		<input type="radio" name="parancs" value="support"> <img src="images/units/support.png"> Erősítés<br>
+	<br>
+	<input type="button" onclick=general() value="Script elkészítése">
+</form>
+<code id="eredm"></code>
+<script>
+function general(){try{
+	var A=document.getElementById("eredm");
+	A.innerHTML='javascript: function feltolt(ezt,ezt2,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,aA,aB){ 	honnan.push(ezt); 	hova.push(ezt2); 	l.push(a0); k.push(a1); b.push(a2); ij.push(a3); kem.push(a4); kl.push(a5); lij.push(a6); nl.push(a7); kos.push(a8); kata.push(a9); nemes.push(aA); lovag.push(aB);  	return; } if (LEPES == undefined) { 		var d=document;	url=d.URL; 		if(url.indexOf(\'screen=overview_villages\')==-1) { 			alert(\'Áttekintésben kell futtatni a scriptet!\'); 			exit(0); 		} 		var LEPES=1; } function openIt(no,je){ 	oldal=faluk[no].cells[sor].getElementsByTagName("a")[0].href.replace("overview","place"); 	neve="web" + je; 	RefArray[je]=window.open(oldal,neve); 	return; } if (LEPES==1) {try{ 	var RefArray=new Array(); 	var honnan = new Array(); 	var hova = new Array(); 	l = new Array(); k = new Array(); b = new Array(); ij = new Array(); kem = new Array(); kl = new Array(); lij = new Array(); nl = new Array(); kos = new Array(); kata = new Array(); nemes = new Array(); lovag = new Array(); ';
+	/*feltolt("274|564","252|580",0,0,"max",0,0,"max",0,0,200,0,0,0);*/
+	X=document.getElementById("mind").rows;
+	var no=0; var helyes=false;
+	for (var i=1;i<X.length-1;i++){
+		helyes=false;
+		if (X[i].cells[0].getElementsByTagName("input")[0].value.search(/[0-9]+(\|)[0-9]+/g)>-1){
+			if (X[i].cells[1].getElementsByTagName("input")[0].value.search(/[0-9]+(\|)[0-9]+/g)>-1){
+				no++; helyes=true;
+				A.innerHTML+='feltolt("'+X[i].cells[0].getElementsByTagName("input")[0].value.match(/[0-9]+(\|)[0-9]+/g)[0]+'","'+X[i].cells[1].getElementsByTagName("input")[0].value.match(/[0-9]+(\|)[0-9]+/g)[0]+'"';
+				for (var j=2;j<14;j++){
+					var ertek=0;
+					if (X[i].cells[j].getElementsByTagName("input")[0].value=="max") ertek='"max"'; else {
+						X[i].cells[j].getElementsByTagName("input")[0].value=X[i].cells[j].getElementsByTagName("input")[0].value.replace(/[^0-9]/g,"");
+						if (X[i].cells[j].getElementsByTagName("input")[0].value=="") ertek=0; else {
+							ertek=X[i].cells[j].getElementsByTagName("input")[0].value;
+						}
+					}
+					A.innerHTML+=','+ertek;
+				}
+			}
+		}
+		if (helyes) A.innerHTML+='); ';
+	}
+	if (no==0) {A.innerHTML="Nem volt érvényes koordináta páros megadva";return;}
+	
+	A.innerHTML+='var szam=honnan.length; 	/*ID Megállapítás*/ 	var faluk=document.getElementById("production_table").rows; 	if (faluk[0].cells.length==10) sor=1; else sor=0; 	ok=false; 	CIK=0; for (var i=0;i&lt;szam;i++){ setTimeout(function(){ for (var j=1;j&lt;faluk.length;j++){ if (faluk[j].cells[sor].innerText.match(/[0-9]+(\\|)[0-9]+/g).indexOf(honnan[CIK])&gt;-1){ openIt(j,CIK); ok=true; break; } } CIK++; },250*i,\'JScript\'); if (!ok) RefArray[i]=false; } 	LEPES=2; }catch(e){alert(e);}} else if (LEPES==2) {try{ 	var ijasz=true; var lovagok=true; 	CIK=0; for (i=0;i&lt;szam;i++){ 		if(RefArray[i]==false) {CIK++; continue;} 		rov=RefArray[i].document; 		rov.forms[0].input.value=hova[i]; 			if (l[i]=="max") l[i]=rov.getElementById("units_entry_all_spear").innerText.match(/[0-9]+/g)[0]; if (k[i]=="max") k[i]=rov.getElementById("units_entry_all_sword").innerText.match(/[0-9]+/g)[0]; if (b[i]=="max") b[i]=rov.getElementById("units_entry_all_axe").innerText.match(/[0-9]+/g)[0]; if (ijasz){try{ if (rov.getElementById("units_entry_all_archer") == null) throw "NoArcher"; if (ij[i]=="max") ij[i]=rov.getElementById("units_entry_all_archer").innerText.match(/[0-9]+/g)[0]; if (lij[i]=="max") lij[i]=rov.getElementById("units_entry_all_marcher").innerText.match(/[0-9]+/g)[0]; }catch(e){ijasz=false;}} if (kem[i]=="max") kem[i]=rov.getElementById("units_entry_all_spy").innerText.match(/[0-9]+/g)[0]; if (kl[i]=="max") kl[i]=rov.getElementById("units_entry_all_light").innerText.match(/[0-9]+/g)[0]; if (nl[i]=="max") nl[i]=rov.getElementById("units_entry_all_heavy").innerText.match(/[0-9]+/g)[0]; if (kos[i]=="max") kos[i]=rov.getElementById("units_entry_all_ram").innerText.match(/[0-9]+/g)[0]; if (kata[i]=="max") kata[i]=rov.getElementById("units_entry_all_catapult").innerText.match(/[0-9]+/g)[0]; if (nemes[i]=="max") nemes[i]=rov.getElementById("units_entry_all_snob").innerText.match(/[0-9]+/g)[0]; if (lovagok){try{ temp=rov.getElementById("units_entry_all_knight").innerText.match(/[0-9]+/g)[0]; if (lovag[i]=="max") lovag[i]=rov.getElementById("units_entry_all_knight").innerText.match(/[0-9]+/g)[0];}catch(e){lovagok=false;}}	rov.forms[0].spear.value=l[i]; 		rov.forms[0].sword.value=k[i]; 		rov.forms[0].axe.value=b[i]; 		if (ijasz){rov.forms[0].archer.value=ij[i]; 		rov.forms[0].marcher.value=lij[i];} 		 		rov.forms[0].spy.value=kem[i]; 		rov.forms[0].light.value=kl[i]; 		rov.forms[0].heavy.value=nl[i]; 		 		rov.forms[0].ram.value=kos[i]; 		rov.forms[0].catapult.value=kata[i]; 		 		rov.forms[0].snob.value=nemes[i]; 		if(lovagok) rov.forms[0].knight.value=lovag[i]; 		 		setTimeout(function(){ RefArray[CIK].document.forms[0].'+document.myForm["parancs"].value+'.click(); CIK++;	}, 200*i); 	} 	LEPES=3; }catch(e){alert(e);}} else if (LEPES==3) { 	function elkuld(){ 		if (i&gt;=szam) {clearInterval(ZZ);return;} 		if (RefArray[i]==false) return; 		try{RefArray[i].document.forms[0].submit.click();}catch(e){ 			document.getElementById("header_info").innerHTML+="&lt;br&gt;Gond van &lt;b&gt;"+honnan[i]+"&lt;/b&gt; faluban! -- "+RefArray[i].document.getElementById("error").innerText; 		} 		i++; 		return; 	} 	var i=0; 	LEPES=4; 	ZZ=setInterval("elkuld()",300); } else if (LEPES==4) { 	for (var i=0;i&lt;szam;i++){ 		RefArray[i].close(); 	} } void(0);';
+}catch(e){alert(e);}}
+</script>
+
+</div>
+</li>
