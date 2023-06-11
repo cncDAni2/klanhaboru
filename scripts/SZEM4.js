@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.06.04';
+var VERZIO = 'v4.5 Build 23.06.11';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -780,13 +780,13 @@ function addFreezeNotification() {
 
 var BOTORA, ALTBOT2=false, BOT_VOL=0.0; /*ALTBOT2 --> megnyílt e már 1x az ablak*/
 function BotvedelemBe(){try{
-	BOT_VOL+=0.2;
-	if (BOT_VOL>1.0) BOT_VOL=1.0;
-	soundVolume(BOT_VOL);
-	playSound("bot2");
-	BOT=true;
-	alert2('BOT VÉDELEM!!!<br>Írd be a kódot, és kattints ide lentre!<br><br><a href="javascript: BotvedelemKi()">Beírtam a kódot, mehet tovább!</a>');
-	if (ALTBOT && !ALTBOT2) {window.open(document.getElementById("altbotURL").value);ALTBOT2=true;}
+		BOT_VOL+=0.2;
+		if (BOT_VOL>1.0) BOT_VOL=1.0;
+		soundVolume(BOT_VOL);
+		playSound("bot2");
+		BOT=true;
+		alert2('BOT VÉDELEM!!!<br>Írd be a kódot, és kattints ide lentre!<br><br><a href="javascript: BotvedelemKi()">Beírtam a kódot, mehet tovább!</a>');
+		if (ALTBOT && !ALTBOT2) {window.open(document.getElementById("altbotURL").value);ALTBOT2=true;}
 	}catch(e){debug("BotvedelemBe()",e);}
 	BOTORA=setTimeout("BotvedelemBe()",1500);
 }
@@ -1264,15 +1264,15 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 
 			// buildArmy - mivel getSlowestUnit kérés volt, így ebből az egységből biztos van, nem lehet 0
 			let plannedArmy = buildArmy(attacker, priority, teher); // FIXME: Minsereg-et nem veszi figyelembe! Csak h határszámnyi termelődik, de.. az nem elég! A minSereg több
-			if (plannedArmy.pop == 0) {
+			if (plannedArmy.units.pop == 0) {
 				break;
 			}
-			if (plannedArmy.pop < minSereg) break;
+			if (plannedArmy.units.pop < minSereg) break;
 			bestSpeed = myTime;
 			plan = {
 				fromVill: attacker.cells[0].textContent,
 				farmVill: farmCoord,
-				units: {...plannedArmy},
+				units: {...plannedArmy.units},
 				travelTime: myTime,
 				slowestUnit: priority,
 				nyersToFarm: teher
@@ -1290,6 +1290,7 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
 	//	Ha a végén üres az eddigi_legjobb_terv, akkor return "NO_PLAN"; -> ugrás a következő farmra
 }catch(e) {console.error(e); debug('planAttack', e);}}
 function buildArmy(attackerRow, priorityType, teher) {try{
+	let originalTeher = teher;
 	const unitEls = attackerRow.cells[1].querySelectorAll('.szem4_unitbox');
 	const availableUnits = UNITS.reduce((obj, unit) => {
 		obj[unit] = 0;
@@ -1367,7 +1368,10 @@ function buildArmy(attackerRow, priorityType, teher) {try{
 			break;
 	}
 
-	return unitToSend;
+	return {
+		units: unitToSend,
+		teher: originalTeher - teher
+	};
 
 	function useUpUnit(type, teher) {
 		const usedUp = {
@@ -1513,12 +1517,12 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	updateAvailableUnits(falu_row);
 	//attackerRow, priorityType, teher
 	const plannedArmy = buildArmy(falu_row, bestPlan.slowestUnit, bestPlan.nyersToFarm);
-	if (plannedArmy.pop == 0 || plannedArmy.pop < minSereg || plannedArmy.nyersToFarm < hatarszam) {
+	if (!plannedArmy.units || plannedArmy.units.pop == 0 || plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam) {
 		return 'semmi'; // FIXME: Nem jó, újratervezés
 	}
-	bestPlan.nyersToFarm = plannedArmy.nyersToFarm;
+	bestPlan.nyersToFarm = plannedArmy.teher;
 
-	Object.entries(plannedArmy).forEach(entry => {
+	Object.entries(plannedArmy.units).forEach(entry => {
 		const [unit, unitToSend] = entry;
 		if (unit !== 'pop') {
 			C_form[unit].value = unitToSend;
@@ -1555,7 +1559,7 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	updateAvailableUnits(falu_row);
 	C_form.attack.click();
 
-	bestPlan.units = JSON.parse(JSON.stringify(plannedArmy));
+	bestPlan.units = JSON.parse(JSON.stringify(plannedArmy.units));
 	return {
 		plannedArmy: bestPlan,
 		kem: kemToSend
@@ -1623,7 +1627,6 @@ function szem4_farmolo_3egyeztet(adatok){try{
 	FARM_REF.document.getElementById("troop_confirm_submit").click();
 	document.getElementById('cnc_farm_heartbeat').innerHTML = new Date().toLocaleString();
 	if (adatok.plannedArmy.nyersToFarm > parseInt(document.getElementById('farmolo_options').hatarszam.value, 10) * 6) {
-		debug('xxx', `${adatok.plannedArmy.nyersToFarm} --- ${JSON.stringify(adatok.plannedArmy.units)}`);
 		playSound(`farmolas_exp`, 'mp3');
 	} else {
 		playSound(`farmolas_${Math.floor(1 + Math.random() * (11 - 1 + 1))}`, 'mp3');

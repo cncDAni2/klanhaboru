@@ -279,11 +279,12 @@ function pipa(tipus, oszlop) {
 		alert("Hiba pipáláskor: \n" + e);
 	}
 }
-function botriado(bool) { /*Egy link jelenik meg, mely ezt a fg-t TRUE-val hívja meg, ekkor rekurzió helyett a főprogram újraindítása szükséges: A windowOpen;munka() hívás késleltetéssel.*/
+function botriado(bool) {
 	if (!bool) {
 		document.getElementsByTagName("h1")[0].innerHTML = '<a href="javascript:botriado(true);">---&gt; BOT VÉDELEM AKTÍV &lt;---</a>';
 		document.getElementById("wavhang").src = "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/bot.wav";
 		document.getElementById("audio1").load();
+		document.getElementById("audio1").play();
 		if (document.getElementById("audio1").volume < 0.2) document.getElementById("audio1").volume = 0.9;
 		alma = setTimeout("botriado(false)", 10000);
 	} else {
