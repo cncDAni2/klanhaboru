@@ -87,7 +87,7 @@ function okez(){try{
 	saveDataToCookie();
 	for (var i=0;i<refarray.length;i++){ /*Sereg összeszámolás*/
 		setTimeout(function(){
-			try{refarray[CIK].document.forms[0].submit.click();}catch(e){}
+			try{refarray[CIK].document.getElementById('troop_confirm_submit').click();}catch(e){}
 			CIK++;
 		}, TIME*i);
 	}
@@ -375,7 +375,6 @@ function beilleszt(){try{
 	if (str=="") str="Nagy gond van! Szerintem semmit se kell kiküldeni...";
 	document.getElementById("eredmeny").innerHTML="Kiküldendõ sereg összesen:<br>"+str;
 }catch(e){alert('Beilleszt hiba\n'+e);}}
-
 
 function openIt(no,sor){
 	var falu = document.getElementById("production_table").rows[sor].cells[0].getElementsByTagName("a");
