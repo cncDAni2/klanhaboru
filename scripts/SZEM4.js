@@ -1313,7 +1313,11 @@ function buildArmy(attackerRow, priorityType, teher) {try{
 		// ----------- LOVASSÁG -------------
 		case 'heavy':
 			temp_plan = useUpUnit('heavy', teher);
-			if (temp_plan.pop == 0) return unitToSend;
+			if (temp_plan.pop == 0)
+				return {
+					units: unitToSend,
+					teher: originalTeher - teher
+				};
 			teher -= temp_plan.teher;
 			unitToSend.heavy = temp_plan.unit;
 			unitToSend.pop += temp_plan.pop;
@@ -1337,7 +1341,11 @@ function buildArmy(attackerRow, priorityType, teher) {try{
 		// ----------- GYALOGOS -------------
 		case 'sword':
 			temp_plan = useUpUnit('sword', teher);
-			if (temp_plan.pop == 0) return unitToSend;
+			if (temp_plan.pop == 0)
+				return {
+					units: unitToSend,
+					teher: originalTeher - teher
+				};
 			teher -= temp_plan.teher;
 			unitToSend.sword = temp_plan.unit;
 			unitToSend.pop += temp_plan.pop;
