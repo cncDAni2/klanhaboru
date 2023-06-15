@@ -219,7 +219,7 @@ function addMoreRow() {
 	}
 }
 function wopen(webpage) {
-	A = window.open(webpage, "kotrogep");
+	A = window.open(webpage, KOTROID);
 	return;
 }
 function set_balance() { /*BE Auto: <20k nép; KI Auto: szokásos_full; ÉRME Diff: szokásos_full, de nem KI*/
@@ -295,7 +295,7 @@ function botriado(bool) {
 		PM2 = 0;
 		PM3 = 0;
 		PM4 = false;
-		A = window.open(document.location.href, "kotrogep");
+		wopen(document.location.href);
 		document.getElementById("audio1").pause();
 		setTimeout(() => eloszto(), 2000);
 	}
@@ -436,7 +436,7 @@ function kuld(koord, TID) {
 		if (minK == "0") return; /*Megnyitom a PM-be kapott ID-jű falut, majd meghívom a beillesztő eljárást a minK[0] és [1] PM-el egy kis késleltetéssel*/
 		URL = tabla.rows[1].cells[getOszlopNo("falunev")].getElementsByTagName("a")[0].href.replace("screen=overview", "screen=market&mode=send");
 		URL = URL.replace(/village=[0-9]+/g, 'village='+TID);
-		A = window.open(URL, "kotrogep");
+		wopen(URL);
 		PM1 = minK[0];
 		PM2 = minK[1];
 		ALLAPOT = 2;
@@ -481,7 +481,7 @@ function munka() {
 }
 function open_attek() {
 	try {
-		if (A.document.location.href != document.location.href) A.window.open(document.location.href, "kotrogep");
+		if (A.document.location.href != document.location.href) wopen(document.location.href);
 		ALLAPOT = 1;
 		return;
 	} catch (e) {
@@ -494,7 +494,7 @@ function open_academy() {
 		ERME = false;
 		ALLAPOT = 0;
 		var table = A.document.getElementById("production_table");
-		for (i = 1; i < tabla.rows.length; i++) {
+		for (let i=1; i<tabla.rows.length; i++) {
 			if (tabla.rows[i].cells[3].getElementsByTagName("input")[0].checked == true) {
 				faluID = tabla.rows[i].cells[getOszlopNo("falunev")].getElementsByTagName("a")[0].href.match(/village=[0-9]+/g)[0].replace('village=','');
 				for (var j = 1; j < table.rows.length; j++) {
@@ -507,7 +507,7 @@ function open_academy() {
 							ALLAPOT = 2;
 							ERME = true;
 							PM1 = i;
-							A.window.open(table.rows[j].cells[getOszlopNo("falunev", A)].getElementsByTagName("a")[0].getAttribute("href").replace("screen=overview", "screen=snob"), "kotrogep");
+							wopen(table.rows[j].cells[getOszlopNo("falunev", A)].getElementsByTagName("a")[0].getAttribute("href").replace("screen=overview", "screen=snob"));
 						}
 					}
 				}
@@ -516,7 +516,7 @@ function open_academy() {
 		return;
 	} catch (e) {
 		db("Akademy - " + e);
-		A = window.open(document.location.href, "kotrogep");
+		wopen(document.location.href);
 	}
 }
 function erme_veres() {
@@ -891,13 +891,13 @@ function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltőd�
 		AUTOUPDATE++;
 		if (AUTOUPDATE > 500) {
 			AUTOUPDATE = 0;
-			A = window.open(document.location.href, "kotrogep");
+			wopen(document.location.href);
 			worker.postMessage({'id': 'kotro', 'time': 500});
 			// setTimeout("eloszto()", 500);
 			return;
 		}
 		if (A.closed) {
-			A = window.open(document.location.href, "kotrogep");
+			wopen(document.location.href);
 			ALLAPOT = 0;
 			worker.postMessage({'id': 'kotro', 'time': 500});
 			//setTimeout("eloszto()", 500);
@@ -967,7 +967,7 @@ function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltőd�
 	} catch (e) {
 		try {
 			db("eloszto -- " + e);
-			A = window.open(document.location.href, "kotrogep");
+			wopen(document.location.href);
 		} catch (e) {}
 	}
 	rand = (Math.floor(Math.random() * 500) + 500);
@@ -984,7 +984,8 @@ var AUTOUPDATE = 0;
 var BALANCE = false;
 var PROBA = 0;
 var SIMULATION = 0;
-var A = window.open(document.location.href, "kotrogep");
+var KOTROID = 'kotrogep' + new Date().getTime();
+wopen(document.location.href);
 document.getElementById("wavhang").src = "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/bot.wav";
 document.getElementById("audio1").load();
 document.getElementById("audio1").pause();
