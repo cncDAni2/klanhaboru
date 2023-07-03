@@ -244,7 +244,7 @@ function init() {try{
 			<img id="bagoly_img" onclick="playSound('huhogas')" data-state="normal" src="${pic('header_own_normal.png')}">
 			<span>
 				<h1>Bagoly</h1>
-				<img height="40px" src="${pic('warning.png')}" title="Ez egy szuperfegyver script.\nSemmilyen prémium funkció nem képes működését helyettesíteni, és vélhetőleg nem is fog ilyen lenni. Túlzott használata ugyan nagyban javít teljesítményeden, de átalakítja játékmódod mely negatív hatással lehet">
+				<img height="40px" src="${pic('warning.png')}" title="Ez egy szuperfegyver script.\nSemmilyen prémium funkció nem képes működését helyettesíteni, és vélhetőleg nem is fog ilyen lenni.">
 			</span>
 		</div>
 		<audio style="display: none" id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio>
@@ -721,7 +721,7 @@ function setBagolyTimer(no, celIdo, isTest=false) {try{
 
 	let indIdoText = "Indítás ideje: <font style='color: #FF00FF; font-weight: bold; font-size: 115%;'>" + writeoutDate(inditas, true) + '</font><br>';
 
-	kieg.innerHTML="Felülbírálva:<br>c&amp;c időzítő beállítva erre:<br><b>" + writeoutDate(celIdo, false) + "</b><br>" + indIdoText + "Pontosítás: <font style='color: red;'>"+PONTOS+"ms</font>"; 
+	kieg.innerHTML="Felülbírálva:<br>Bagoly automatika beállítva erre:<br><b>" + writeoutDate(celIdo, false) + "</b><br>" + indIdoText + "Pontosítás: <font style='color: red;'>"+PONTOS+"ms</font>"; 
 	ref.document.getElementById("date_arrival").setAttribute('style', 'background: #f4e4bc url(http://cncdani2.000webhostapp.com/!Files/images/ido_dead2.png) no-repeat; background-position: right top; background-size: 40px;');
 	ref.document.getElementById("date_arrival").innerHTML="";
 	ref.document.getElementById("date_arrival").appendChild(kieg);
@@ -747,3 +747,6 @@ if (init()) {
 	});
 	window.onbeforeunload = () => true;
 }
+
+// Ha a mérés differencia >300ms, akkor újraszámol.
+// Élesített támadás esetén miután visszaellenőrzi: Olyan sort keres ami a célhoz megközelebbi idő, X van rajta, nyílván a target stimmel (utolsó "xxx|xxx" pattern), majd leírja az ID-ját a támadásnak! A többi mán' nem ebbű' keres

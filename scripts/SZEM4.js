@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.06.11';
+var VERZIO = 'v4.5 Build 23.07.04';
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -2109,7 +2109,6 @@ function szem4_VIJE_motor(){try{
 	if (VIJE2_HIBA>6) {VIJE2_HIBA=0; VIJE2_GHIBA++; if(VIJE2_GHIBA>3) {if (VIJE2_GHIBA>5) naplo("Globál","Nincs internet? Folyamatos hiba a jelentés elemzőnél"); VIJE_REF2.close();} VIJE_LEPES=0;}
 	if (!VIJE_REF1 || (VIJE_LEPES!=0 && VIJE_REF1.closed)) VIJE_LEPES=0;
 	
-	
 	switch(VIJE_LEPES) {
 		case 0: /*Támadói jelentések megnyitása*/
 			if (document.getElementById("farm_hova").rows.length>1) {
@@ -2124,7 +2123,11 @@ function szem4_VIJE_motor(){try{
 				VIJE_HIBA=0; VIJE_GHIBA=0;
 				PM2=szem4_VIJE_1kivalaszt();
 				if (PM2[0]===0) { // Nincs meló
-					if (PM2[3]) VIJE_LEPES=3; else {VIJE_LEPES=0; nexttime=120000;}
+					if (PM2[3] && document.getElementById("vije").getElementsByTagName("input")[6].checked) {
+						VIJE_LEPES=3;
+					} else {
+						VIJE_LEPES=0; nexttime=120000;
+					}
 				} else {
 					VIJE_REF2=windowOpener('vije2', VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"), AZON+"_SZEM4VIJE_2");
 					VIJE_LEPES=2;
@@ -2143,6 +2146,7 @@ function szem4_VIJE_motor(){try{
 		case 3: /*bepipált jelentések törlése*/
 			szem4_VIJE_3torol();
 			VIJE_LEPES=0;
+			if (PM2[0]===0) nexttime=120000;
 			break;
 		default: VIJE_LEPES=0;
 	}}
