@@ -10,7 +10,8 @@ DO IT:
 var REF, STATUS = 1, HIBA = 0, AUTO_STATUS=0;
 var IFRAME=false;
 var NEWMAIL=0;
-var TOZSDE_SOUNDS = ['bot2.wav', 'BOMB_SIREN_hosszu.mp3', 'Intruder_alert.mp3', 'alarm-frenzy.mp3', 'bogyo_mese_hosszu.mp3', 'bubbling-up.mp3', 'capisci.mp3', 'decay.mp3', 'determined.mp3', 'hell-yeah.mp3', 'lovely.mp3', 'may-i-have-your-attention.mp3', 'nasty-error-long.mp3', 'nice-cut.mp3', 'oh-finally.mp3', 'on-serious-matters.mp3', 'system-fault.mp3', 'thats-nasty.mp3'];
+var TOZSDE_SOUNDS = ['bot2.wav', 'BOMB_SIREN_hosszu.mp3', 'Intruder_alert.mp3', 'alarm-frenzy.mp3', 'bubbling-up.mp3', 'capisci.mp3', 'decay.mp3', 'determined.mp3', 'hell-yeah.mp3', 'lovely.mp3', 'may-i-have-your-attention.mp3',
+					'nasty-error-long.mp3', 'nice-cut.mp3', 'oh-finally.mp3', 'on-serious-matters.mp3', 'system-fault.mp3', 'thats-nasty.mp3'];
 var BELL = {};
 document.body.style.backgroundImage="none";
 document.body.style.background="#e3d5b3 url(https://dshu.innogamescdn.com/asset/233cdec1/graphic/index/main_bg.jpg) scroll right top repeat";
@@ -29,7 +30,7 @@ var STATS = {
 	autoSell: [0,0,0,0],
 	autoBuy: [0,0,0,0]
 };
-var SOUND_LOC = 'https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/';
+var SOUND_LOC = 'https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/tozsde/';
 var defaultSound = 'bot2.wav';
 var TOZSDE_DATA = {};
 var TOZSDE_DATA_DEFAULT = {
@@ -192,8 +193,120 @@ function changeLimits(mode, field, val) {
 }
 
 document.title= ID + " Tőzsde";
-document.getElementsByTagName("head")[0].innerHTML += '<style type="text/css">h3 { transition: width 0.5s, background 0.25s; cursor:pointer; width: 700px; margin: 10px auto; padding: 5px; border: 1px solid black; border-radius: 20px;} h3:hover {background: rgba(0,0,255,0.3) !important; width: 725px; } h3.openedH3 {background: rgba(255,255,255,0.5); width: 800px; } .autoChk {display: block;} h1:hover {color: #555} #cnc_stats {background: #aac; margin: 10px auto; border-collapse: collapse;} .plusminusbutton {outline: none; background: lightgray;opacity: 0.7;cursor:pointer} .plusminusbutton:hover {opacity:1.0} #cnc_stats td, #cnc_stats th {min-width: 50px; text-align: center; padding: 3px; border-bottom: 1px solid darkgoldenrod;} #cnc_stats td:first-child, #cnc_stats th:first-child {  text-align: left;  border-right: 1px solid black; padding-right: 20px; } #cnc_tozsde input[type="checkbox"] { margin: 0 3px 0 0; zoom: 1.3; } #cnc_tozsde #tozsde_auto td {padding: 4px} #cnc_tozsde td {padding: 2px} #cnc_tozsde #tozsde_auto input[type=number] { width: 55px; } #cnc_tozsde .bigNum input[type=number] {width: 55px } #cnc_tozsde input[type=number] {width: 47px; padding: 2px;} #allapot table tr td:not(:first-child), #allapot table tr th:not(:first-child), #cnc_tozsde th:not(:first-child) {text-align: center}.header50 {width: 50px;} .header60 {width: 60px;} #allapot table tr:hover {background-color: rgba(100,100,255,0.2)} #allapot .item-info {background-image: linear-gradient(to right, rgba(254,0,255,0.3) , transparent 14%, transparent 86%, rgba(254,0,255,0.3))} #allapot .item-sell {background-image: linear-gradient(to right, rgba(100,100,255,0.6), transparent 14%, transparent 86%, rgba(100,100,255,0.6))} #allapot .item-buy {background-image: linear-gradient(to right, rgba(254,100,100,0.3) , transparent 14%, transparent 86%, rgba(254,100,100,0.3))} #allapot .item-incoming-warning { background-image: linear-gradient(to right, rgba(255,0,0,0.8), transparent 24%, transparent 76%, rgba(255,0,0,0.8)) } \
-#tozsde_save:not([disabled]), #auto_save:not([disabled]) { background: rgb(236,236,236); animation-name: flash; animation-duration: 1s; animation-timing-function: linear; animation-iteration-count: infinite; } @keyframes flash {      0% { background: rgb(236,236,236); }    50% { background: rgb(100,100,200); }    100% { background: rgb(236,236,236); }} </style>';
+let tozsdeStyle = `
+	h3 {
+		transition: width 0.5s, background 0.25s;
+		cursor:pointer;
+		width: 700px;
+		margin: 10px auto;
+		padding: 5px;
+		border: 1px solid black;
+		border-radius: 20px;
+	}
+	h3:hover {
+		background: rgba(0,0,255,0.3) !important;
+		width: 725px;
+	}
+	h3.openedH3 {
+		background: rgba(255,255,255,0.5);
+		width: 800px;
+	}
+	.autoChk {
+		display: block;
+	}
+	h1:hover {
+		color: #555
+	}
+	#cnc_stats {
+		background: #aac;
+		margin: 10px auto;
+		border-collapse: collapse;
+	}
+	.plusminusbutton {
+		outline: none;
+		background: lightgray;
+		opacity: 0.7;
+		cursor:pointer
+	}
+	.plusminusbutton:hover {
+		opacity:1.0
+	}
+	#cnc_stats td, #cnc_stats th {
+		min-width: 50px;
+		text-align: center;
+		padding: 3px;
+		border-bottom: 1px solid darkgoldenrod;
+	}
+	#cnc_stats td:first-child, #cnc_stats th:first-child {
+		text-align: left;
+		border-right: 1px solid black;
+		padding-right: 20px;
+	}
+	#cnc_tozsde input[type="checkbox"] {
+		margin: 0 3px 0 0;
+		zoom: 1.3;
+	}
+	#cnc_tozsde #tozsde_auto td {
+		padding: 4px
+	}
+	#cnc_tozsde td {
+		padding: 2px
+	}
+	#cnc_tozsde #tozsde_auto input[type=number] {
+		width: 55px;
+	}
+	#cnc_tozsde .bigNum input[type=number] {
+		width: 55px 
+	}
+	#cnc_tozsde input[type=number] {
+		width: 47px;
+		padding: 2px;
+	}
+	#allapot table tr td:not(:first-child), #allapot table tr th:not(:first-child), #cnc_tozsde th:not(:first-child) {
+		text-align: center
+	}
+	.header50 {
+		width: 50px;
+	}
+	.header60 {
+		width: 60px;
+	}
+	#allapot table tr:hover {
+		background-color: rgba(100,100,255,0.2)
+	}
+	#allapot .item-info {
+		background-image: linear-gradient(to right, rgba(254,0,255,0.3) , transparent 14%, transparent 86%, rgba(254,0,255,0.3))
+	}
+	#allapot .item-sell {
+		background-image: linear-gradient(to right, rgba(100,100,255,0.6), transparent 14%, transparent 86%, rgba(100,100,255,0.6))
+	}
+	#allapot .item-buy {
+		background-image: linear-gradient(to right, rgba(254,100,100,0.3) , transparent 14%, transparent 86%, rgba(254,100,100,0.3))
+	}
+	#allapot .item-incoming-warning {
+		background-image: linear-gradient(to right, rgba(255,0,0,0.8), transparent 24%, transparent 76%, rgba(255,0,0,0.8)) 
+	}
+	#tozsde_save:not([disabled]), #auto_save:not([disabled]) {
+		background: rgb(236,236,236);
+		animation-name: flash;
+		animation-duration: 1s;
+		animation-timing-function: linear;
+		animation-iteration-count: infinite;
+	}
+	@keyframes flash {
+		0% {
+			background: rgb(236,236,236);
+		}
+		50% {
+			background: rgb(100,100,200);
+		}
+		100% {
+			background: rgb(236,236,236);
+		}
+	}`;
+let tozsdeStyle_el = document.createElement('style');
+tozsdeStyle_el.textContent = tozsdeStyle;
+document.head.appendChild(tozsdeStyle_el);
 document.body.innerHTML = '<h1 align="center" style="cursor: context-menu;text-shadow: 3px 3px 4px #666; margin-top:10px;">Prémium Tőzsde kezelő ('+ID+')</h1>\
 <h4 style="text-align: center; margin-top:0;">'+game_data.player.name+' ('+game_data.village.display_name+')</h4>\
 <br><h3 align="center" onclick="setTabVisibility(\'h3_1\', this)">Hangjelzés beállítása</h3>\
