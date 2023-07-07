@@ -70,7 +70,7 @@ function send_units() {
 		alert("VÉGE");
 		return;
 	}
-	form.catapult.value = LVL_MAXRIX_1[nextTarget.level];
+	form.catapult.value = LVL_MAXRIX_1[nextTarget.level + PLUSLEVEL];
 
 	form.attack.click();
 }
@@ -84,14 +84,14 @@ function getNextTarget(buildings) {
 			building == 'Vasbánya' ||
 			building == 'Raktár' ||
 			building == 'Rejtekhely' ||
-			(building == 'Főhadiszállás' && buildings[building] <= (1 + PLUSLEVEL)) ||
-			(building == 'Tanya' && buildings[building] <= (1 + PLUSLEVEL)) ||
-			buildings[building] == (0 + PLUSLEVEL))
+			(building == 'Főhadiszállás' && buildings[building] <= 1) ||
+			(building == 'Tanya' && buildings[building] <= 1) ||
+			buildings[building] == 0)
 		continue;
 		debugger;
 		return {
 			target: building,
-			level: (buildings[building] + PLUSLEVEL)
+			level: buildings[building]
 		};
 	}
 }

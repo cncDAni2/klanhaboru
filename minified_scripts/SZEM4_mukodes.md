@@ -31,9 +31,9 @@ localStorage.setItem('szem_firebase',JSON.stringify({
     projectId: "szem4-12345",
     storageBucket: "szem4-12345.appspot.com",
     messagingSenderId: "123456789123",
-    appId: "1:123456789012:web:123456789abcdef1234567',
+    appId: "1:123456789012:web:123456789abcdef1234567",
     email: "yourname@domain.com",
-    password: 'myPassword,
+    password: "myPassword",
     collection: "szem4Collection",
     myDocument: "documentName"
 }));
