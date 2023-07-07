@@ -1,4 +1,6 @@
 var LVL_MAXRIX_1 = [0, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 7, 8, 8, 9, 10, 10, 11, 12, 13, 15, 16, 17, 19, 20];
+var PLUSLEVEL = 1;
+/* 16 bárdos kíséret kell */
 
 function setCookie(c_name, value) {
 	localStorage.setItem(c_name,value);
@@ -27,7 +29,7 @@ function report_learning() {
 	}
 	let coords = document.getElementById("attack_info_def").rows[1].textContent.match(/[0-9]+\|[0-9]+/);
 	setCookie('cnc_katapult', `;${coords[coords.length-1]};${JSON.stringify(buildings)}`);
-	alert("Megtanulva");
+	alert(`Megtanulva +${PLUSLEVEL}lvl mode`);
 }
 
 function tamadas_OK() {
@@ -44,7 +46,9 @@ function tamadas_OK() {
 		}
 	}
 
+	debugger;
 	buildings[nextTarget.target] -= 1;
+
 	setCookie('cnc_katapult', `;${myCookie[1]};${JSON.stringify(buildings)}`);
 	form.submit_confirm.click();
 }
@@ -80,13 +84,14 @@ function getNextTarget(buildings) {
 			building == 'Vasbánya' ||
 			building == 'Raktár' ||
 			building == 'Rejtekhely' ||
-			(building == 'Főhadiszállás' && buildings[building] <= 1) ||
-			(building == 'Tanya' && buildings[building] <= 1) ||
-			buildings[building] == 0)
+			(building == 'Főhadiszállás' && buildings[building] <= (1 + PLUSLEVEL)) ||
+			(building == 'Tanya' && buildings[building] <= (1 + PLUSLEVEL)) ||
+			buildings[building] == (0 + PLUSLEVEL))
 		continue;
+		debugger;
 		return {
 			target: building,
-			level: buildings[building]
+			level: (buildings[building] + PLUSLEVEL)
 		};
 	}
 }
