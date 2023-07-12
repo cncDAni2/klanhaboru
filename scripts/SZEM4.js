@@ -776,7 +776,17 @@ function addFreezeNotification() {
 }
 
 var BOTORA, ALTBOT2=false, BOT_VOL=0.0; /*ALTBOT2 --> megnyílt e már 1x az ablak*/
-function BotvedelemBe(){try{
+var BOT_REF;
+function BotvedelemBe(){
+	try{
+		if (!BOT_REF) {
+			BOT_REF = window.open(VILL1ST);
+			throw "Waiting for auto-resolver...";
+		}
+		if (BOT_REF && !(BOT_REF.document.getElementById('bot_check') || BOT_REF.document.getElementById('popup_box_bot_protection') || BOT_REF.document.title=="Bot védelem")) {
+			BotvedelemKi();
+			return;
+		}
 		BOT_VOL+=0.2;
 		if (BOT_VOL>1.0) BOT_VOL=1.0;
 		soundVolume(BOT_VOL);
@@ -784,11 +794,14 @@ function BotvedelemBe(){try{
 		BOT=true;
 		alert2('BOT VÉDELEM!!!<br>Írd be a kódot, és kattints ide lentre!<br><br><a href="javascript: BotvedelemKi()">Beírtam a kódot, mehet tovább!</a>');
 		if (ALTBOT && !ALTBOT2) {window.open(document.getElementById("altbotURL").value);ALTBOT2=true;}
-	}catch(e){debug("BotvedelemBe()",e);}
-	BOTORA=setTimeout("BotvedelemBe()",1500);
+	} catch(e){ debug("BotvedelemBe()",e); }
+
+	BOTORA=setTimeout("BotvedelemBe()", 2500);
 }
 function BotvedelemKi(){
 	BOT=false; ALTBOT2=false; BOT_VOL=0.0;
+	BOT_REF.close();
+	BOT_REF = null;
 	document.getElementById("audio1").pause;
 	alert2("OK");
 	clearTimeout(BOTORA);
@@ -1528,7 +1541,18 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	const targetIdo = parseInt(allOptions.targetIdo.value,10);
 	const hatarszam = DOMINFO_FARMS[bestPlan.farmVill].prodHour * (targetIdo / 60);
 	var C_form=FARM_REF.document.forms["units"];
+	
+	
+	if (document.querySelector('#place_target .village-item')) document.querySelector('#place_target .village-item').click();
 
+	if (!C_form) {
+		if (FARM_REF.document.getElementById('command-data-form')) {
+			C_form=FARM_REF.document.getElementById('command-data-form');
+			debug('szem4_farmolo_2illeszto', 'ROllback-to-IDForm');
+		} else {
+			throw "Nincs gyülekezőhely?";
+		}
+	}
 	if (C_form["input"].value == undefined) {
 		throw "Nem töltött be az oldal?"+C_form["input"].innerHTML;
 	}
