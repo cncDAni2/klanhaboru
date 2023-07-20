@@ -1243,16 +1243,14 @@ function addCurrentMovementToList(formEl, farmCoord, farmHelyRow) {try{
 	}
 }catch(e) {debug('addCurrentMovementToList', e); console.error(e);}}
 
-function planAttack(farmRow, nyers_VIJE, bestSpeed) {try{
+function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
+	// FIXME: Valahogy azt hiszi hogy 16 axe el tud hozni 282-t, de később 2. fázisba rájön h nem.
 // Megtervezi, miből mennyit küldjön SZEM. Falu megnyitása után intelligensen még módosíthatja ezt (2. lépés) (nem változtatva a MAX_SPEED-et)
 	const attackers = document.getElementById('farm_honnan').rows;
-	let farmCoord = farmRow.cells[0].textContent;
+	const farmCoord = farmRow.cells[0].textContent;
 	const allOptions = document.getElementById('farmolo_options');
-	const targetIdo = parseInt(allOptions.targetIdo.value,10);
-	const prodHour = DOMINFO_FARMS[farmCoord].prodHour;
-	const hatarszam = prodHour * (targetIdo / 60);
-	const minSereg = parseInt(allOptions.minsereg.value,10);
-	const maxTavPerc = parseInt(allOptions.maxtav_ora.value,10) * 60 + parseInt(allOptions.maxtav_p.value,10);
+	const minSereg = parseInt(allOptions.minsereg.value, 10);
+	const maxTavPerc = parseInt(allOptions.maxtav_ora.value, 10) * 60 + parseInt(allOptions.maxtav_p.value, 10);
 	let plan = {};
 
 	for (var i=1;i<attackers.length;i++) {
@@ -1515,7 +1513,7 @@ function szem4_farmolo_1kereso(){try{/*Farm keresi párját :)*/
 		if (nyers_VIJE > (hatarszam * 4)) verszem = true;
 		
 		/*Farm vizsgálat (a[i]. sor), legközelebbi saját falu keresés hozzá (van e egyátalán (par.length==3?))*/
-		let attackPlan = planAttack(farmList[i], nyers_VIJE, verszem ? -1 : bestPlan.travelTime);
+		let attackPlan = planAttack(farmList[i], nyers_VIJE, verszem ? -1 : bestPlan.travelTime, hatarszam);
 		
 		if (attackPlan.travelTime && (bestPlan.travelTime == -1 || attackPlan.travelTime < bestPlan.travelTime)) {
 			bestPlan = JSON.parse(JSON.stringify(attackPlan));
@@ -1732,10 +1730,10 @@ function szem4_farmolo_4visszaell(adatok){try{
 }catch(e){debug("szem4_farmolo_4visszaell()",e); return;}}
 
 function szem4_farmolo_motor(){try{
-	var nexttime=500;
+	var nexttime = 500;
 	nexttime = parseInt(document.getElementById("farmolo_options").sebesseg_m.value,10);
 	
-	if (BOT||FARM_PAUSE||USER_ACTIVITY) {nexttime=5000;} else {
+	if (BOT||FARM_PAUSE||USER_ACTIVITY) { nexttime = 5000; } else {
 	/*if (FARM_REF!="undefined" && FARM_REF.closed) FARM_LEPES=0;*/
 	if (FARM_HIBA>10) {
 		FARM_HIBA=0; FARM_GHIBA++; FARM_LEPES=0;
@@ -1770,7 +1768,7 @@ function szem4_farmolo_motor(){try{
 				/*debug("Farmoló_ToStep1",PM1);*/
 				FARM_LEPES=1;
 				break;
-		case 1: /*Gyül.helyen vagyunk, be kell illeszteni a megfelelő sereget, -nyers.*/ 
+		case 1: /*Gyül.helyen vagyunk, be kell illeszteni a megfelelő sereget, -nyers.*/
 				if (isPageLoaded(FARM_REF,koordTOid(PM1.fromVill),"screen=place")) {
 					FARM_REF.document.title = 'Szem4/farmoló';
 					FARM_HIBA=0; FARM_GHIBA=0;
@@ -1823,8 +1821,8 @@ ujkieg("farm","Farmoló",`<tr><td>
 		<tr>
 			<td colspan="2" style="text-align: center">
 			<form id="farmolo_options">
-			Menetrend: <input name="targetIdo" value="30" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'Elvárt vonathossz. Ennyi ideig létrejött termelésért indul')">p - 
-			<input name="megbizhatosag" value="60" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'Megbízhatóság. MAX ennyi ideig létrejött termelésért indul')">p
+			Menetrend: <input name="targetIdo" value="30" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'SZEM arra fog törekedni, hogy minimum ennyi időközönként indítson támadást egy falura')">p - 
+			<input name="megbizhatosag" value="60" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'Megbízhatóság. MAX ennyi ideig létrejött termelésért indul (plusz felderített nyers)')">p
 			Max táv: <input name="maxtav_ora" type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">óra <input name="maxtav_p" onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">perc.
 <br>
 			Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="800" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik ott óránként')">				
@@ -3196,29 +3194,36 @@ $(document).ready(function(){
 /*
 
 FARMVÉDŐ
-minimum sereg definiálása 
+minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
 
 CONVERT: Határszám -> minimum percnyi termelés
 ADDME: VIJE mikor defíti a főhadi/barakkot, azt is mentse a falu infókba. Később majd még többet, mert kell az auto katázóhoz
+- Hang átdolgozás: Választó
 REFACTOR: Minden változó, a DOM-ba csak ír, nem olvas!
 ADDME: Színezést is mentsen a Farmoló
 CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
 ADDME: Farmok rendezése táv szerint
-ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
-ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
-ADDME: Ai: Automatikus, falunkénti megbízhatóság- és hatászám számolás. Csak perc alapú, és farmvédő alapú
-ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
-ADDME: VIJE opciók: [] zöld kém nélküli jeliket törölje csak
-ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
-FIXME: Utolsó visszatérő sereget nézzen, ne default <10p> pihit falu_helye.cells[2].innerHTML=d;
+
+ADDME: Saját falunál csatára készülés: Érjenek vissza xx:xx-re
 ADDME: "Sárgát NE támadd"
 ADDME: Custom wallpaper
+ADDME: preLoader (gyors beállítások), midLoader (mostani init()), endLoader (motorok indítása)
+
+ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
+ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
+
+NEW KIEG: Auto katázó: Beadod mely faluból max hány percre, mely falukat. VIJE adatai alapján küldi, [] x+1 épületszintet feltételezve 1esével bontásra. [] előtte 2/4 kos v 2/6 kata falra
+
+ADDME: VIJE opciók: [] zöld kém nélküli jeliket törölje csak
+ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
+ADDME: Ai: Automatikus, falunkénti megbízhatóság- és hatászám számolás. Csak perc alapú, és farmvédő alapú
+ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
 EXTRA: Pihenés sync: Ha Farmoló pihen, VIJE is (külön opció VIJE-nél: recommended ha zöld-törlése be van pipálva). Előbb VIJE, aztán farmolás!
 ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT
 ADDME: [Lebegő ablak] Reset/ébresztő: Néha pihen a script, lehessen "felébreszteni" (timeout clear+újra motorindít)
+FIXME: Utolsó visszatérő sereget nézzen, ne default <10p> pihit falu_helye.cells[2].innerHTML=d;
 ADDME: Teherbírás módosító
 ADDME: FAKE limit, és ennek figyelembe vétele
-NEW KIEG: Auto katázó: Beadod mely faluból max hány percre, mely falukat. VIJE adatai alapján küldi, [] x+1 épületszintet feltételezve 1esével bontásra. [] előtte 2/4 kos v 2/6 kata falra
 */
 
 void(0);
