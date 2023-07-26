@@ -14,6 +14,7 @@ function loadXMLDoc(dname) {
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
 var VERZIO = 'v4.5 Build 23.07.25';
+var SZEM4_SETTINGS = {};
 try{ /*Rendszeradatok*/
 	var AZON="S0";
 	if (window.name.indexOf(AZON)>-1) AZON="S1";
@@ -123,6 +124,7 @@ function init(){try{
 	}
 	const szemStyle = `
 		body { background: #111; }
+		#content > table { background: #111; box-shadow: 0 0 12px black; }
 		#side-notification-container {
 			pointer-events: none;
 			display: none;
@@ -172,6 +174,7 @@ function init(){try{
 			margin:auto;
 			color: white;
 			position: relative;
+			box-shadow: 0 0 12px black;
 		}
 		.fej > table {
 			padding:1px;
@@ -361,11 +364,34 @@ function init(){try{
 		}
 		#farmolo_options .imgbox img {
 			height: 24px;
-	}`;
+		}
+		.left-background {
+			width: calc(50vw - 512px);
+			height: 100vh;
+			position: fixed;
+			z-index: -1;
+			left: 0;
+			top: 0;
+			background-repeat: no-repeat;
+    		background-position-x: right;
+		}
+		.right-background {
+			width: calc(50vw - 512px);
+			height: 100vh;
+			position: fixed;
+			z-index: -1;
+			right: 0;
+			top: 0;
+			background-repeat: no-repeat;
+    		background-position-x: left;
+		}
+	`;
 	let szemStyle_el = document.createElement('style');
 	szemStyle_el.textContent = szemStyle;
 	document.head.appendChild(szemStyle_el);
 	document.getElementsByTagName("body")[0].innerHTML=`
+		<div class="left-background"></div>
+		<div class="right-background"></div>
 		<div id="alert2">
 			<div id="alert2head">
 				<div>Üzenet</div>
@@ -399,7 +425,69 @@ function init(){try{
 			</table>
 		</div>
 		<p id="content" style="display: inline"></p>`;
-	document.getElementById("content").innerHTML='<table class="menuitem" width="1024px" align="center" id="naplo" style="display: none"> <tr><td> <h1 align="center">Napló</h1><br> <br> <table align="center" class="vis" id="naploka"><tr><th onclick=\'rendez("datum2",false,this,"naploka",0)\' style="cursor: pointer;">Dátum</th><th onclick=\'rendez("szoveg",false,this,"naploka",1)\' style="cursor: pointer;">Script</th><th onclick=\'rendez("szoveg",false,this,"naploka",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table> <table class="menuitem" width="1024px" align="center" id="debug" style="display: none"> <tr><td> <h1 align="center">DeBugger</h1><br> <br><button type="button" onclick="debug_urit()">Ürít</button><button type="button" onclick="switchMobileMode()">Mobile_mode</button> <table align="center" class="vis" id="debugger"><tr><th onclick=\'rendez("datum2",false,this,"debugger",0)\' style="cursor: pointer;">Dátum</th><th onclick=\'rendez("szoveg",false,this,"debugger",1)\' style="cursor: pointer;">Script</th><th onclick=\'rendez("szoveg",false,this,"debugger",2)\' style="cursor: pointer;">Esemény</th></tr></table> </td></tr> </table> <table class="menuitem" width="1024px" align="center" id="hang" style="display: none"> <tr><td> <p align="center"><audio id="audio1" controls="controls" autoplay="autoplay"><source id="wavhang" src="" type="audio/wav"></audio></p> <h1 align="center">Hangbeállítás</h1><br> <div id="hangok" style="display:table;"> 	<div style="display:table-row;"><div style="display:table-cell; padding:10px;" onmouseover=\'sugo(this,"Ha be van kapcsolva, bot védelem esetén ez a link is megnyitódik, mint figyelmeztetés.")\'><b>Alternatív botriadó? <a href="javascript: altbot()">BEKAPCSOLVA</a><br>Megnyitott URL (egyszer)<br><input type="text" id="altbotURL" size="42" value="http://www.youtube.com/watch?v=k2a30--j37Q"></div> </div> </div> </td></tr> </table>';
+	document.getElementById("content").innerHTML=`
+	<table class="menuitem" width="1024px" align="center" id="naplo" style="display: none"><tbody>
+	<tr><td>
+		<h1 align="center">Napló</h1>
+		<br>
+		<br>
+		<table align="center" class="vis" id="naploka"><tbody>
+			<tr>
+				<th onclick="\'rendez("datum2",false,this,"naploka",0)\'" style="cursor: pointer;">Dátum</th>
+				<th onclick="\'rendez("szoveg",false,this,"naploka",1)\'" style="cursor: pointer;">Script</th>
+				<th onclick="\'rendez("szoveg",false,this,"naploka",2)\'" style="cursor: pointer;">Esemény</th>
+			</tr>
+		</tbody></table>
+	</td></tr>
+</tbody></table>
+<table class="menuitem" width="1024px" align="center" id="debug" style="display: none"><tbody>
+	<tr><td>
+		<h1 align="center">DeBugger</h1>
+		<br>
+		<br>
+		<button type="button" onclick="debug_urit()">Ürít</button>
+		<button type="button" onclick="switchMobileMode()">Mobile_mode</button>
+		<table align="center" class="vis" id="debugger"><tbody>
+			<tr>
+				<th onclick="rendez('datum2',false,this,'debugger',0)" style="cursor: pointer;">Dátum</th>
+				<th onclick="rendez('szoveg',false,this,'debugger',1)" style="cursor: pointer;">Script</th>
+				<th onclick="rendez('szoveg',false,this,'debugger',2)" style="cursor: pointer;">Esemény</th>
+			</tr>
+		</tbody></table>
+	</td></tr>
+</tbody></table>
+<table class="menuitem" width="1024px" align="center" id="hang" style="display: none"><tbody>
+	<tr><td><form id="settings">
+		<p align="center">
+			<audio id="audio1" controls="controls" autoplay="autoplay">
+				<source id="wavhang" src="" type="audio/wav">
+			</audio>
+		</p>
+		<h1 align="center">Hangbeállítás</h1>
+		<br>
+		<div id="hangok" style="display:table;">
+			<div style="display:table-row;">
+				<div style="display:table-cell; padding:10px;" onmouseover="sugo(this, 'Ha be van kapcsolva, bot védelem esetén ez a link is megnyitódik, mint figyelmeztetés.')">
+					<b><input type="checkbox" name="altbot" onchange="onAltbotChange()"> Alternatív botriadó?
+						<br>Megnyitott URL (egyszer)<br>
+						<input type="text" id="altbotURL" name="altboturl" size="42" onchange="saveSettings()" value="http://www.youtube.com/watch?v=k2a30--j37Q">
+					</b>
+				</div>
+				<b>
+				</b>
+			</div>
+			<b>
+			</b>
+		</div>
+		<h1 align="center">Háttérbeállítás</h1>
+		<div>
+			Bal: <input type="text" size="30" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"><br>
+			Jobb: <input type="text" size="30"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()">
+		</div>
+		<b>
+		</b>
+	</form></td></tr>
+</tbody></table>`;
 	document.title="SZEM IV";
 	
 	debug("SZEM 4","Verzió: GIT_"+new Date().toLocaleDateString());
@@ -416,17 +504,16 @@ function picBuilding(bId) {
 	return `<img src="https://dshu.innogamescdn.com/asset/88651122/graphic/buildings/mid/${bId}3.png">`;
 }
 
-function altbot(){try{
-	ALTBOT=!ALTBOT;
-	if (ALTBOT) {
-		document.getElementById("altbotURL").parentNode.getElementsByTagName("a")[0].innerHTML="BEKAPCSOLVA";
-		document.getElementById("altbotURL").removeAttribute("disabled");
-	} else {
-		document.getElementById("altbotURL").parentNode.getElementsByTagName("a")[0].innerHTML="KIKAPCSOLVA";
-		document.getElementById("altbotURL").setAttribute("disabled","true");
-	}
-	return;
+function onAltbotChange(){try{
+	ALTBOT = document.getElementById('settings').altbot.checked;
+	saveSettings();
 }catch(e){alert(e);}}
+function onWallpChange(isUpdate=true) {
+	const settingsForm = document.getElementById('settings');
+	document.getElementsByClassName('left-background')[0].style.backgroundImage = `url('${settingsForm.wallp_left.value}')`;
+	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
+	if (isUpdate) saveSettings();
+}
 
 function soundVolume(vol){
 	document.getElementById("audio1").volume=vol;
@@ -606,7 +693,7 @@ function ujkieg_hang(nev,hangok){
 	var kieg=document.createElement("div"); kieg.setAttribute("style","display:table-cell; padding:10px;");
 	var str="<h3>"+nev+"</h3>";
 	for (var i=0;i<files.length;i++) {
-		str+='<input type="checkbox" name="'+files[i]+'" checked> <a href="javascript: playSound(\''+files[i]+'\');">'+files[i]+'</a><br>';
+		str+=`<input type="checkbox" name="${files[i]}" checked onchange="saveSettings()"> <a href="javascript: playSound('${files[i]}');"> ${files[i]} </a><br>`;
 	}
 	kieg.innerHTML=str;
 	hely.appendChild(kieg);
@@ -750,16 +837,34 @@ function multipricer(ez,tip,s1){try{
 	var x=document.getElementById("farm_"+ez).rows;
 	for (var i=x.length-1;i>0;i--) {
 		if (x[i].style.display!="none") {
+			let koord = x[i].closest('tr').cells[0].textContent;
+			DOMINFO_FARMS[koord].szin = DOMINFO_FARMS[koord].szin || {};
 			switch(tip) {
-				case "del": delete DOMINFO_FARMS[x[i].parentNode.cells[0].textContent]; x[i].parentNode.removeChild(x[i]); break;
-				case "urit": if (ez=="honnan") x[i].cells[2].innerHTML=""; else x[i].cells[5].innerHTML=""; break;
-				case "mod": DOMINFO_FARMS[x[i].parentNode.cells[0].textContent].nyers = parseInt(s1, 10); x[i].cells[3].innerHTML=s1; break;
-				case "htor": DOMINFO_FARMS[x[i].parentNode.cells[0].textContent].color=''; x[i].cells[0].style.backgroundColor="#f4e4bc"; break;
-				case "hcser": x[i].cells[2].style.backgroundColor=s1; break;
+				case "del": delete DOMINFO_FARMS[koord]; x[i].parentNode.removeChild(x[i]); break;
+				case "urit": x[i].cells[2].innerHTML=""; break;
+				case "mod": DOMINFO_FARMS[koord].nyers = parseInt(s1, 10); x[i].cells[3].innerHTML=s1; break;
+				case "htor":
+					DOMINFO_FARMS[koord].szin.falu = '';
+					x[i].cells[0].style.backgroundColor="#f4e4bc";
+					break;
+				case 'hreset':
+					DOMINFO_FARMS[koord].szin.fal = '';
+					DOMINFO_FARMS[koord].szin.marks = '';
+					x[i].cells[2].style.backgroundColor = s1;
+					x[i].cells[2].style.border = '';
+					break;
+				case "hcser": 
+					DOMINFO_FARMS[koord].szin.fal = s1;
+					x[i].cells[2].style.backgroundColor=s1;
+					break;
+				case 'addmark':
+					DOMINFO_FARMS[koord].szin.marks = s1;
+					x[i].cells[2].style.border = `2px solid ${s1}`;
+					break;
 			}
 		}
 	}
-}catch(e){}}
+}catch(e){ console.error(e); }}
 
 function sortorol(cella,ismulti) {
 	var row = cella.parentNode;
@@ -778,19 +883,41 @@ function modosit_szam(cella){
 	if (uj=="") return;
 	uj = parseInt(uj, 10);
 	cella.innerHTML=uj;
-	DOMINFO_FARMS[cella.parentNode.cells[0].textContent].nyers = uj;
+	DOMINFO_FARMS[cella.closest('tr').cells[0].textContent].nyers = uj;
 	multipricer("hova","mod",uj);
 }
 function hattertolor(cella){
 	cella.style.backgroundColor="#f4e4bc";
-	DOMINFO_FARMS[cella.parentNode.cells[0].textContent].color = '';
+	let koord = cella.closest('tr').cells[0].textContent;
+	DOMINFO_FARMS[koord].szin = DOMINFO_FARMS[koord].szin || {};
+	DOMINFO_FARMS[koord].color = '';
 	multipricer("hova","htor");
 }
 function hattercsere(cella){
-	var szin="#00FF00";
-	if (cella.style.backgroundColor=="rgb(0, 255, 0)" || cella.style.backgroundColor=="#00FF00") szin="#f4e4bc";
-	cella.style.backgroundColor=szin;
-	multipricer("hova","hcser",szin);
+	var szin = "#00FF00";
+	let koord = cella.closest('tr').cells[0].textContent;
+	DOMINFO_FARMS[koord].szin = DOMINFO_FARMS[koord].szin || {};
+
+	if (cella.style.backgroundColor=="rgb(0, 255, 0)" || cella.style.backgroundColor=="#00FF00") {
+		if (cella.style.border) {
+			szin="#f4e4bc";
+			cella.style.backgroundColor = szin;
+			DOMINFO_FARMS[koord].szin.fal = '';
+			cella.style.border = '';
+			DOMINFO_FARMS[koord].szin.marks = '';
+			multipricer("hova","hreset",szin);
+		} else {
+			szin='blue';
+			cella.style.border = `2px solid ${szin}`;
+			DOMINFO_FARMS[koord].szin.marks = szin;
+			multipricer("hova","addmark",szin);
+		}
+	} else {
+		cella.style.backgroundColor = szin;
+		DOMINFO_FARMS[koord].szin.fal = szin;
+		multipricer("hova","hcser",szin);
+	}
+	
 }
 function addFreezeNotification() {
 	if (!USER_ACTIVITY) document.getElementById('global_notifications').innerHTML = `<img src="${pic('freeze.png')}" class="rotate" onmouseover="sugo(this,'Amíg SZEM keretrendszert piszkálod, SZEM pihen hogy fókuszálni tudj (automata)')">`;
@@ -912,6 +1039,33 @@ function switchMobileMode() {
 	MOBILE_MODE = !MOBILE_MODE;
 	alert(`Mobile Mode = ${MOBILE_MODE}`);
 }
+function saveSettings() {
+	const allOptions = document.getElementById('settings');
+	SZEM4_SETTINGS = {};
+	Array.from(allOptions.elements).forEach((input) => {
+		if (input.name) {
+			if (input.type === 'checkbox') {
+				SZEM4_SETTINGS[input.name] = input.checked;
+			} else if (input.value) {
+				SZEM4_SETTINGS[input.name] = input.value;
+			}
+		}
+	});
+}
+function loadSettings() {
+	const allOptions = document.getElementById('settings');
+	SZEM4_SETTINGS = {};
+	Array.from(allOptions.elements).forEach((input) => {
+		if (input.name && SZEM4_SETTINGS[input.name]) {
+			if (input.type === 'checkbox') {
+				input.checked = SZEM4_SETTINGS[input.name];
+			} else if (input.value) {
+				input.value = SZEM4_SETTINGS[input.name];
+			}
+		}
+	});
+	onWallpChange(false);
+}
 
 /* ------------------- FARMOLÓ ----------------------- */
 function drawWagons(koord) {
@@ -1027,8 +1181,13 @@ function rebuildDOM_farms() {try{
 	$("#farm_hova tr:gt(0)").remove();
 
 	for (farm in DOMINFO_FARMS) {
-		const a_row = farmTable.insertRow(-1); 
-		let c=a_row.insertCell(0); c.innerHTML=farm; c.setAttribute("ondblclick","hattertolor(this)"); c.setAttribute("data-age","0");
+		DOMINFO_FARMS[farm].szin = DOMINFO_FARMS[farm].szin || {};
+		const a_row = farmTable.insertRow(-1);
+		let c = a_row.insertCell(0);
+		c.innerHTML=farm;
+		c.setAttribute("ondblclick","hattertolor(this)");
+		c.setAttribute("data-age","0");
+		if (DOMINFO_FARMS[farm].szin.falu) c.style.backgroundColor = DOMINFO_FARMS[farm].szin.falu;
 		
 		const buildings = DOMINFO_FARMS[farm].buildings;
 		c=a_row.insertCell(1);
@@ -1056,7 +1215,10 @@ function rebuildDOM_farms() {try{
 		</span>`;
 		c.setAttribute("onmouseenter",`addTooltip_build(this, '${farm}')`);
 		c.setAttribute("ondblclick","hattercsere(this)");
+		c.setAttribute("onclick","learnCatapult(this)");
 		c.setAttribute("onmouseleave",'removeTooltip(this)');
+		if (DOMINFO_FARMS[farm].szin.fal) c.style.backgroundColor = DOMINFO_FARMS[farm].szin.fal;
+		if (DOMINFO_FARMS[farm].szin.marks) c.style.border = `2px solid ${DOMINFO_FARMS[farm].szin.marks}`;
 		
 		c=a_row.insertCell(3); c.innerHTML=DOMINFO_FARMS[farm].nyers; c.setAttribute("ondblclick",'modosit_szam(this)');
 		
@@ -1068,6 +1230,21 @@ function rebuildDOM_farms() {try{
 	debug('rebuildDOM_farms', e);
 	alert2('ERROR__ rebuild: \n' + e);
 }}
+
+function learnCatapult(el){
+	let coord = el.closest('tr').cells[0].textContent;
+	let toCatapult = {};
+	const ignoreCatapult=['wood', 'stone', 'iron', 'wall'];
+	const i18nBuildings=document.getElementById("vije_opts");
+	for (b in DOMINFO_FARMS[coord].buildings) {
+		if (ignoreCatapult.includes(b) || DOMINFO_FARMS[coord].buildings[b] == 0) continue;
+		toCatapult[i18nBuildings[b].value] = DOMINFO_FARMS[coord].buildings[b];
+	}
+	alert2(`Katapultozó script betanítva \n ${coord}`);
+	console.info(coord, toCatapult);
+	debug('learnCatapult', `Tanulás sikeres: ${coord} - ${JSON.stringify(toCatapult)}`);
+	localStorage.setItem('cnc_katapult', `;${coord};${JSON.stringify(toCatapult)}`);
+}
 
 function add_farmolando(){try{
 	let addFarmolandoFaluk = document.getElementById('add_farmolando_faluk');
@@ -1099,6 +1276,7 @@ function add_farmolando(){try{
 				<span class="tooltip_text"></span>
 			</span>`;
 			c.setAttribute("ondblclick","hattercsere(this)");
+			c.setAttribute("onclick","learnCatapult(this)");
 			c.setAttribute("onmouseenter",`addTooltip_build(this, '${faluk[i]}')`);
 			c.setAttribute("onmouseleave",'removeTooltip(this)');
 		var c=a_row.insertCell(3); c.innerHTML="0"; c.setAttribute("ondblclick",'modosit_szam(this)');
@@ -1108,6 +1286,11 @@ function add_farmolando(){try{
 			prodHour: defaultProdHour,
 			buildings: {},
 			nyers: 0,
+			szin: {
+				falu: '',
+				fal: '',
+				marks: ''
+			},
 			isJatekos: false
 		};
 	}
@@ -1732,7 +1915,7 @@ function szem4_farmolo_3egyeztet(adatok){try{
 		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].getAttribute("class")=="error_box") {
 			naplo("Farmoló", `Hiba  ${adatok.plannedArmy.farmVill} farmolásánál: ${FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].textContent}. Tovább nem támadom`);
 			farm_helye.cells[0].style.backgroundColor="red";
-			DOMINFO_FARMS[adatok.plannedArmy.farmVill].color = 'red';
+			DOMINFO_FARMS[adatok.plannedArmy.farmVill].szin.falu = 'red';
 			if (FARM_REF.document.querySelector('.village-item')) {
 				FARM_REF.document.querySelector('.village-item').click();
 			}
@@ -1990,9 +2173,9 @@ ujkieg("farm","Farmoló",`<tr><td>
 		<table class="vis" id="farm_hova" style="vertical-align:top; display: inline-block;"><tr>
 			<th onmouseover="sugo(this,'Ezen falukat farmolod. A háttérszín jelöli a jelentés színét: alapértelmezett=zöld jelik/nincs felderítve. Sárga=veszteség volt a falun. Piros: a támadás besült, nem megy rá több támadás.<br>Dupla klikk a koordira: a háttérszín alapértelmezettre állítása.<br>Rendezhető')" style="cursor: pointer;" onclick='rendez("szoveg",false,this,"farm_hova",0)'>Hova</th>
 			<th onmouseover="sugo(this,'Felderített bányaszintek, ha van. Kék háttér: megy rá kémtámadás.<br>Dupla klikk=az érintett sor törlése')">Bányák</th>
-			<th onmouseover="sugo(this,'Fal szintje. Dupla klikk=háttér csere (csak megjelölésként). <br>Rendezhető.')" onclick='rendez("szam",false,this,"farm_hova",2)' style="cursor: pointer;">Fal</th>
+			<th onmouseover="sugo(this,'Fal szintje. Szimpla klikk: Katapultozó scriptet megtanítja az adott falu épületszintjeire. Dupla klikk=háttér csere (csak megjelölésként). 2 féle lehet: a zöld háttér a falszint változására eltűnik, a kék keret viszont csak manuálisan törölhető.<br>Rendezhető.')" onclick='rendez("szam",false,this,"farm_hova",2)' style="cursor: pointer;">Fal</th>
 			<th onmouseover="sugo(this,'Számítások szerint ennyi nyers van az érintett faluba. Dupla klikk=érték módosítása.<br>Rendezhető.')" onclick='rendez("szam",false,this,"farm_hova",3)' style="cursor: pointer;">Nyers</th>
-			<th onmouseover="sugo(this,'Játékos e? Ha játékost szeretnél támadni, pipáld be a falut mint játékos uralta, így támadni fogja. Ellenben piros hátteret kap a falu.')">J?</th>
+			<th onmouseover="sugo(this,'Játékos e? Ha játékost szeretnél támadni, pipáld be a falut mint játékos uralta, így támadni fogja. Ellenben piros hátteret kap a falu. (WIP: Nem ismer fake-limitet!)')">J?</th>
 			<th onmouseover="sugo(this,'Támadásokat tudod itt nyomon követni szerelvények formájában, melyek a támadási algoritmus alapjait képzik<br><br>Pipa: egy cellán végrehajtott (duplaklikkes) művelet minden látható falura érvényes lesz.')" style="cursor: pointer; vertical-align:middle;">
 				---
 				<span style="margin-left: 65px; margin-right: 0px;">
@@ -2087,10 +2270,14 @@ function szem4_VIJE_1kivalaszt(){try{
 			VT[i].cells[0].getElementsByTagName("input")[0].checked = true;
 			farm_helye.cells[0].style.backgroundColor="#f4e4bc";
 		}
-		else if (szin==="yellow") farm_helye.cells[0].style.backgroundColor="yellow";
-		else if (szin!="blue" && farm_helye.cells[0].style.backgroundColor !== 'red') {
-			farm_helye.cells[0].style.backgroundColor="red";
-			naplo("Jelentés Elemző", koord+" farm veszélyesnek ítélve. Jelentésének színe "+szin+".");
+		else if (szin.includes('yellow')) {
+			farm_helye.cells[0].style.backgroundColor = 'yellow';
+			DOMINFO_FARMS[koord].szin.falu = 'yellow';
+		}
+		else if (!szin.includes('blue') && farm_helye.cells[0].style.backgroundColor !== 'red') {
+			farm_helye.cells[0].style.backgroundColor = 'red';
+			DOMINFO_FARMS[koord].szin.falu = 'red';
+			naplo('Jelentés Elemző', `${koord} farm veszélyesnek ítélve. Jelentésének színe ${szin}.`);
 		}
 
 		/* Van értelme elemezni? */
@@ -2144,19 +2331,26 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 	if (banya!=="") {
 		farm_helye.cells[1].innerHTML=banya;
 		DOMINFO_FARMS[koord].prodHour = getProdHour(banya.join(','));
-		farm_helye.cells[1].style.backgroundColor="";
+		farm_helye.cells[1].style.backgroundColor = '';
 		if (fal == '') {
 			fal = 0;
-			if (parseInt(farm_helye.cells[2].innerHTML) !== 0) farm_helye.cells[2].style.backgroundColor= '';
+			if (parseInt(farm_helye.cells[2].innerHTML) !== 0) {
+				farm_helye.cells[2].style.backgroundColor= '';
+				DOMINFO_FARMS[koord].szin.fal = '';
+			}
 		}
 	}
 	if (szin == 'SEREG') {
 		farm_helye.cells[0].style.backgroundColor = 'red';
-		DOMINFO_FARMS[koord].color = 'red';
+		DOMINFO_FARMS[koord].szin = DOMINFO_FARMS[koord].szin || {};
+		DOMINFO_FARMS[koord].szin.falu = 'red';
 		naplo('VIJE', `${koord} -- Sereg a faluban!`);
 	}
 	if (fal!=="") {
-		if (parseInt(farm_helye.cells[2].innerHTML)!==parseInt(fal, 10)) farm_helye.cells[2].style.backgroundColor = '';
+		if (parseInt(farm_helye.cells[2].innerHTML)!==parseInt(fal, 10)) {
+			farm_helye.cells[2].style.backgroundColor = '';
+			DOMINFO_FARMS[koord].szin.fal = '';
+		}
 		farm_helye.cells[2].innerHTML = `
 		<span class="tooltip_hover">
 			${fal}
@@ -2845,7 +3039,7 @@ function szem4_ADAT_sys_save(){try{
 		} else eredmeny+=adat[i].value.replace(/\./g," ").replace(/;/g,"  ");
 		if (i<adat.length-1) eredmeny+=".";
 	}
-	eredmeny+=";" + JSON.stringify(DOMINFO_FARMS);
+	eredmeny+=";" + JSON.stringify(SZEM4_SETTINGS);
 
 	
 	localStorage.setItem(AZON+"_sys",eredmeny);
@@ -2922,7 +3116,7 @@ function szem4_ADAT_farm_save(){try{
 		if (i<adat.length-1) eredmeny+=".";
 	}
 
-	eredmeny+=';' + JSON.stringify(DOMINFO_FARMS);
+	eredmeny+=';' + JSON.stringify(DOMINFO_FARMS); // DUP
 
 	localStorage.setItem(AZON+"_farm",eredmeny);
 	var d=new Date(); document.getElementById("adat_opts").rows[1].cells[2].textContent=d.toLocaleString();
@@ -3005,13 +3199,6 @@ function szem4_ADAT_farm_load(){try{
 		/*Betöltés: farmok részletei*/
 		adat=document.getElementById("farm_hova").rows;
 		const farmFaluSor = suti.split(";")[3].match(/[0-9]+(\|)[0-9]+/g);
-		resz=suti.split(";")[2].split(".");
-		for (var i=0;i<resz.length;i++) {
-			if (resz[i].indexOf("R")>0) {
-				adat[i+1].cells[0].style.backgroundColor="red";
-				DOMINFO_FARMS[farmFaluSor[i]].color = 'red';
-			}
-		}
 		
 		resz=suti.split(";")[4].split(".");
 		for (var i=0;i<resz.length;i++) {
@@ -3045,7 +3232,6 @@ function szem4_ADAT_farm_load(){try{
 		resz=suti.split(";")[9];
 		if (resz) {
 			resz = resz.split('.');
-			clearAttacks();
 			for (var i=0;i<resz.length;i++) {
 				if (ALL_VIJE_SAVED[adat[i+1].cells[0].textContent]) {
 					adat[i+1].cells[3].textContent=resz[i];
@@ -3061,6 +3247,7 @@ function szem4_ADAT_farm_load(){try{
 		rebuildDOM_farms();
 		
 		document.getElementById("add_farmolo_egysegek").getElementsByTagName("input")[0].checked = false;
+		clearAttacks();
 		drawWagons();
 		shorttest();
 		alert2("Farmolási adatok betöltése kész.");
@@ -3139,9 +3326,15 @@ function szem4_ADAT_sys_load(){try{
 		if (resz[i]=="false") adat[i].checked=false;
 	}
 
-	/* DOM TREE */
-	DOMINFO_FARMS = JSON.parse(suti.split(";")[3]);
-
+	/* Settings */
+	var resz=suti.split(";")[3];
+	if (!resz)
+		setTimeout(() => saveSettings(), 500);
+	else {
+		SZEM4_SETTINGS = JSON.parse(resz);
+		loadSettings();
+		saveSettings();
+	}
 	alert2("Rendszeradatok betöltése kész.");
 }catch(e){debug("ADAT_epito_sys",e);}}
 
@@ -3324,22 +3517,6 @@ $(document).ready(function(){
 		if (FARM_TESZTER_TIMEOUT) clearTimeout(FARM_TESZTER_TIMEOUT);
 		FARM_TESZTER_TIMEOUT = setTimeout(() => shorttest(), 1000);
 	});
-	$('#farm_hova td:nth-child(3)').on('click', function(e) {
-		if (e.which == 1) { // Normal click
-			let coord = e.target.closest('tr').cells[0].textContent;
-			let toCatapult = {};
-			const ignoreCatapult=['wood', 'stone', 'iron', 'wall'];
-			const i18nBuildings=document.getElementById("vije_opts");
-			for (b in DOMINFO_FARMS[coord].buildings) {
-				if (ignoreCatapult.includes(b) || DOMINFO_FARMS[coord].buildings[b] == 0) continue;
-				toCatapult[i18nBuildings[b].value] = DOMINFO_FARMS[coord].buildings[b];
-			}
-			alert2(`Katázásra megtanulva\n ${coord}\n${JSON.stringify(toCatapult)} `);
-			console.info(coord, toCatapult);
-			localStorage.setItem('cnc_katapult', `;${coord};${JSON.stringify(toCatapult)}`);
-			e.preventDefault();
-		}
-	});
 	window.addEventListener('keydown', function(e) {
 		if (e.key === 'Escape') {
 			alert2('close');
@@ -3370,6 +3547,7 @@ ADDME: preLoader (gyors beállítások), midLoader (mostani init()), endLoader (
 
 ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
+ADDME: Minimalistic view: Karikába hogy SZEM4, alá heartbeat, listázni a szünetelt kiegeket, Sebesség/max táv infót?
 
 NEW KIEG: Auto katázó: Beadod mely faluból max hány percre, mely falukat. VIJE adatai alapján küldi, [] x+1 épületszintet feltételezve 1esével bontásra. [] előtte 2/4 kos v 2/6 kata falra
 

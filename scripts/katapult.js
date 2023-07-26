@@ -77,6 +77,10 @@ function send_units() {
 
 function getNextTarget(buildings) {
 	for (let building in buildings) {
+		if (building == '') {
+			delete buildings[building];
+			continue;
+		}
 		if (building == 'Gyülekezőhely' ||
 			building == 'Szobor' ||
 			building == 'Fatelep' ||
@@ -85,7 +89,7 @@ function getNextTarget(buildings) {
 			building == 'Raktár' ||
 			building == 'Rejtekhely' ||
 			(building == 'Főhadiszállás' && buildings[building] <= 1) ||
-			(building == 'Tanya' && buildings[building] <= 1) ||
+			(building == 'Tanya' && buildings[building] <= 6) ||
 			buildings[building] == 0)
 		continue;
 		debugger;
