@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.07.25';
+var VERZIO = 'v4.5 Build 23.07.27';
 var SZEM4_SETTINGS = {};
 try{ /*Rendszeradatok*/
 	var AZON="S0";
@@ -62,7 +62,6 @@ try{ /*Rendszeradatok*/
 	};
 
 	var VILL1ST="";
-	var ALTBOT=true;
 	var MAX_IDO_PERC = 20; // shorttest-be van felülírva!!!
 	AZON=game_data.player.id+"_"+game_data.world+AZON;
 	var CLOUD_AUTHS = localStorage.getItem('szem_firebase');
@@ -468,7 +467,7 @@ function init(){try{
 		<div id="hangok" style="display:table;">
 			<div style="display:table-row;">
 				<div style="display:table-cell; padding:10px;" onmouseover="sugo(this, 'Ha be van kapcsolva, bot védelem esetén ez a link is megnyitódik, mint figyelmeztetés.')">
-					<b><input type="checkbox" name="altbot" onchange="onAltbotChange()"> Alternatív botriadó?
+					<b><input type="checkbox" name="altbot" onchange="saveSettings()"> Alternatív botriadó?
 						<br>Megnyitott URL (egyszer)<br>
 						<input type="text" id="altbotURL" name="altboturl" size="42" onchange="saveSettings()" value="http://www.youtube.com/watch?v=k2a30--j37Q">
 					</b>
@@ -481,8 +480,8 @@ function init(){try{
 		</div>
 		<h1 align="center">Háttérbeállítás</h1>
 		<div>
-			Bal: <input type="text" size="30" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"><br>
-			Jobb: <input type="text" size="30"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()">
+			Bal: <input type="text" size="100" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"><br>
+			Jobb: <input type="text" size="100"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()">
 		</div>
 		<b>
 		</b>
@@ -504,10 +503,6 @@ function picBuilding(bId) {
 	return `<img src="https://dshu.innogamescdn.com/asset/88651122/graphic/buildings/mid/${bId}3.png">`;
 }
 
-function onAltbotChange(){try{
-	ALTBOT = document.getElementById('settings').altbot.checked;
-	saveSettings();
-}catch(e){alert(e);}}
 function onWallpChange(isUpdate=true) {
 	const settingsForm = document.getElementById('settings');
 	document.getElementsByClassName('left-background')[0].style.backgroundImage = `url('${settingsForm.wallp_left.value}')`;
@@ -949,7 +944,7 @@ function BotvedelemBe(){
 		playSound("bot2");
 		BOT=true;
 		alert2('BOT VÉDELEM!!!<br>Írd be a kódot, és kattints ide lentre!<br><br><a href="javascript: BotvedelemKi()">Beírtam a kódot, mehet tovább!</a>');
-		if (ALTBOT && !ALTBOT2) {
+		if (SZEM4_SETTINGS.altbot && !ALTBOT2) {
 			window.open(document.getElementById("altbotURL").value);
 			ALTBOT2=true;
 		}
@@ -1242,7 +1237,6 @@ function learnCatapult(el){
 	}
 	alert2(`Katapultozó script betanítva \n ${coord}`);
 	console.info(coord, toCatapult);
-	debug('learnCatapult', `Tanulás sikeres: ${coord} - ${JSON.stringify(toCatapult)}`);
 	localStorage.setItem('cnc_katapult', `;${coord};${JSON.stringify(toCatapult)}`);
 }
 
@@ -2507,7 +2501,6 @@ function szem4_VIJE_motor(){try{
 			if (isPageLoaded(VIJE_REF1,-1,"screen=report")) {
 				VIJE_HIBA=0; VIJE_GHIBA=0;
 				PM2=szem4_VIJE_1kivalaszt();
-				console.info('Jelentés:', PM2);
 				if (PM2[0]===0) { // Nincs meló
 					VIJE_LEPES=0;
 					if (PM2[3] === false) {
@@ -3532,17 +3525,12 @@ $(document).ready(function(){
 FARMVÉDŐ
 minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
 
-CONVERT: Határszám -> minimum percnyi termelés
-ADDME: VIJE mikor defíti a főhadi/barakkot, azt is mentse a falu infókba. Később majd még többet, mert kell az auto katázóhoz
 - Hang átdolgozás: Választó
-REFACTOR: Minden változó, a DOM-ba csak ír, nem olvas!
-ADDME: Színezést is mentsen a Farmoló
 CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
 ADDME: Farmok rendezése táv szerint
 
 ADDME: Saját falunál csatára készülés: Érjenek vissza xx:xx-re
 ADDME: "Sárgát NE támadd"
-ADDME: Custom wallpaper
 ADDME: preLoader (gyors beállítások), midLoader (mostani init()), endLoader (motorok indítása)
 
 ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
