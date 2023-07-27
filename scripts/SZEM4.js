@@ -933,6 +933,8 @@ function BotvedelemBe(){
 			throw "Waiting for auto-resolver...";
 		} else if (BOT_REF.document.getElementById('botprotection_quest')) {
 			BOT_REF.document.getElementById('botprotection_quest').click();
+		} else if (BOT_REF.document.getElementById('bot_check')) {
+			BOT_REF.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
 		}
 		if (BOT_REF && !(BOT_REF.document.getElementById('bot_check') || BOT_REF.document.getElementById('popup_box_bot_protection') || BOT_REF.document.title=="Bot védelem" || BOT_REF.document.getElementById('botprotection_quest'))) {
 			BotvedelemKi();
@@ -972,6 +974,13 @@ function isPageLoaded(ref,faluid,address){try{
 	if (ref.closed) return false;
 	if (ref.document.getElementById('botprotection_quest')) {
 		ref.document.getElementById('botprotection_quest').click();
+		naplo("Globális","Bot védelem aktív!!!");
+		document.getElementById("audio1").volume=0.2;
+		BotvedelemBe();
+		return false;
+	}
+	if (ref.document.getElementById('bot_check')) {
+		BOT_REF.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
 		naplo("Globális","Bot védelem aktív!!!");
 		document.getElementById("audio1").volume=0.2;
 		BotvedelemBe();
