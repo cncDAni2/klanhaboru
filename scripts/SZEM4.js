@@ -373,6 +373,7 @@ function init(){try{
 			top: 0;
 			background-repeat: no-repeat;
     		background-position-x: right;
+			background-size: cover;
 		}
 		.right-background {
 			width: calc(50vw - 512px);
@@ -383,6 +384,7 @@ function init(){try{
 			top: 0;
 			background-repeat: no-repeat;
     		background-position-x: left;
+			background-size: cover;
 		}
 	`;
 	let szemStyle_el = document.createElement('style');
