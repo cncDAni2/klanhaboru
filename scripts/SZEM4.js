@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.07.27';
+var VERZIO = 'v4.5 Build 23.07.28';
 var SZEM4_SETTINGS = {};
 try{ /*Rendszeradatok*/
 	var AZON="S0";
@@ -385,6 +385,9 @@ function init(){try{
 			background-repeat: no-repeat;
     		background-position-x: left;
 			background-size: cover;
+		}
+		#farm_hova tr:nth-child(n+201) {
+			display: none;
 		}
 	`;
 	let szemStyle_el = document.createElement('style');
@@ -1060,7 +1063,6 @@ function saveSettings() {
 }
 function loadSettings() {
 	const allOptions = document.getElementById('settings');
-	SZEM4_SETTINGS = {};
 	Array.from(allOptions.elements).forEach((input) => {
 		if (input.name && SZEM4_SETTINGS[input.name]) {
 			if (input.type === 'checkbox') {
@@ -1301,6 +1303,9 @@ function add_farmolando(){try{
 	}
 		
 	addFarmolandoFaluk.value="";
+	if (Object.keys(DOMINFO_FARMS).length > 200) {
+		alert2('Túl sok farm, csak az első 200-at jelenítem meg (ettől még aktívak és szűrhetőek/rendezhetőek)');
+	}
 	if (dupla!="") alert2("Dupla falumegadások kiszűrve:\n"+dupla);
 	return;	
 }catch(e){alert(e);}}
@@ -2116,7 +2121,7 @@ ujkieg("farm","Farmoló",`<tr><td>
 			<input name="megbizhatosag" value="60" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this, 'Megbízhatóság. MAX ennyi ideig létrejött termelésért indul (plusz felderített nyers)')">p
 			Max táv: <input name="maxtav_ora" type="text" size="2" value="4" onkeypress="validate(event)" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">óra <input name="maxtav_p" onkeypress="validate(event)" type="text" size="2" value="0" onmouseover="sugo(this,'A max távolság, amin túl már nem küldök támadásokat')">perc.
 			</td></tr>
-			<tr><td><div class="combo-cell"><div class="imgbox"><img src="${pic('beallitasok.png')}"></div><strong>Alapbeállítás</strong></div></td>
+			<tr><td><div class="combo-cell"><div class="imgbox"><img src="${pic('beallitasok.png')}"></div><strong>Alapértékek</strong></div></td>
 			<td>
 			Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="800" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik ott óránként')">				
 			Min sereg/falu: <input name="minsereg" onkeypress="validate(event)" type="text" value="20" size="4" onmouseover="sugo(this,'Ennél kevesebb fő támadásonként nem indul. A szám tanyahely szerinti foglalásban értendő. Javasolt: Határszám 1/20-ad része')">
