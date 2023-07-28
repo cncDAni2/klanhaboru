@@ -572,6 +572,12 @@ function shorttest() {
 		if (parseInt(optsForm.sebesseg_m.value, 10) < 200) hiba += 'A leggyorsabb ciklusidő: 200 ms\n';
 		if (parseInt(optsForm.sebesseg_m.value, 10) > 5000) hiba += '5000 ms-nél több ciklusidő felesleges, és feltűnő. Írj be 5000 alatti értéket.\n';
 
+		const termeles = parseInt(optsForm.termeles.value, 10);
+		const minsereg = parseInt(optsForm.minsereg.value, 10);
+		const megbizhatosag = parseInt(optsForm.megbizhatosag.value, 10);
+		if (termeles * (megbizhatosag / 60) < (Math.ceil(minsereg / 4) * 80)) hiba += 'Túl alacsony az alapértelmezett termelés, vagy a menetrend megbízhatósági része, vagy a min sereg/falu. Ezáltal új falukat nem tudna támadni SZEM. Emeld valamelyiket.\n';
+		
+
 		if (optsForm.raktar.value == '' || parseInt(optsForm.raktar.value, 10) < 20) hiba += 'Raktár telítettségi értéke túl alacsony, így vélhetőleg sehonnan se fog fosztani. Min 20%';
 
 		if (optsForm.megbizhatosag.value == '' || parseInt(optsForm.megbizhatosag.value, 10) < 5 || parseInt(optsForm.megbizhatosag.value, 10) > 180) hiba += 'Megbízhatósági szint 5-180 perc között legyen';
@@ -1433,6 +1439,13 @@ function getProdHour(banyaszintek) {
 	}
 	return prodHour;
 }
+function updateDefaultProdHour() {
+	const newProdHour = parseInt(document.getElementById('farmolo_options').termeles.value, 10);
+	for (koord in DOMINFO_FARMS) {
+		if (DOMINFO_FARMS[koord].buildings.iron || DOMINFO_FARMS[koord].buildings.stone || DOMINFO_FARMS[koord].buildings.wood) continue;
+		DOMINFO_FARMS[koord].prodHour = newProdHour;
+	}
+}
 function getResourceProduction(prodHour, idoPerc) {try{
 	// idoPerc alatt termelt mennyiség. idoperc MAX=megbízhatósági idő, vagy amennyi idő megtermelni határszám-nyi nyerset
 	// var corrigatedMaxIdoPerc = getCorrigatedMaxIdoPerc(banyaszintek);
@@ -2123,7 +2136,7 @@ ujkieg("farm","Farmoló",`<tr><td>
 			</td></tr>
 			<tr><td><div class="combo-cell"><div class="imgbox"><img src="${pic('beallitasok.png')}"></div><strong>Alapértékek</strong></div></td>
 			<td>
-			Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="800" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik ott óránként')">				
+			Termelés/óra: <input name="termeles" onkeypress="validate(event)" type="text" size="5" value="800" onchange="updateDefaultProdHour()" onmouseover="sugo(this,'Ha nincs felderített bányaszint, úgy veszi ennyi nyers termelődik ott óránként')">				
 			Min sereg/falu: <input name="minsereg" onkeypress="validate(event)" type="text" value="20" size="4" onmouseover="sugo(this,'Ennél kevesebb fő támadásonként nem indul. A szám tanyahely szerinti foglalásban értendő. Javasolt: Határszám 1/20-ad része')">
 			Ha a raktár &gt;<input name="raktar" onkeypress="validate(event)" type="text" size="2" onmouseover="sugo(this,'Figyeli a raktár telítettségét, és ha a megadott % fölé emelkedik, nem indít támadást onnan. Telítettség össznyersanyag alapján számolva. Min: 20. Ne nézze: 100-nál több érték megadása esetén.')" value="90">%, nem foszt.
 			</td></tr>
@@ -3154,7 +3167,7 @@ function szem4_ADAT_epito_save(){try{
 		if (i<adat.length-1) eredmeny+=".";
 	}
 	localStorage.setItem(AZON+"_epito",eredmeny);
-	var d=new Date(); document.getElementById("adat_opts").rows[2].cells[2].textContent=d.toLocaleString();;
+	var d=new Date(); document.getElementById("adat_opts").rows[2].cells[2].textContent=d.toLocaleString();
 	return;
 }catch(e){debug("ADAT_epito_save",e);}}
 
@@ -3319,12 +3332,12 @@ function szem4_ADAT_sys_load(){try{
 		ALL_VIJE_SAVED = JSON.parse(resz[resz.length-1]);
 	
 	/*Adatmentő*/
-	var adat=document.getElementById("adat_opts").getElementsByTagName("input");
-	var resz=suti.split(";")[1].split(".");
-	for (var i=0;i<resz.length;i++) {
-		if (resz[i]=="true") adat[i].checked=true; else
-		if (resz[i]=="false") adat[i].checked=false;
-	}
+	// var adat=document.getElementById("adat_opts").getElementsByTagName("input");
+	// var resz=suti.split(";")[1].split(".");
+	// for (var i=0;i<resz.length;i++) {
+	// 	if (resz[i]=="true") adat[i].checked=true; else
+	// 	if (resz[i]=="false") adat[i].checked=false;
+	// }
 	
 	/*Hangok*/
 	var adat=document.getElementById("hang").getElementsByTagName("input");
