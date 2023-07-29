@@ -1340,13 +1340,13 @@ function szem4_farmolo_multiclick(no,t,mire){try{
 	return;
 }catch(e){alert2("Hiba: "+t+"-"+no+"\n"+e);}}
 function szem4_farmolo_csoport(tabla){try{
-	var lista=prompt("Faluszűrő\nAdd meg azon faluk koordinátáit, melyeket a listában szeretnél látni. A többi falu csupán láthatatlan lesz, de tovább folyik a használata.\nSpeciális lehetőségid:\n-1: Csupán ezt az értéket adva meg megfordítódik a jelenlegi lista láthatósága (negáció)\n-...: Ha az első karakter egy - jel, akkor a felsorolt faluk kivonódnak a jelenlegi listából (különbség)\n+...: Ha az első karaktered +, akkor a felsorolt faluk hozzáadódnak a listához (unió)\nÜresen leokézva az összes falu láthatóvá válik");
-	if (lista==null)return;
+	var lista = prompt("Faluszűrő\nAdd meg azon faluk koordinátáit, melyeket a listában szeretnél látni. A többi falu csupán láthatatlan lesz, de tovább folyik a használata.\nSpeciális lehetőségid:\n-1: Csupán ezt az értéket adva meg megfordítódik a jelenlegi lista láthatósága (negáció)\n-...: Ha az első karakter egy - jel, akkor a felsorolt faluk kivonódnak a jelenlegi listából (különbség)\n+...: Ha az első karaktered +, akkor a felsorolt faluk hozzáadódnak a listához (unió)\nÜresen leokézva az összes falu láthatóvá válik");
+	if (lista==null) return;
 	var type="norm";
 	if (lista=="-1") type="negalt";
 		else {
-			if (lista[0]=="-")type="kulonbseg";
-			if (lista[0]=="+")type="unio";
+			if (lista[0]=="-") type="kulonbseg";
+			if (lista[0]=="+") type="unio";
 		}
 	if (lista=="") type="all";
 	if (lista=="S") type="yellow";
@@ -1365,6 +1365,7 @@ function szem4_farmolo_csoport(tabla){try{
 		}
 		if (uj) x[i].setAttribute("style","display:line"); else x[i].setAttribute("style","display:none");
 	}
+	hideFarms();
 }catch(e){alert2("Hiba: \n"+e);}}
 function getAllResFromVIJE(coord) {
 	var allAttack = ALL_UNIT_MOVEMENT[coord];
