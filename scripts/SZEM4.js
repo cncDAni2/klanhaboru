@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.07.28';
+var VERZIO = 'v4.5 Build 23.07.29';
 var SZEM4_SETTINGS = {};
 try{ /*Rendszeradatok*/
 	var AZON="S0";
@@ -386,7 +386,7 @@ function init(){try{
     		background-position-x: left;
 			background-size: cover;
 		}
-		#farm_hova tr:nth-child(n+201) {
+		#farm_hova .szem4_farms_overflow {
 			display: none;
 		}
 	`;
@@ -803,6 +803,7 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 	}
 	
 	thislink.setAttribute("onclick","rendez(\""+tipus+"\","+!bool+",this,\""+table_azon+"\","+oszlop+")");
+	hideFarms();
 	return;
 }catch(e){alert2("Hiba rendezéskor:\n"+e);}}
 
@@ -1185,10 +1186,20 @@ function add_farmolo(){ try{
 	}
 	addFaluk.value="";
 	if (dupla!="") alert2("Dupla falumegadások, esetleg nem lévő saját faluk kiszűrve:\n" + dupla);
+	hideFarms();
 	return;	
 } catch(e) {
 	alert(e);
 }}
+
+function hideFarms() {
+	const allFarm = document.getElementById('farm_hova').rows;
+	let visible = 0;
+	for (let i=0;i<allFarm.length;i++) {
+		if (allFarm[i].style.display !== 'none') visible++;
+		if (visible > 200) allFarm[i].classList.add('szem4_farms_overflow'); else allFarm[i].classList.remove('szem4_farms_overflow');
+	}
+}
 
 function rebuildDOM_farms() {try{
 	const farmTable = document.getElementById('farm_hova');
@@ -1240,6 +1251,7 @@ function rebuildDOM_farms() {try{
 		
 		c=a_row.insertCell(5); c.innerHTML=""; c.setAttribute("onmouseleave",'removeTooltip(this)');
 	}
+	hideFarms();
 } catch(e) {
 	debug('rebuildDOM_farms', e);
 	alert2('ERROR__ rebuild: \n' + e);
@@ -1309,10 +1321,13 @@ function add_farmolando(){try{
 	}
 		
 	addFarmolandoFaluk.value="";
+	let text = '';
 	if (Object.keys(DOMINFO_FARMS).length > 200) {
-		alert2('Túl sok farm, csak az első 200-at jelenítem meg (ettől még aktívak és szűrhetőek/rendezhetőek)');
+		text += 'Túl sok farm, csak az első 200-at jelenítem meg (ettől még aktívak és szűrhetőek/rendezhetőek)\n';
 	}
-	if (dupla!="") alert2("Dupla falumegadások kiszűrve:\n"+dupla);
+	hideFarms();
+	if (dupla!="") text+='Dupla falumegadások kiszűrve:\n' + dupla;
+	if (text !== '') alert2(text);
 	return;	
 }catch(e){alert(e);}}
 function szem4_farmolo_multiclick(no,t,mire){try{
@@ -1348,7 +1363,7 @@ function szem4_farmolo_csoport(tabla){try{
 			case "all": uj=true; break;
 			case "yellow": if (x[i].cells[0].style.backgroundColor=="yellow") uj=true; break;
 		}
-		if(uj)x[i].setAttribute("style","display:line");else x[i].setAttribute("style","display:none");
+		if (uj) x[i].setAttribute("style","display:line"); else x[i].setAttribute("style","display:none");
 	}
 }catch(e){alert2("Hiba: \n"+e);}}
 function getAllResFromVIJE(coord) {
