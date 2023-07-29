@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.07.29';
+var VERZIO = 'v4.5 Build 23.07.30';
 var SZEM4_SETTINGS = {};
 try{ /*Rendszeradatok*/
 	var AZON="S0";
@@ -122,8 +122,9 @@ function init(){try{
 		KTID[i-1]=kord+";"+PFA.rows[i].cells[oszl].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0];
 	}
 	const szemStyle = `
-		body { background: #111; }
-		#content > table { background: #111; box-shadow: 0 0 12px black; }
+		body { background: #111; scrollbar-width: none; }
+		body::-webkit-scrollbar { width: 0; }
+		#content > table { box-shadow: 0 0 12px black; }
 		#side-notification-container {
 			pointer-events: none;
 			display: none;
@@ -484,12 +485,12 @@ function init(){try{
 			</b>
 		</div>
 		<h1 align="center">Háttérbeállítás</h1>
-		<div>
-			Bal: <input type="text" size="100" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"><br>
-			Jobb: <input type="text" size="100"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()">
-		</div>
-		<b>
-		</b>
+		<div><table>
+			<tr><td>Bal</td><td><input type="text" size="80" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"></td><td>Csak kép, üres/invalid esetén háttérszín lesz használva</td></tr>
+			<tr><td>Jobb</td><td><input type="text" size="80"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()"></td><td>Csak kép, üres/invalid esetén háttérszín lesz használva</td></tr>
+			<tr><td>Tartalom háttérszíne</td><td><input type="text" size="30" name="content_bgcolor" value="#111" onchange="onWallpChange()"></td><td>[Default: #111] Minden CSS background property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Tartalom betűszíne</td><td><input type="text" size="30" name="content_fontcolor" value="white" onchange="onWallpChange()"></td><td>[Default: white] Minden CSS color property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
+		</div></table>
 	</form></td></tr>
 </tbody></table>`;
 	document.title="SZEM IV";
@@ -512,6 +513,8 @@ function onWallpChange(isUpdate=true) {
 	const settingsForm = document.getElementById('settings');
 	document.getElementsByClassName('left-background')[0].style.backgroundImage = `url('${settingsForm.wallp_left.value}')`;
 	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
+	$('body').css('background',settingsForm.content_bgcolor.value);
+	$('table.menuitem').css('color',settingsForm.content_fontcolor.value);
 	if (isUpdate) saveSettings();
 }
 
