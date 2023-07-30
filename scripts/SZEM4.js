@@ -523,7 +523,7 @@ function onWallpChange(isUpdate=true) {
 	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
 	$('body').css('background',settingsForm.content_bgcolor.value);
 	$('table.menuitem').css('color',settingsForm.content_fontcolor.value);
-	$('a').css('color',settingsForm.content_fontcolor.value);
+	$('#content a').css('color',settingsForm.content_fontcolor.value);
 	$('table.style-settings-table').css('color',settingsForm.content_fontcolor.value);
 	$('table.menuitem').css('border-color', settingsForm.content_border.value);
 	$('.fej > table').css('border-color', settingsForm.content_border.value);
@@ -768,7 +768,7 @@ function distCalc(S,D){
 	return Math.abs(Math.sqrt(Math.pow(S[0]-D[0],2)+Math.pow(S[1]-D[1],2)));
 }
 
-function rendez(tipus,bool,thislink,table_azon,oszlop){try{
+function rendez(tipus, isAsc, thislink, table_azon, oszlop){try{
 /*Tipus: "szoveg" v "szam"*/
 	var OBJ=document.getElementById(table_azon).getElementsByTagName("tbody")[0];
 	var prodtable=document.getElementById(table_azon).rows;
@@ -777,12 +777,16 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 	
 	for (var i=1;i<prodtable.length;i++) {
 		switch (tipus) {
-			case "szoveg": tavok[i-1]=prodtable[i].cells[oszlop].innerText; break;
-			case "szam": tavok[i-1]=parseInt(prodtable[i].cells[oszlop].innerText.replace(".","")); break;
-			case "datum": if (prodtable[i].cells[oszlop].innerText=="") tavok[i-1]=new Date(); else tavok[i-1]=new Date(prodtable[i].cells[oszlop].innerText); break;
+			case "szoveg": tavok[i-1]=prodtable[i].cells[oszlop].textContent; break;
+			case "szam":
+				let tc = prodtable[i].cells[oszlop].textContent.trim();
+				if (!tc || tc == '') tc = '0';
+				tavok[i-1]=parseInt(tc.replace(".",""));
+				break;
+			case "datum": if (prodtable[i].cells[oszlop].textContent.trim() == '') tavok[i-1]=new Date(); else tavok[i-1]=new Date(prodtable[i].cells[oszlop].textContent.trim()); break;
 			case "datum2": var honap=new Array("Jan","Febr","March","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
 				var d=new Date();
-				var s=prodtable[i].cells[oszlop].innerText;
+				var s=prodtable[i].cells[oszlop].textContent.trim();
 				d.setMonth(honap.indexOf(s.split(" ")[0]));
 				d.setDate(s.split(" ")[1].replace(",",""));
 				d.setHours(s.split(" ")[2].split(":")[0]);
@@ -799,7 +803,7 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 	for (var i=0;i<tavok.length;i++) {
 		var min=i;
 		for (var j=i;j<tavok.length;j++) {
-			if (bool) {if (tavok[j]>tavok[min]) min=j;}
+			if (isAsc) {if (tavok[j]>tavok[min]) min=j;}
 			else {if (tavok[j]<tavok[min]) min=j;}
 		}
 		var Ttemp=tavok[i];
@@ -819,7 +823,7 @@ function rendez(tipus,bool,thislink,table_azon,oszlop){try{
 		OBJ.appendChild(sorok[indexek[i]]);
 	}
 	
-	thislink.setAttribute("onclick","rendez(\""+tipus+"\","+!bool+",this,\""+table_azon+"\","+oszlop+")");
+	thislink.setAttribute("onclick","rendez(\""+tipus+"\","+!isAsc+",this,\""+table_azon+"\","+oszlop+")");
 	hideFarms();
 	return;
 }catch(e){alert2("Hiba rendezéskor:\n"+e);}}
@@ -1237,9 +1241,10 @@ function rebuildDOM_farms() {try{
 			DOMINFO_FARMS[farm].prodHour = parseInt(document.getElementById('farmolo_options').termeles.value, 10);
 		} else {
 			let banyak = `${buildings.wood},${buildings.stone},${buildings.iron}`;
-			c.innerHTML=`${banyak}`; c.setAttribute("ondblclick",'sortorol(this,"hova")');
+			c.innerHTML=`${banyak}`;
 			DOMINFO_FARMS[farm].prodHour = getProdHour(banyak);
 		}
+		c.setAttribute("ondblclick",'sortorol(this,"hova")');
 		
 		c=a_row.insertCell(2);
 		let fal = '';
