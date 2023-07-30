@@ -122,9 +122,9 @@ function init(){try{
 		KTID[i-1]=kord+";"+PFA.rows[i].cells[oszl].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0];
 	}
 	const szemStyle = `
-		body { background: #111; scrollbar-width: none; }
+		body { background: #111; scrollbar-width: none; padding-bottom: 0; }
 		body::-webkit-scrollbar { width: 0; }
-		#content > table { box-shadow: 0 0 12px black; }
+		#content > table { box-shadow: 0 0 12px black; min-height: 100vh; }
 		#side-notification-container {
 			pointer-events: none;
 			display: none;
@@ -175,6 +175,9 @@ function init(){try{
 			color: white;
 			position: relative;
 			box-shadow: 0 0 12px black;
+		}
+		.fej a {
+			color: white;
 		}
 		.fej > table {
 			padding:1px;
@@ -390,6 +393,9 @@ function init(){try{
 		#farm_hova .szem4_farms_overflow {
 			display: none;
 		}
+		.style-settings-table { border-collapse: collapse; }
+		.style-settings-table tr { border-bottom: 1px solid black; }
+		table.style-settings-table td { padding: 15px 4px; }
 	`;
 	let szemStyle_el = document.createElement('style');
 	szemStyle_el.textContent = szemStyle;
@@ -484,12 +490,14 @@ function init(){try{
 			<b>
 			</b>
 		</div>
-		<h1 align="center">Háttérbeállítás</h1>
-		<div><table>
-			<tr><td>Bal</td><td><input type="text" size="80" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"></td><td>Csak kép, üres/invalid esetén háttérszín lesz használva</td></tr>
-			<tr><td>Jobb</td><td><input type="text" size="80"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()"></td><td>Csak kép, üres/invalid esetén háttérszín lesz használva</td></tr>
-			<tr><td>Tartalom háttérszíne</td><td><input type="text" size="30" name="content_bgcolor" value="#111" onchange="onWallpChange()"></td><td>[Default: #111] Minden CSS background property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Tartalom betűszíne</td><td><input type="text" size="30" name="content_fontcolor" value="white" onchange="onWallpChange()"></td><td>[Default: white] Minden CSS color property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
+		<h1 align="center">Háttér- és stílus beállítás</h1>
+		<div><table class="style-settings-table">
+			<tr><td>Bal háttérkép</td><td><input type="text" size="80" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"></td><td>Csak kép, üres/invalid esetén háttérszín lesz használva</td></tr>
+			<tr><td>Jobb háttérkép</td><td><input type="text" size="80"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()"></td><td>Csak kép, üres/invalid esetén háttérszín lesz használva</td></tr>
+			<tr><td>Tartalom háttérszíne</td><td><input type="text" size="30" name="content_bgcolor" value="#111" onchange="onWallpChange()"></td><td>[Default: #111] Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Tartalom betűszíne</td><td><input type="text" size="30" name="content_fontcolor" value="white" onchange="onWallpChange()"></td><td>[Default: white] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Keret színe</td><td><input type="text" size="30" name="content_border" value="yellow" onchange="onWallpChange()"></td><td>[Default: yellow] Valid CSS "border-color" property támogatott. <a href="https://www.w3schools.com/css/css_border_color.asp" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Vetett árnyék</td><td><input type="text" size="30" name="content_shadow" value="0 0 12px black" onchange="onWallpChange()"></td><td>[Default: 0 0 12px black] Valid CSS "box-shadow" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_box-shadow.php" target="_BLANK">W3School link</a></td></tr>
 		</div></table>
 	</form></td></tr>
 </tbody></table>`;
@@ -515,6 +523,12 @@ function onWallpChange(isUpdate=true) {
 	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
 	$('body').css('background',settingsForm.content_bgcolor.value);
 	$('table.menuitem').css('color',settingsForm.content_fontcolor.value);
+	$('a').css('color',settingsForm.content_fontcolor.value);
+	$('table.style-settings-table').css('color',settingsForm.content_fontcolor.value);
+	$('table.menuitem').css('border-color', settingsForm.content_border.value);
+	$('.fej > table').css('border-color', settingsForm.content_border.value);
+	$('#content > table').css('box-shadow', settingsForm.content_shadow.value);
+	$('.fej').css('box-shadow', settingsForm.content_shadow.value);
 	if (isUpdate) saveSettings();
 }
 
