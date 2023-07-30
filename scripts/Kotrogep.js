@@ -1,4 +1,8 @@
-/*Exp/imp: BE;faluID;faluID;KI;...;ÉRME;... - vizsgálatkor meg "ha =BE, akkor ez a be, addig amíg "KI" nem lesz.*/
+/*Exp/imp: BE;faluID;faluID;KI;...;ÉRME;... - vizsgálatkor meg "ha =BE, akkor ez a be, addig amíg "KI" nem lesz.
+
+
+IF PF, OPEN: https://hu80.klanhaboru.hu/game.php?village=12538&screen=overview_villages  >> &mode=prod&group=0 <<
+Online/updated field delete, Object alapú*/
 try { /*PF-Area*/
 	if (typeof cURL=='undefined') setOszlopIds();
 } catch (e) {
@@ -225,13 +229,13 @@ function wopen(webpage) {
 function set_balance() { /*BE Auto: <20k nép; KI Auto: szokásos_full; ÉRME Diff: szokásos_full, de nem KI*/
 	BALANCE = !BALANCE;
 	if (BALANCE) {
-		tabla.rows[0].cells[0].innerHTML = "<b>Online/Updated</b>";
+		tabla.rows[0].cells[0].innerHTML = "<b>Options</b>";
 		tabla.rows[0].cells[1].innerHTML = '<b>BE</b> <img onclick=pipa(\'auto\',0); title="Azon faluk bepipálása, melyek népességszáma 21500 alatti." src="' + pic("auto") + '"><img onclick=pipa(\'all\',0); title="Összes falu bepipálása." src="' + pic("all") + '"><img onclick=pipa(\'none\',0); title="Kiszedi a pipákat." src="' + pic("none") + '">';
 		tabla.rows[0].cells[1].setAttribute("width", "73px");
 		tabla.rows[0].cells[3].setAttribute("width", "83px");
 		document.getElementsByTagName("img")[0].setAttribute("src", "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/kotrogep/excavator2.gif");
 	} else {
-		tabla.rows[0].cells[0].innerHTML = "<b>Online</b>";
+		tabla.rows[0].cells[0].innerHTML = "<b>Options</b>";
 		tabla.rows[0].cells[1].innerHTML = '<b>BE</b> <img onclick=pipa("auto",0); title="Azon faluk bepipálása, melyek tanyaszintje max, és betelt." src="' + pic("auto") + '"><img onclick=pipa("all",0);	title="Összes falu bepipálása." src="' + pic("all") + '"><img onclick=pipa("none",0); title="Kiszedi a pipákat." src="' + pic("none") + '"><img onclick=pipa(\'clone\',0); title="Azok falukat pipálja be, amik az ÉRME oszlopnál már be vannak." src="' + pic("clone") + '">';
 		tabla.rows[0].cells[1].setAttribute("width", "84px");
 		tabla.rows[0].cells[3].setAttribute("width", "115px");
@@ -312,7 +316,10 @@ function nfrissit(sorsz, ures) {
 		newdate.setHours(newdate.getHours() + (parseInt(extraido[0]) * 2));
 		newdate.setMinutes(parseInt(newdate.getMinutes()) + (parseInt(extraido[1]) * 2) + 1);
 		newdate.setSeconds(parseInt(newdate.getSeconds()) + (parseInt(extraido[2]) * 2));
-		tabla.rows[sorsz].cells[0].innerHTML = newdate.toLocaleString();
+		//tabla.rows[sorsz].cells[0].innerHTML = newdate.toLocaleString();
+		let tenMin = new Date();
+		tenMin.setMinutes(tenMin.getMinutes() + 10);
+		tabla.rows[PM1].cells[0].innerHTML = tenMin;
 		if (!ures) A.document.getElementById("content_value").getElementsByTagName("input")[0].click();
 	} catch (e) {
 		db("nFrissít hiba: " + e);
@@ -696,7 +703,7 @@ function balance_adatszedo() {
 			vnyers[2] += parseInt(A.document.getElementById("iron").textContent);
 			document.getElementById("production_table").rows[PM1].cells[getOszlopNo("nyers")].innerHTML = vnyers;
 			var online = new Date();
-			online.setMinutes(online.getMinutes() + 150); /*BALANCE: Felderítés után ennyi perccel nézi újra.*/
+			online.setMinutes(online.getMinutes() + 10); /*BALANCE: Felderítés után ennyi perccel nézi újra.*/
 			document.getElementById("production_table").rows[PM1].cells[0].innerHTML = online;
 			ALLAPOT = 0;
 		} else { /*2-es állapotra léphet. PM3=online++ ideje (0, ha keresni kell) PM1=KI-érintett sor; (öröklött) PM2=BE-érintett sor, PM4=küldött nyers*/
@@ -867,7 +874,10 @@ function balance_frissit() {
 		newdate.setHours(newdate.getHours() + (parseInt(extraido[0]) * 2));
 		newdate.setMinutes(parseInt(newdate.getMinutes()) + (parseInt(extraido[1]) * 2) + 1);
 		newdate.setSeconds(parseInt(newdate.getSeconds()) + (parseInt(extraido[2]) * 2));
-		tabla.rows[PM1].cells[0].innerHTML = newdate;
+		//tabla.rows[PM1].cells[0].innerHTML = newdate;
+		let tenMin = new Date();
+		tenMin.setMinutes(tenMin.getMinutes() + 10);
+		tabla.rows[PM1].cells[0].innerHTML = tenMin;
 		if (PM2 == 0) {
 			ALLAPOT = 0;
 			return;

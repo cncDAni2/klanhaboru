@@ -396,6 +396,13 @@ function init(){try{
 		.style-settings-table { border-collapse: collapse; }
 		.style-settings-table tr { border-bottom: 1px solid black; }
 		table.style-settings-table td { padding: 15px 4px; }
+		.szem_old_build_tooltip {
+			border-left: 3px solid red;
+		}
+		.szem_old_build_tooltip i {
+			font-weight: bold;
+			color: red;
+		}
 	`;
 	let szemStyle_el = document.createElement('style');
 	szemStyle_el.textContent = szemStyle;
@@ -498,6 +505,8 @@ function init(){try{
 			<tr><td>Tartalom betűszíne</td><td><input type="text" size="30" name="content_fontcolor" value="white" onchange="onWallpChange()"></td><td>[Default: white] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
 			<tr><td>Keret színe</td><td><input type="text" size="30" name="content_border" value="yellow" onchange="onWallpChange()"></td><td>[Default: yellow] Valid CSS "border-color" property támogatott. <a href="https://www.w3schools.com/css/css_border_color.asp" target="_BLANK">W3School link</a></td></tr>
 			<tr><td>Vetett árnyék</td><td><input type="text" size="30" name="content_shadow" value="0 0 12px black" onchange="onWallpChange()"></td><td>[Default: 0 0 12px black] Valid CSS "box-shadow" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_box-shadow.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Beállítás táblázat háttere</td><td><input type="text" size="30" name="table_bgcolor" value="-" onchange="onWallpChange(undefined, 'table_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Táblázatok fejléce</td><td><input type="text" size="30" name="table_head_bgcolor" value="-" onchange="onWallpChange(undefined, 'table_head_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
 		</div></table>
 	</form></td></tr>
 </tbody></table>`;
@@ -517,7 +526,7 @@ function picBuilding(bId) {
 	return `<img src="https://dshu.innogamescdn.com/asset/88651122/graphic/buildings/mid/${bId}3.png">`;
 }
 
-function onWallpChange(isUpdate=true) {
+function onWallpChange(isUpdate=true, changedText) {
 	const settingsForm = document.getElementById('settings');
 	document.getElementsByClassName('left-background')[0].style.backgroundImage = `url('${settingsForm.wallp_left.value}')`;
 	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
@@ -529,6 +538,18 @@ function onWallpChange(isUpdate=true) {
 	$('.fej > table').css('border-color', settingsForm.content_border.value);
 	$('#content > table').css('box-shadow', settingsForm.content_shadow.value);
 	$('.fej').css('box-shadow', settingsForm.content_shadow.value);
+	if (changedText == 'table_bgcolor' || changedText == 'ALL') {
+		const styleElement = $("<style>")
+			.attr("type", "text/css")
+			.html(`.vis:not(#farm_honnan):not(#farm_hova) td { background: ${settingsForm.table_bgcolor.value}; }`);
+		$("head").append(styleElement);
+	}
+	if (changedText == 'table_head_bgcolor' || changedText == 'ALL') {
+		const styleElement = $("<style>")
+			.attr("type", "text/css")
+			.html(`.vis th { background: ${settingsForm.table_head_bgcolor.value} !important; }`);
+		$("head").append(styleElement);
+	}
 	if (isUpdate) saveSettings();
 }
 
@@ -780,8 +801,10 @@ function rendez(tipus, isAsc, thislink, table_azon, oszlop){try{
 			case "szoveg": tavok[i-1]=prodtable[i].cells[oszlop].textContent; break;
 			case "szam":
 				let tc = prodtable[i].cells[oszlop].textContent.trim();
-				if (!tc || tc == '') tc = '0';
-				tavok[i-1]=parseInt(tc.replace(".",""));
+				if (!tc || tc == '')
+					tavok[i-1] = -0.1;
+				else
+					tavok[i-1]=parseInt(tc.replace(".",""));
 				break;
 			case "datum": if (prodtable[i].cells[oszlop].textContent.trim() == '') tavok[i-1]=new Date(); else tavok[i-1]=new Date(prodtable[i].cells[oszlop].textContent.trim()); break;
 			case "datum2": var honap=new Array("Jan","Febr","March","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
@@ -1054,14 +1077,16 @@ function addTooltip_build(el, koord) {
 	removeTooltip(el.closest('.tooltip-wrapper'));
 	el.querySelector('.tooltip_text').style.display = "block";
 
-	let buildingTooltip = '<table class="no-bg-table">';
+	const isNew = koord in ALL_VIJE_SAVED;
+	if (isNew) el.querySelector('.tooltip_text').classList.remove('szem_old_build_tooltip'); else el.querySelector('.tooltip_text').classList.add('szem_old_build_tooltip');
+	let buildingTooltip = `<table class="no-bg-table">`;
 	const i18nBuildings=document.getElementById("vije_opts");
 	for (build in DOMINFO_FARMS[koord].buildings) {
 		if (DOMINFO_FARMS[koord].buildings[build] < 1) continue;
 		buildingTooltip += `<tr><td>${i18nBuildings[build].value}:</td><td>${DOMINFO_FARMS[koord].buildings[build]}</td></tr>`
 	}
 	buildingTooltip += '</table>';
-	buildingTooltip += `<br><i>Felderítés ideje:<br>${ALL_VIJE_SAVED[koord] ? new Date(ALL_VIJE_SAVED[koord]).toLocaleString() : 'Ismeretlen/régi'}</i>`
+	buildingTooltip += `<br><i>Felderítés ideje:<br>${isNew ? new Date(ALL_VIJE_SAVED[koord]).toLocaleString() : 'Ismeretlen/régi'}</i>`
 	el.querySelector('.tooltip_text').innerHTML = buildingTooltip;
 }
 function removeTooltip(el) {
@@ -1100,7 +1125,7 @@ function loadSettings() {
 			}
 		}
 	});
-	onWallpChange(false);
+	onWallpChange(false, 'ALL');
 }
 
 /* ------------------- FARMOLÓ ----------------------- */
