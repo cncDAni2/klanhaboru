@@ -899,29 +899,28 @@ function balance_frissit() {
 function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltődését is. Ha minden rendben, meghívja az aktiális intézkező fg.-t a paraméterekkel.*/
 	try {
 		AUTOUPDATE++;
-		if (AUTOUPDATE > 500) {
+		if (AUTOUPDATE > 300) {
 			AUTOUPDATE = 0;
 			wopen(document.location.href);
 			worker.postMessage({'id': 'kotro', 'time': 500});
-			// setTimeout("eloszto()", 500);
 			return;
 		}
 		if (A.closed) {
 			wopen(document.location.href);
 			ALLAPOT = 0;
 			worker.postMessage({'id': 'kotro', 'time': 500});
-			//setTimeout("eloszto()", 500);
 			return;
 		}
 		if (A.document.readyState != "complete") {
 			worker.postMessage({'id': 'kotro', 'time': 500});
-			//setTimeout("eloszto()", 500);
 			return;
 		}
 		if (A.document.getElementById('bot_check') || A.document.getElementById('popup_box_bot_protection') || A.document.title == "Bot védelem") {
 			var date = new Date();
 			botriado(false);
 			document.getElementById("kot_uzi").innerHTML += "<br>BOT RIADÓ! " + date;
+			wopen(document.location.href);
+			worker.postMessage({'id': 'kotro', 'time': 10000});
 			return;
 		}
 		tabla = document.getElementById("production_table");

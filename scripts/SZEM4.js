@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.07.30';
+var VERZIO = 'v4.5 Build 23.08.01';
 var SZEM4_SETTINGS = {};
 try{ /*Rendszeradatok*/
 	var AZON="S0";
@@ -505,8 +505,10 @@ function init(){try{
 			<tr><td>Tartalom betűszíne</td><td><input type="text" size="30" name="content_fontcolor" value="white" onchange="onWallpChange()"></td><td>[Default: white] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
 			<tr><td>Keret színe</td><td><input type="text" size="30" name="content_border" value="yellow" onchange="onWallpChange()"></td><td>[Default: yellow] Valid CSS "border-color" property támogatott. <a href="https://www.w3schools.com/css/css_border_color.asp" target="_BLANK">W3School link</a></td></tr>
 			<tr><td>Vetett árnyék</td><td><input type="text" size="30" name="content_shadow" value="0 0 12px black" onchange="onWallpChange()"></td><td>[Default: 0 0 12px black] Valid CSS "box-shadow" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_box-shadow.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Beállítás táblázat háttere</td><td><input type="text" size="30" name="table_bgcolor" value="-" onchange="onWallpChange(undefined, 'table_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Táblázatok fejléce</td><td><input type="text" size="30" name="table_head_bgcolor" value="-" onchange="onWallpChange(undefined, 'table_head_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Beállítás táblázat háttere</td>       <td><input type="text" size="30" name="table_bgcolor"      value="-" onchange="onWallpChange(undefined, 'table_bgcolor')"></td>     <td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Beállítás táblázat szövegszíne</td>   <td><input type="text" size="30" name="table_color"        value="-" onchange="onWallpChange(undefined, 'table_color')"></td>       <td>[Default: -] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Táblázatok fejlécének háttere</td>    <td><input type="text" size="30" name="table_head_bgcolor" value="-" onchange="onWallpChange(undefined, 'table_head_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Táblázatok fejlécének szövegszíne</td><td><input type="text" size="30" name="table_head_color"   value="-" onchange="onWallpChange(undefined, 'table_head_color')"></td>  <td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
 		</div></table>
 	</form></td></tr>
 </tbody></table>`;
@@ -531,6 +533,7 @@ function onWallpChange(isUpdate=true, changedText) {
 	document.getElementsByClassName('left-background')[0].style.backgroundImage = `url('${settingsForm.wallp_left.value}')`;
 	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
 	$('body').css('background',settingsForm.content_bgcolor.value);
+	$('.menuitem').css('background',settingsForm.content_bgcolor.value);
 	$('table.menuitem').css('color',settingsForm.content_fontcolor.value);
 	$('#content a').css('color',settingsForm.content_fontcolor.value);
 	$('table.style-settings-table').css('color',settingsForm.content_fontcolor.value);
@@ -548,6 +551,18 @@ function onWallpChange(isUpdate=true, changedText) {
 		const styleElement = $("<style>")
 			.attr("type", "text/css")
 			.html(`.vis th { background: ${settingsForm.table_head_bgcolor.value} !important; }`);
+		$("head").append(styleElement);
+	}
+	if (changedText == 'table_color' || changedText == 'ALL') {
+		const styleElement = $("<style>")
+			.attr("type", "text/css")
+			.html(`.vis:not(#farm_honnan):not(#farm_hova) td { color: ${settingsForm.table_color.value}; }`);
+		$("head").append(styleElement);
+	}
+	if (changedText == 'table_head_color' || changedText == 'ALL') {
+		const styleElement = $("<style>")
+			.attr("type", "text/css")
+			.html(`.vis th { color: ${settingsForm.table_head_color.value} !important; }`);
 		$("head").append(styleElement);
 	}
 	if (isUpdate) saveSettings();
