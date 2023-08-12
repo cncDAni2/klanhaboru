@@ -1,11 +1,11 @@
 /*
 DO IT:
- - x% haszon gomb az eladáshoz/vételhez
- - auto save-kor ellenőrzés a számokra minLimit<=maxLimit, és MinNyers<=maxNyers
- - "Jósnő"
- -OK Fix: error-kor mi a helyzet? (teszt need!)
- - Hangjelzés, amikor bejövő van
- Narrátor: var GELL = new Audio('https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?text=Wood%20is%201250&download=true&accept=audio%2Fmp3')
+- x% haszon gomb az eladáshoz/vételhez
+- auto save-kor ellenőrzés a számokra minLimit<=maxLimit, és MinNyers<=maxNyers
+- "Jósnő"
+-OK Fix: error-kor mi a helyzet? (teszt need!)
+- Hangjelzés, amikor bejövő van
+Narrátor: var GELL = new Audio('https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?text=Wood%20is%201250&download=true&accept=audio%2Fmp3')
 */
 var REF, STATUS = 1, HIBA = 0, AUTO_STATUS=0;
 var IFRAME=false;
@@ -71,9 +71,9 @@ var TOZSDE_DATA_DEFAULT = {
 	}
 };
 var EVENT = {
-    hangSzunet: new Date(),
-    lastResult: [0,0,0],
-    lastChange: new Date(),
+	hangSzunet: new Date(),
+	lastResult: [0,0,0],
+	lastChange: new Date(),
 	noSoundIf: true,
 	agressiveRefresh: false,
 	agressiveRefreshTime: 0
@@ -125,11 +125,11 @@ worker.onmessage = function(pm) {
 	main();
 };
 function createWorker(main){
-    var blob = new Blob(
-        ["(" + main.toString() + ")(self)"],
-        {type: "text/javascript"}
-    );
-    return new Worker(window.URL.createObjectURL(blob));
+	var blob = new Blob(
+		["(" + main.toString() + ")(self)"],
+		{type: "text/javascript"}
+	);
+	return new Worker(window.URL.createObjectURL(blob));
 }
 
 function generateSoundSelector(id) {
@@ -375,7 +375,7 @@ function hangero(value) {
 	BELL.bot.play();
 }
 function stopSound(butt) {
-    EVENT.hangSzunet = new Date();
+	EVENT.hangSzunet = new Date();
 	var timeDiv = document.getElementById("stopSoundTime");
 	
 	if (butt.innerHTML == 'Hang visszakapcsolása') {
@@ -466,11 +466,11 @@ function addEvent(data, notificationClass) {try{
 }catch(e){console.info('AddEvent error:', e);}}
 
 function BotvedelemBe() {
-    BOT = true;
-    addEvent('BOT VÉDELEM AKTÍV! <a href="javascript:BotvedelemKi();" style="color: #66D;">Kattints ide a ha beírtad a kódot.</a>', 'info');
+	BOT = true;
+	addEvent('BOT VÉDELEM AKTÍV! <a href="javascript:BotvedelemKi();" style="color: #66D;">Kattints ide a ha beírtad a kódot.</a>', 'info');
 	csengess('bot');
 	
-    BOTTIME = setInterval(function() {
+	BOTTIME = setInterval(function() {
 		if (typeof(window.URL) != "undefined") {
 			var worker = createWorker(function(self){
 				self.addEventListener("message", function(e) {
@@ -485,17 +485,17 @@ function BotvedelemBe() {
 		} else {
 			csengess('bot');
 		}
-    }, 2500);
+	}, 2500);
 }
 function BotvedelemKi() {
 	if (BOT==false) return;
 	BELL['bot'].pause();
 	addEvent('Bot védelem rendben.', 'info');
-    BOT = false;
-    clearInterval(BOTTIME);
+	BOT = false;
+	clearInterval(BOTTIME);
 }
 function isPageLoaded(ref){try{
-    if (ref.closed) {STATUS = 1; return false;}
+	if (ref.closed) {STATUS = 1; return false;}
 	try{
 		ref.status;
 	} catch(e) {
@@ -510,24 +510,24 @@ function isPageLoaded(ref){try{
 	
 	if (ref.document.readyState !== "complete") return false;
 	
-    if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
-        BotvedelemBe();
-        return false;
-    }
-    if (ref.document.location.href.indexOf("sid_wrong")>-1){
-        BotvedelemBe();
-        return false;
-    }
+	if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
+		BotvedelemBe();
+		return false;
+	}
+	if (ref.document.location.href.indexOf("sid_wrong")>-1){
+		BotvedelemBe();
+		return false;
+	}
 	
 
-    if (ref.document.location.href.indexOf("exchange") == -1) {
-        STATUS = 1;
-        return false;
-    }
+	if (ref.document.location.href.indexOf("exchange") == -1) {
+		STATUS = 1;
+		return false;
+	}
 
-    if (ref.document.getElementById("serverTime").innerHTML.length<4){
-        return false;
-    }
+	if (ref.document.getElementById("serverTime").innerHTML.length<4){
+		return false;
+	}
 	
 	if (!ref.PremiumExchange || !ref.document.getElementById("premium_exchange_form")) return false;
 	
@@ -579,48 +579,48 @@ function saveAuto() {
 	setButtonBack("auto_save");
 }
 function saveTozsdeData() {
-    var myForm = document.getElementById("cnc_tozsde");
+	var myForm = document.getElementById("cnc_tozsde");
 	TOZSDE_DATA = {
 		sound: {}
 	};
 	for (var i=0;i<CHK_FIELDS.length;i++) {
 		TOZSDE_DATA[CHK_FIELDS[i]] = myForm[CHK_FIELDS[i]].checked;
 		TOZSDE_DATA.sound[CHK_FIELDS[i]] = myForm[CHK_FIELDS[i]+'_sound'].value;
-    };
+	};
 	TOZSDE_DATA.sound.bot = myForm.bot_sound.value;
-    for (var i=0;i<FIELDS.length;i++) {
-        if (FIELDS[i].indexOf("nameOf")==-1) myForm[FIELDS[i]].value = myForm[FIELDS[i]].value.replace(/[^0-9]/g, '');
+	for (var i=0;i<FIELDS.length;i++) {
+		if (FIELDS[i].indexOf("nameOf")==-1) myForm[FIELDS[i]].value = myForm[FIELDS[i]].value.replace(/[^0-9]/g, '');
 		if (myForm[FIELDS[i]].value == '') myForm[FIELDS[i]].value = TOZSDE_DATA_DEFAULT[FIELDS[i]];
-        if (FIELDS[i].indexOf("nameOf")==-1) {
+		if (FIELDS[i].indexOf("nameOf")==-1) {
 			TOZSDE_DATA[FIELDS[i]] = parseInt(myForm[FIELDS[i]].value,10);
 		} else {
 			TOZSDE_DATA[FIELDS[i]] = myForm[FIELDS[i]].value;
 		}
-    }
-    localStorage.setItem('PF_tozsde'+ID, JSON.stringify(TOZSDE_DATA));
+	}
+	localStorage.setItem('PF_tozsde'+ID, JSON.stringify(TOZSDE_DATA));
 	if (isPageLoaded(REF)) putQuickButtons();
 	
 	setButtonBack("tozsde_save");
 }
 function setButtonBack(id) {
 	var butt = document.getElementById(id);
-    butt.disabled = true;
-    butt.innerHTML = butt.innerHTML.replace("*","");
+	butt.disabled = true;
+	butt.innerHTML = butt.innerHTML.replace("*","");
 }
 function loadData() {
-    try{TOZSDE_DATA = JSON.parse(localStorage.getItem('PF_tozsde'+ID));}catch(e){TOZSDE_DATA=null;}
-    var myForm = document.getElementById("cnc_tozsde");
-    if (!TOZSDE_DATA || TOZSDE_DATA == null) {
-        // Default érték nem lementett adat esetén
-        TOZSDE_DATA = JSON.parse(JSON.stringify(TOZSDE_DATA_DEFAULT));
-    }
+	try{TOZSDE_DATA = JSON.parse(localStorage.getItem('PF_tozsde'+ID));}catch(e){TOZSDE_DATA=null;}
+	var myForm = document.getElementById("cnc_tozsde");
+	if (!TOZSDE_DATA || TOZSDE_DATA == null) {
+		// Default érték nem lementett adat esetén
+		TOZSDE_DATA = JSON.parse(JSON.stringify(TOZSDE_DATA_DEFAULT));
+	}
 	
 	for (var i=0;i<CHK_FIELDS.length;i++) {
 		myForm[CHK_FIELDS[i]].checked = TOZSDE_DATA[CHK_FIELDS[i]];
-    }
-    for (var i=0;i<FIELDS.length;i++) {
-        myForm[FIELDS[i]].value = TOZSDE_DATA[FIELDS[i]] || TOZSDE_DATA_DEFAULT[FIELDS[i]];
-    }
+	}
+	for (var i=0;i<FIELDS.length;i++) {
+		myForm[FIELDS[i]].value = TOZSDE_DATA[FIELDS[i]] || TOZSDE_DATA_DEFAULT[FIELDS[i]];
+	}
 	
 	// Load avtomat
 	try{TOZSDE_AUTO = JSON.parse(localStorage.getItem('PF_tozsde_Auto'+ID));}catch(e){TOZSDE_AUTO=null;}
@@ -692,9 +692,9 @@ function loadSoundData() {
 }
 
 function prettyDatePrint(m){
-    return ("0" + m.getHours()).slice(-2) + ":" +
-    ("0" + m.getMinutes()).slice(-2) + ":" +
-    ("0" + m.getSeconds()).slice(-2);
+	return ("0" + m.getHours()).slice(-2) + ":" +
+	("0" + m.getMinutes()).slice(-2) + ":" +
+	("0" + m.getSeconds()).slice(-2);
 }
 
 function csengess(id){try{
@@ -793,8 +793,8 @@ function putQuickButtons(){try{
 	if (!table.classList.contains("cnc_transformed")) {
 		var theScript = REF.document.createElement("script");
 		theScript.innerHTML="function setValue(cellId, value) { $('#premium_exchange_sell_'+cellId+' input').val(value).keyup();	}\
-							 function setNull(cellId)   { $('#premium_exchange_sell_'+cellId+' input, #premium_exchange_buy_'+cellId+' input').val('').keyup(); }\
-							 function setSellValue(cellId, value) { $('#premium_exchange_buy_'+cellId+' input').val(value).keyup(); }";
+							function setNull(cellId)   { $('#premium_exchange_sell_'+cellId+' input, #premium_exchange_buy_'+cellId+' input').val('').keyup(); }\
+							function setSellValue(cellId, value) { $('#premium_exchange_buy_'+cellId+' input').val(value).keyup(); }";
 		REF.document.body.appendChild(theScript);
 		table.rows[5].cells[1].style.position="relative";
 		table.rows[5].cells[2].style.position="relative";
@@ -1060,19 +1060,19 @@ function iframeOperation(operation) {
 
 /** Lightbox override */
 function transformPage() {try{
-    var lightbox = REF.document.getElementById("confirmation-msg");
+	var lightbox = REF.document.getElementById("confirmation-msg");
 	var pipa = '';
 	var isTransformed = false;
-    if (lightbox && lightbox !== null) {
-        if (lightbox.classList.contains("cnc_transformed")) {
+	if (lightbox && lightbox !== null) {
+		if (lightbox.classList.contains("cnc_transformed")) {
 			isTransformed=true;
 		} else {
 			lightbox.classList.add("cnc_transformed");
 		}
-        
+		
 		var cell = lightbox.getElementsByTagName("table")[0].rows[1].cells[1];
-        var arany = cell.innerText.match(/[0-9]+/g);
-        arany = Math.round(parseInt(arany[0],10) / parseInt(arany[1],10));
+		var arany = cell.innerText.match(/[0-9]+/g);
+		arany = Math.round(parseInt(arany[0],10) / parseInt(arany[1],10));
 		if (cell.innerText.indexOf(TOZSDE_DATA.nameOfElad) > -1) {
 			if (cell.getElementsByTagName("img")[0].src.indexOf('wood')>-1 && arany<=TOZSDE_DATA.min_wood ||
 				cell.getElementsByTagName("img")[0].src.indexOf('stone')>-1 && arany<=TOZSDE_DATA.min_stone ||
@@ -1085,19 +1085,19 @@ function transformPage() {try{
 				cell.getElementsByTagName("img")[0].src.indexOf('iron')>-1 && arany>=TOZSDE_DATA.max_iron) 
 				pipa = '✔'; else pipa = 'X';
 		}
-        if (!isTransformed) lightbox.getElementsByTagName("p")[0].innerHTML += '<br><b>Arány: 1 pp = '+arany+' nyers '+pipa+'</b>';
+		if (!isTransformed) lightbox.getElementsByTagName("p")[0].innerHTML += '<br><b>Arány: 1 pp = '+arany+' nyers '+pipa+'</b>';
 		return arany;
-    }
+	}
 	return null;
 }catch(e){console.error(e);}}
 function tozsdekereses() {try{
 	var route = false;
 	var soundID = '';
-    var states = [
-        parseInt(REF.document.getElementById("premium_exchange_rate_wood").innerText.match(/[0-9]+/g)[0],10),
-        parseInt(REF.document.getElementById("premium_exchange_rate_stone").innerText.match(/[0-9]+/g)[0],10),
-        parseInt(REF.document.getElementById("premium_exchange_rate_iron").innerText.match(/[0-9]+/g)[0],10)
-    ];
+	var currentPrices = [
+		parseInt(REF.document.getElementById("premium_exchange_rate_wood").innerText.match(/[0-9]+/g)[0],10),
+		parseInt(REF.document.getElementById("premium_exchange_rate_stone").innerText.match(/[0-9]+/g)[0],10),
+		parseInt(REF.document.getElementById("premium_exchange_rate_iron").innerText.match(/[0-9]+/g)[0],10)
+	];
 	var incoming_atk = REF.document.getElementById("incomings_amount")?parseInt(REF.document.getElementById("incomings_amount").innerHTML,10):0;
 	if (TOZSDE_DATA.newMail && REF.document.getElementById("menu_mail_count").innerHTML.match(/[0-9]+/g)) {
 		var count_mail = REF.document.getElementById("menu_mail_count").innerHTML.match(/[0-9]+/g)[0];
@@ -1114,16 +1114,28 @@ function tozsdekereses() {try{
 	}
 	INCOMING = incoming_atk;
 	
-	if (states[0]<10) return;
-    if (new Date() - EVENT.lastChange > 300000) {STATUS = 1; EVENT.lastChange = new Date();} 
+	if (currentPrices[0]<10) return;
+	if (new Date() - EVENT.lastChange > 300000) {STATUS = 1; EVENT.lastChange = new Date();} 
 	if (!REF.document.getElementById("premium_exchange_form").getElementsByTagName("table")[0].classList.contains("cnc_transformed")) {putQuickButtons();route=true;}
 	
-    if (EVENT.lastResult[0] == states[0] && EVENT.lastResult[1] == states[1] && EVENT.lastResult[2] == states[2]) return;
+	if (EVENT.lastResult[0] == currentPrices[0] && EVENT.lastResult[1] == currentPrices[1] && EVENT.lastResult[2] == currentPrices[2]) return;
 	EVENT.lastChange = new Date();
-    
-	updateStatistic(states, EVENT.lastResult);
-    var notification = [];
+	
+	updateStatistic(currentPrices, EVENT.lastResult);
+	var notification = [];
 	var isNeedSell = false;
+
+	var table = REF.document.getElementById("premium_exchange_form").getElementsByTagName("table")[0];
+	const onStock = [
+		parseInt(table.rows[1].cells[1].innerText,10),
+		parseInt(table.rows[1].cells[2].innerText,10),
+		parseInt(table.rows[1].cells[3].innerText,10)
+	];
+	const capacity = [
+		parseInt(table.rows[2].cells[1].innerText,10),
+		parseInt(table.rows[2].cells[2].innerText,10),
+		parseInt(table.rows[2].cells[3].innerText,10)
+	];
 	
 	// Reset default cell colors
 	var nyersIDs = ['wood', 'stone', 'iron'];
@@ -1131,42 +1143,45 @@ function tozsdekereses() {try{
 		REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#f4e4bc';
 	}
 	
-	var table = REF.document.getElementById("premium_exchange_form").getElementsByTagName("table")[0];
 	var tax = 1+REF.PremiumExchange.data.tax.buy;
-    if (TOZSDE_DATA.minimum && (states[0]*tax < TOZSDE_DATA.min_wood || states[1]*tax < TOZSDE_DATA.min_stone || states[2]*tax < TOZSDE_DATA.min_iron)) {
+	if (TOZSDE_DATA.minimum &&
+		(currentPrices[0]*tax < TOZSDE_DATA.min_wood || currentPrices[1]*tax < TOZSDE_DATA.min_stone || currentPrices[2]*tax < TOZSDE_DATA.min_iron) ||
+			((capacity[0] - onStock[0] > 0 && capacity[0] - onStock[0] < TOZSDE_DATA.min_wood) ||
+			(capacity[1] - onStock[1] > 0 && capacity[1] - onStock[1] < TOZSDE_DATA.min_wood) ||
+			(capacity[2] - onStock[2] > 0 && capacity[2] - onStock[2] < TOZSDE_DATA.min_wood)) ) {
 		notification.push('Limit alatti ár');
 		soundID='minimum';
 		isNeedSell = true;
 	
 		// Set cell Color
 		for (var k=0;k<nyersIDs.length;k++) {
-			if (states[k]*tax < TOZSDE_DATA['min_'+nyersIDs[k]]) {
+			if (currentPrices[k]*tax < TOZSDE_DATA['min_'+nyersIDs[k]] || (capacity[k] - onStock[k] > 0 && capacity[k] - onStock[k] < TOZSDE_DATA['min_'+nyersIDs[k]]) ) {
 				REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#9bF';
 			}
 		}
 	}
 	
 	tax = 1+REF.PremiumExchange.data.tax.sell;
-    if (TOZSDE_DATA.maximum && (states[0]*tax > TOZSDE_DATA.max_wood || states[1]*tax > TOZSDE_DATA.max_stone || states[2]*tax > TOZSDE_DATA.max_iron)) {
+	if (TOZSDE_DATA.maximum && (currentPrices[0]*tax > TOZSDE_DATA.max_wood || currentPrices[1]*tax > TOZSDE_DATA.max_stone || currentPrices[2]*tax > TOZSDE_DATA.max_iron)) {
 		notification.push('Limit feletti ár');
 		soundID='maximum';
 		
 		// Set cell Color
 		for (var k=0;k<nyersIDs.length;k++) {
-			if (states[k]*tax > TOZSDE_DATA['max_'+nyersIDs[k]]) {
+			if (currentPrices[k]*tax > TOZSDE_DATA['max_'+nyersIDs[k]]) {
 				REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#F66';
 			}
 		}
 	}
-    if (TOZSDE_DATA.any && (
+	if (TOZSDE_DATA.any && (
 		parseInt(table.rows[2].cells[1].innerText,10) !== parseInt(table.rows[1].cells[1].innerText,10) ||
 		parseInt(table.rows[2].cells[2].innerText,10) !== parseInt(table.rows[1].cells[2].innerText,10) ||
 		parseInt(table.rows[2].cells[3].innerText,10) !== parseInt(table.rows[1].cells[3].innerText,10)))
 	{
-        notification.push('Nyers ELADHATÓ');
+		notification.push('Nyers ELADHATÓ');
 		soundID='any';
 		isNeedSell = true;
-    }
+	}
 	if (TOZSDE_DATA.keszlet && (
 		parseInt(table.rows[1].cells[1].innerText,10) > TOZSDE_DATA.keszlet_wood ||
 		parseInt(table.rows[1].cells[2].innerText,10) > TOZSDE_DATA.keszlet_stone ||
@@ -1175,9 +1190,9 @@ function tozsdekereses() {try{
 		soundID='keszlet';
 	}
 	if (TOZSDE_DATA.action && (
-		(1 - (states[0] / EVENT.lastResult[0])) * 100 > TOZSDE_DATA.action_wood ||
-		(1 - (states[1] / EVENT.lastResult[1])) * 100 > TOZSDE_DATA.action_stone ||
-		(1 - (states[2] / EVENT.lastResult[2])) * 100 > TOZSDE_DATA.action_iron)) {
+		(1 - (currentPrices[0] / EVENT.lastResult[0])) * 100 > TOZSDE_DATA.action_wood ||
+		(1 - (currentPrices[1] / EVENT.lastResult[1])) * 100 > TOZSDE_DATA.action_stone ||
+		(1 - (currentPrices[2] / EVENT.lastResult[2])) * 100 > TOZSDE_DATA.action_iron)) {
 		notification.push('Árzuhanás');
 		soundID='action';
 		isNeedSell = true;
@@ -1192,42 +1207,42 @@ function tozsdekereses() {try{
 	
 	var changes = []; //-: csökkent, +: nőtt, =: stagnált
 	for (var i=0;i<3;i++) {
-		if (EVENT.lastResult[i] < states[i]) {
+		if (EVENT.lastResult[i] < currentPrices[i]) {
 			changes.push('+');
-		} else if (EVENT.lastResult[i] > states[i]) {
+		} else if (EVENT.lastResult[i] > currentPrices[i]) {
 			changes.push('-');
 		} else changes.push('=');
 	}
-	EVENT.lastResult = states.slice(0);
+	EVENT.lastResult = currentPrices.slice(0);
 	EVENT.lastChange = new Date();
 	
 	
 	if (!route) putQuickButtons();
 
-	addEvent([states, notification, changes, [table.rows[1].cells[1].innerText, table.rows[1].cells[2].innerText, table.rows[1].cells[3].innerText] ]);
+	addEvent([currentPrices, notification, changes, [table.rows[1].cells[1].innerText, table.rows[1].cells[2].innerText, table.rows[1].cells[3].innerText] ]);
 
-    if (notification.length>0 && new Date() > EVENT.hangSzunet && !(EVENT.noSoundIf && isNeedSell && REF.PremiumExchange.data.merchants < 1)) {
-        csengess(soundID);
-    }
+	if (notification.length>0 && new Date() > EVENT.hangSzunet && !(EVENT.noSoundIf && isNeedSell && REF.PremiumExchange.data.merchants < 1)) {
+		csengess(soundID);
+	}
 }catch(e){STATUS = 1; console.error(e);}}
 function main() {try{
-    next = 200;
-    if (!BOT){
-    switch(STATUS) {
-        case 1: HIBA = 0; iframeOperation('open'); STATUS = 2; next = 1333; break;
-        case 2: if (isPageLoaded(REF)) {
-            HIBA = 0;
-            tozsdekereses();
-            transformPage();
+	next = 200;
+	if (!BOT){
+	switch(STATUS) {
+		case 1: HIBA = 0; iframeOperation('open'); STATUS = 2; next = 1333; break;
+		case 2: if (isPageLoaded(REF)) {
+			HIBA = 0;
+			tozsdekereses();
+			transformPage();
 			autoMotor();
 			if (EVENT.agressiveRefresh) {
 				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>3) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
 				else EVENT.agressiveRefreshTime++;
 			} 
-        } else {
-            next = 1000; HIBA++; if (HIBA>6) STATUS=1;
-        } break;
-    }}
+		} else {
+			next = 1000; HIBA++; if (HIBA>6) STATUS=1;
+		} break;
+	}}
 }catch(e){console.error(e);}
 try{
 	worker.postMessage(next);
@@ -1235,19 +1250,19 @@ try{
 }
 
 function autoMotor() {try{
-    switch(AUTO_STATUS) {
-        case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
+	switch(AUTO_STATUS) {
+		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
 			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 3333) startAutoProcess();
 			break;
-        case 1: //Megjelent-e az ablak?
+		case 1: //Megjelent-e az ablak?
 					//Ha nem akkor "Számítás". Nézi az időt, 5mp után refresh-el és AUTO_STATUS=0
 					//Ha igen akkor megnézi hogy jó-e a végleges ár és leokézza
 			checkTransactionPopup();
 			break;
-        case 2: // Csekkolja, hogy nincs-e error. Ha van akkor refresh, ERRORCODE++. Ha warning van akkor case1-es fg-t meghívja (nincs stateváltás)
+		case 2: // Csekkolja, hogy nincs-e error. Ha van akkor refresh, ERRORCODE++. Ha warning van akkor case1-es fg-t meghívja (nincs stateváltás)
 			checkSuccessfulTransaction();
 			AUTO_STATUS=0; break;
-    }
+	}
 }catch(e) {console.error(e); resetAutoState(); }}
 
 loadData();	
