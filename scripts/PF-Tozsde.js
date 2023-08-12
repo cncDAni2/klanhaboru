@@ -1143,6 +1143,19 @@ function tozsdekereses() {try{
 		REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#f4e4bc';
 	}
 	
+	tax = 1+REF.PremiumExchange.data.tax.sell;
+	if (TOZSDE_DATA.maximum && (currentPrices[0]*tax > TOZSDE_DATA.max_wood || currentPrices[1]*tax > TOZSDE_DATA.max_stone || currentPrices[2]*tax > TOZSDE_DATA.max_iron)) {
+		notification.push('Limit feletti ár');
+		soundID='maximum';
+		
+		// Set cell Color
+		for (var k=0;k<nyersIDs.length;k++) {
+			if (currentPrices[k]*tax > TOZSDE_DATA['max_'+nyersIDs[k]]) {
+				REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#F66';
+			}
+		}
+	}
+
 	var tax = 1+REF.PremiumExchange.data.tax.buy;
 	if (TOZSDE_DATA.minimum &&
 		(currentPrices[0]*tax < TOZSDE_DATA.min_wood || currentPrices[1]*tax < TOZSDE_DATA.min_stone || currentPrices[2]*tax < TOZSDE_DATA.min_iron) ||
@@ -1161,18 +1174,6 @@ function tozsdekereses() {try{
 		}
 	}
 	
-	tax = 1+REF.PremiumExchange.data.tax.sell;
-	if (TOZSDE_DATA.maximum && (currentPrices[0]*tax > TOZSDE_DATA.max_wood || currentPrices[1]*tax > TOZSDE_DATA.max_stone || currentPrices[2]*tax > TOZSDE_DATA.max_iron)) {
-		notification.push('Limit feletti ár');
-		soundID='maximum';
-		
-		// Set cell Color
-		for (var k=0;k<nyersIDs.length;k++) {
-			if (currentPrices[k]*tax > TOZSDE_DATA['max_'+nyersIDs[k]]) {
-				REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#F66';
-			}
-		}
-	}
 	if (TOZSDE_DATA.any && (
 		parseInt(table.rows[2].cells[1].innerText,10) !== parseInt(table.rows[1].cells[1].innerText,10) ||
 		parseInt(table.rows[2].cells[2].innerText,10) !== parseInt(table.rows[1].cells[2].innerText,10) ||
