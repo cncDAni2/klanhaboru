@@ -328,6 +328,7 @@ function init(){try{
 			padding: 0 2px;
 			margin-right: 5px;
 			animation: heartbeatanimation 1.0s infinite;
+			cursor: pointer
 		}
 		@keyframes heartbeatanimation {
 			0% {
@@ -1167,6 +1168,16 @@ function loadSettings() {
 	onWallpChange(false, 'ALL');
 }
 
+function restartKieg(type) {
+	worker.postMessage({'id': 'stopTimer', 'value': type});
+	setTimeout(function() {
+		switch (type) {
+			case 'farm': szem4_farmolo_motor(); break;
+			case 'vije': szem4_VIJE_motor(); break;
+			case 'epit': szem4_EPITO_motor(); break;
+		}
+	}, 133);
+}
 /* ------------------- FARMOLÓ ----------------------- */
 function drawWagons(koord) {
 	let farms = document.getElementById('farm_hova').rows;
@@ -1539,7 +1550,7 @@ function getProdHour(banyaszintek) {
 		var r=banyaszintek.split(",").map(item => parseInt(item, 10));
 		prodHour=(TERMELES[r[0]]+TERMELES[r[1]]+TERMELES[r[2]])*SPEED;
 	}
-	return prodHour;
+	return parseFloat(prodHour.toFixed(2),10);
 }
 function updateDefaultProdHour() {
 	const newProdHour = parseInt(document.getElementById('farmolo_options').termeles.value, 10);
@@ -2287,7 +2298,7 @@ ujkieg("farm","Farmoló",`<tr><td>
 		</tr><tr>
 			<td colspan="2" class="nopadding_td">
 				<div class="heartbeat_wrapper">
-					<img src="${pic("heart.png")}" class="heartbeat_icon">
+					<img src="${pic("heart.png")}" class="heartbeat_icon" onclick="restartKieg('farm')">
 					<span id="cnc_farm_heartbeat">---</span>
 				</div>
 			</td>
@@ -3284,7 +3295,6 @@ function szem4_ADAT_epito_save(){try{
 }catch(e){debug("ADAT_epito_save",e);}}
 
 function szem4_ADAT_farm_load(){try{
-	debugger;
 	if(localStorage.getItem(AZON+"_farm")) var suti=localStorage.getItem(AZON+"_farm"); else return;
 	
 	/* Beállítások */
