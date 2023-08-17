@@ -768,7 +768,8 @@ function getClearValue(e, r, mode, isFullOk) {
 	
 	function getRealClearValue(e, a, r) { //E: "wood", a: Mennyi, negatív ha eladod a nyerset, R: stock
 		var t = REF.PremiumExchange.data.capacity[e];
-		return (1 + (0 <= a ? REF.PremiumExchange.data.tax.buy : REF.PremiumExchange.data.tax.sell)) * (REF.PremiumExchange.calculateMarginalPrice(r, t) + REF.PremiumExchange.calculateMarginalPrice(r - a, t)) * a / 2
+		let x = (1 + (0 <= a ? REF.PremiumExchange.data.tax.buy : REF.PremiumExchange.data.tax.sell)) * (REF.PremiumExchange.calculateMarginalPrice(r, t) + REF.PremiumExchange.calculateMarginalPrice(r - a, t)) * a / 2;
+		return x;
 	}
 }
 
@@ -1170,7 +1171,7 @@ function tozsdekereses() {try{
 	}
 
 	// SELL
-	var tax = 1-REF.PremiumExchange.data.tax.buy;
+	var tax = 1+REF.PremiumExchange.data.tax.buy;
 	if (TOZSDE_DATA.minimum &&
 		(currentPrices[0]*tax < TOZSDE_DATA.min_wood || currentPrices[1]*tax < TOZSDE_DATA.min_stone || currentPrices[2]*tax < TOZSDE_DATA.min_iron) ||
 			((capacity[0] - onStock[0] > 0 && capacity[0] - onStock[0] < TOZSDE_DATA.min_wood) ||
@@ -1241,7 +1242,7 @@ function tozsdekereses() {try{
 	}
 }catch(e){STATUS = 1; console.error(e);}}
 function main() {try{
-	next = 200;
+	next = 1000;
 	if (!BOT){
 	switch(STATUS) {
 		case 1: HIBA = 0; iframeOperation('open'); STATUS = 2; next = 1333; break;
@@ -1265,6 +1266,7 @@ try{
 }
 
 function autoMotor() {try{
+	return;
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
 			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 3333) startAutoProcess();
