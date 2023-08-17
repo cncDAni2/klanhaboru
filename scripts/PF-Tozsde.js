@@ -806,8 +806,8 @@ function putQuickButtons(){try{
 			var maxButton = REF.document.createElement("div");
 			maxButton.setAttribute("style","position: absolute; right: 0px; top: 20px;");
 			maxButton.innerHTML='\
-				<button type="button" onclick="setSellValue(\''+cellId+'\','+getAutoBuyValue(i)+')" style="background: #F66">A</button>\
-				<button type="button" onclick="setValue(\''+cellId+'\','+getAutoValue(i)+')">A</button><button type="button" onclick="setValue(\''+cellId+'\','+limits[i]+')">Max</button><button type="button" style="background: linear-gradient(140deg, #eee 50%, #F66 51%,#F66 100%);" onclick="setNull(\''+cellId+'\')">X</button>';
+				<button type="button" onclick="setSellValue(\''+cellId+'\','+roundDown2(getAutoBuyValue(i))+')" style="background: #F66">A</button>\
+				<button type="button" onclick="setValue(\''+cellId+'\','+roundDown2(getAutoValue(i))+')">A</button><button type="button" onclick="setValue(\''+cellId+'\','+roundDown2(limits[i])+')">Max</button><button type="button" style="background: linear-gradient(140deg, #eee 50%, #F66 51%,#F66 100%);" onclick="setNull(\''+cellId+'\')">X</button>';
 			
 			list = table.rows[5].cells[(i+1)].getElementsByClassName("cost-container")[0];
 			list.insertBefore(maxButton, list.childNodes[i]);
@@ -816,8 +816,8 @@ function putQuickButtons(){try{
 		for (var i=0;i<3;i++) {
 			var cellId = '';
 			switch(i) {case 0:cellId+='wood';break;case 1:cellId+='stone';break;case 2:cellId+='iron';break;}
-			table.rows[5].cells[(i+1)].getElementsByTagName("button")[0].setAttribute("onclick",'setSellValue("'+cellId+'",'+getAutoBuyValue(i)+')'); //AutoBuyButton
-			table.rows[5].cells[(i+1)].getElementsByTagName("button")[1].setAttribute("onclick",'setValue("'+cellId+'",'+getAutoValue(i)+')'); //AutoButton
+			table.rows[5].cells[(i+1)].getElementsByTagName("button")[0].setAttribute("onclick",'setSellValue("'+cellId+'",'+roundDown2(getAutoBuyValue(i))+')'); //AutoBuyButton
+			table.rows[5].cells[(i+1)].getElementsByTagName("button")[1].setAttribute("onclick",'setValue("'+cellId+'",'+roundDown2(getAutoValue(i))+')'); //AutoButton
 			table.rows[5].cells[(i+1)].getElementsByTagName("button")[2].setAttribute("onclick",'setValue("'+cellId+'",'+limits[i]+')'); //MaxButton
 		}
 	}
@@ -829,6 +829,18 @@ function putQuickButtons(){try{
 		var kapacitas = parseInt(table.rows[2].cells[type].innerText,10);
 		var result = Math.floor(nyers - (1/REF.PremiumExchange.calculateMarginalPrice(keszlet, kapacitas)));
 		return result<0?0:result;
+	}
+	function roundDown2(val) {
+		if (val == 0) return 0;
+		let newVal = val;
+		if (val < 500)
+			newVal = Math.floor(val/50) * 50;
+		else if (val < 2500)
+			newVal = Math.floor(val/100) * 100;
+		else
+			newVal = Math.floor(val/500) * 500;
+		if (newVal == 0) return 1;
+		return newVal;
 	}
 	
 	function getAutoValue(type) {
@@ -1137,12 +1149,13 @@ function tozsdekereses() {try{
 		parseInt(table.rows[2].cells[3].innerText,10)
 	];
 	
-	// Reset default cell colors
+	// RESET default cell colors
 	var nyersIDs = ['wood', 'stone', 'iron'];
 	for (var k=0;k<nyersIDs.length;k++) {
 		REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#f4e4bc';
 	}
 	
+	// BUY
 	tax = 1+REF.PremiumExchange.data.tax.sell;
 	if (TOZSDE_DATA.maximum && (currentPrices[0]*tax > TOZSDE_DATA.max_wood || currentPrices[1]*tax > TOZSDE_DATA.max_stone || currentPrices[2]*tax > TOZSDE_DATA.max_iron)) {
 		notification.push('Limit feletti ár');
@@ -1156,7 +1169,8 @@ function tozsdekereses() {try{
 		}
 	}
 
-	var tax = 1+REF.PremiumExchange.data.tax.buy;
+	// SELL
+	var tax = 1-REF.PremiumExchange.data.tax.buy;
 	if (TOZSDE_DATA.minimum &&
 		(currentPrices[0]*tax < TOZSDE_DATA.min_wood || currentPrices[1]*tax < TOZSDE_DATA.min_stone || currentPrices[2]*tax < TOZSDE_DATA.min_iron) ||
 			((capacity[0] - onStock[0] > 0 && capacity[0] - onStock[0] < TOZSDE_DATA.min_wood) ||

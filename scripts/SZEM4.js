@@ -977,11 +977,11 @@ function modosit_szam(cella){
 	DOMINFO_FARMS[cella.closest('tr').cells[0].textContent].nyers = uj;
 	multipricer("hova","mod",uj);
 }
-function hattertolor(cella){
+function hattertolor(cella) {
 	cella.style.backgroundColor="#f4e4bc";
 	let koord = cella.closest('tr').cells[0].textContent;
 	DOMINFO_FARMS[koord].szin = DOMINFO_FARMS[koord].szin || {};
-	DOMINFO_FARMS[koord].color = '';
+	DOMINFO_FARMS[koord].szin.falu = '';
 	multipricer("hova","htor");
 }
 function hattercsere(cella){
@@ -3692,6 +3692,12 @@ $(document).ready(function(){
 
 FARMVÉDŐ
 minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
+
+BUG: screen=place&... valamni van, akkor behülyül
+BUG: túl hosszú vonat: Ha előtte volt vonat nem MAX-olja a hosszt?
+MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
+BUG: Kék jelentést is törli!?
+
 
 - Hang átdolgozás: Választó
 CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
