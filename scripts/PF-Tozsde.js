@@ -8,7 +8,6 @@ DO IT:
 Narrátor: var GELL = new Audio('https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?text=Wood%20is%201250&download=true&accept=audio%2Fmp3')
 */
 var REF, STATUS = 1, HIBA = 0, AUTO_STATUS=0;
-var IFRAME=false;
 var NEWMAIL=0;
 var TOZSDE_SOUNDS = ['bot2.wav', 'BOMB_SIREN_hosszu.mp3', 'Intruder_alert.mp3', 'alarm-frenzy.mp3', 'bubbling-up.mp3', 'capisci.mp3', 'decay.mp3', 'determined.mp3', 'hell-yeah.mp3', 'lovely.mp3', 'may-i-have-your-attention.mp3',
 					'nasty-error-long.mp3', 'nice-cut.mp3', 'oh-finally.mp3', 'on-serious-matters.mp3', 'system-fault.mp3', 'thats-nasty.mp3'];
@@ -303,7 +302,7 @@ let tozsdeStyle = `
 		100% {
 			background: rgb(236,236,236);
 		}
-	}`;
+}`;
 let tozsdeStyle_el = document.createElement('style');
 tozsdeStyle_el.textContent = tozsdeStyle;
 document.head.appendChild(tozsdeStyle_el);
@@ -363,8 +362,6 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <tr><th class="header50" style="text-align: center"><span class="icon header wood"> </span></th><th class="header50"><span class="icon header stone"> </span></th><th class="header50"><span class="icon header iron"> </span></th>\
 	<th class="header60"><span class="icon header wood"> </span></th><th class="header60"><span class="icon header stone"> </span></th><th class="header60"><span class="icon header iron"> </span></th></tr>\</thead>\
 <tbody style="color: white"></tbody></table></div></div>';
-if (IFRAME) document.getElementsByTagName("body")[0].innerHTML+='<h3 align="center" onclick="setTabVisibility(\'h3_5\', this)">Munkalap</h3>\
-<div id="h3_5" style="display:none"><iframe id="tozsde_iframe" style="width:calc(100% - 15px); height:1000px;"></iframe></div>';
 
 function hangero(value) {
 	for (var i in BELL) {
@@ -452,7 +449,7 @@ function addEvent(data, notificationClass) {try{
 		for (var i=4;i<7;i++) {
 			cell = row.insertCell(i); cell.innerHTML = data[3][i-4];
 		}
-		cell = row.insertCell(7); cell.innerHTML = data[1].join("<br>");
+		cell = row.insertCell(7); cell.innerHTML = new Array(...data[1]).join('<br>');
 	}
 	
 	function convertToArrow(sign) {
@@ -747,22 +744,22 @@ function updateAutoStatistic(mode, type, resValue, ppValue) {
 
 /**
 	3rdparty from game, extended with custom stock  value! Search for these code in formatted version!
-	@param {stringEnum} e Resource eg. "wood"
-	@param {number} r Simaulated stock size
+	@param {stringEnum} nyersType Resource eg. "wood"
+	@param {number} keszlet Simulated stock size
 	@param {stringEnum} mode sell/buy
 	@param {boolean} isFullOk in case of sell. capacity extend is a price too
 */
-function getClearValue(e, r, mode, isFullOk) {
+function getClearValue(nyersType, keszlet, mode, isFullOk) {
 	if (mode=="sell") {
 		for (var i=63;i<2000;i++) {
-			if (getRealClearValue(e,-i,r) <= -1) break;
+			if (getRealClearValue(nyersType,-i,keszlet) <= -1) break;
 		}
 	} else {
 		for (var i=63;i<2000;i++) {
-			if (getRealClearValue(e,i,r) >= 1) break;
+			if (getRealClearValue(nyersType,i,keszlet) >= 1) break;
 		}
 	}
-	var hiany = REF.PremiumExchange.data.capacity[e] - REF.PremiumExchange.data.stock[e];
+	var hiany = REF.PremiumExchange.data.capacity[nyersType] - REF.PremiumExchange.data.stock[nyersType];
 	if (isFullOk && hiany>0 && (i-1) > hiany) return hiany;
 	return i-1;
 	
@@ -793,9 +790,9 @@ function putQuickButtons(){try{
 	
 	if (!table.classList.contains("cnc_transformed")) {
 		var theScript = REF.document.createElement("script");
-		theScript.innerHTML="function setValue(cellId, value) { $('#premium_exchange_sell_'+cellId+' input').val(value).keyup();	}\
-							function setNull(cellId)   { $('#premium_exchange_sell_'+cellId+' input, #premium_exchange_buy_'+cellId+' input').val('').keyup(); }\
-							function setSellValue(cellId, value) { $('#premium_exchange_buy_'+cellId+' input').val(value).keyup(); }";
+		theScript.innerHTML="function setValue(cellId, value) { $('#premium_exchange_sell_'+cellId+' input').val(value).trigger('input');	}\
+							function setNull(cellId)   { $('#premium_exchange_sell_'+cellId+' input, #premium_exchange_buy_'+cellId+' input').val('').trigger('input'); }\
+							function setSellValue(cellId, value) { $('#premium_exchange_buy_'+cellId+' input').val(value).trigger('input'); }";
 		REF.document.body.appendChild(theScript);
 		table.rows[5].cells[1].style.position="relative";
 		table.rows[5].cells[2].style.position="relative";
@@ -885,12 +882,6 @@ function putQuickButtons(){try{
 		result-=Math.floor(curr_price);
 		
 		return Math.floor(result);
-		
-		function getCurrPrice(keszlet, kapacitas) {
-			var r = (1/REF.PremiumExchange.calculateMarginalPrice(keszlet, kapacitas));
-			r = r / (1+REF.PremiumExchange.data.tax.buy);
-			return r * (1+REF.PremiumExchange.data.tax.sell);
-		}
 	}
 }catch(e){console.error(e);}}
 
@@ -1059,15 +1050,9 @@ function checkSuccessfulTransaction() {
 	}
 }
 
-function iframeOperation(operation) {
-	if (IFRAME) {
-		switch(operation) {
-			case 'open': document.getElementById("tozsde_iframe").src=LINK; REF = document.getElementById("tozsde_iframe").contentWindow; break;
-		}
-	} else {
-		switch(operation) {
-			case 'open': REF = window.open(LINK, 'PF_tozsde_'+ID); break;
-		}
+function windowOperation(operation) {
+	switch(operation) {
+		case 'open': REF = window.open(LINK, 'PF_tozsde_'+ID); break;
 	}
 }
 
@@ -1135,7 +1120,7 @@ function tozsdekereses() {try{
 	EVENT.lastChange = new Date();
 	
 	updateStatistic(currentPrices, EVENT.lastResult);
-	var notification = [];
+	const notification = new Set();
 	var isNeedSell = false;
 
 	var table = REF.document.getElementById("premium_exchange_form").getElementsByTagName("table")[0];
@@ -1154,38 +1139,20 @@ function tozsdekereses() {try{
 	var nyersIDs = ['wood', 'stone', 'iron'];
 	for (var k=0;k<nyersIDs.length;k++) {
 		REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#f4e4bc';
-	}
-	
-	// BUY
-	tax = 1+REF.PremiumExchange.data.tax.sell;
-	if (TOZSDE_DATA.maximum && (currentPrices[0]*tax > TOZSDE_DATA.max_wood || currentPrices[1]*tax > TOZSDE_DATA.max_stone || currentPrices[2]*tax > TOZSDE_DATA.max_iron)) {
-		notification.push('Limit feletti ár');
-		soundID='maximum';
-		
-		// Set cell Color
-		for (var k=0;k<nyersIDs.length;k++) {
-			if (currentPrices[k]*tax > TOZSDE_DATA['max_'+nyersIDs[k]]) {
-				REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#F66';
-			}
-		}
-	}
 
-	// SELL
-	var tax = 1+REF.PremiumExchange.data.tax.buy;
-	if (TOZSDE_DATA.minimum &&
-		(currentPrices[0]*tax < TOZSDE_DATA.min_wood || currentPrices[1]*tax < TOZSDE_DATA.min_stone || currentPrices[2]*tax < TOZSDE_DATA.min_iron) ||
-			((capacity[0] - onStock[0] > 0 && capacity[0] - onStock[0] < TOZSDE_DATA.min_wood) ||
-			(capacity[1] - onStock[1] > 0 && capacity[1] - onStock[1] < TOZSDE_DATA.min_wood) ||
-			(capacity[2] - onStock[2] > 0 && capacity[2] - onStock[2] < TOZSDE_DATA.min_wood)) ) {
-		notification.push('Limit alatti ár');
-		soundID='minimum';
-		isNeedSell = true;
-	
-		// Set cell Color
-		for (var k=0;k<nyersIDs.length;k++) {
-			if (currentPrices[k]*tax < TOZSDE_DATA['min_'+nyersIDs[k]] || (capacity[k] - onStock[k] > 0 && capacity[k] - onStock[k] < TOZSDE_DATA['min_'+nyersIDs[k]]) ) {
-				REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#9bF';
-			}
+		let currentBuyPrice = getClearValue(nyersIDs[k], REF.PremiumExchange.data.stock[nyersIDs[k]], 'buy');
+		if (TOZSDE_DATA.maximum && currentBuyPrice >= TOZSDE_DATA['max_'+nyersIDs[k]]) {
+			notification.add('Limit feletti ár');
+			if (!soundID) soundID='maximum';
+			REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#F66';
+		}
+
+		let currentSellPrice = getClearValue(nyersIDs[k], REF.PremiumExchange.data.stock[nyersIDs[k]], 'sell');
+		if (TOZSDE_DATA.minimum && (currentSellPrice <= TOZSDE_DATA['min_'+nyersIDs[k]] || (capacity[k] - onStock[k] > 0 && capacity[k] - onStock[k] < TOZSDE_DATA['min_'+nyersIDs[k]]))) {
+			notification.add('Limit alatti ár');
+			soundID='minimum';
+			isNeedSell = true;
+			REF.document.getElementById("premium_exchange_rate_"+nyersIDs[k]).style.background = '#9bF';
 		}
 	}
 	
@@ -1194,7 +1161,7 @@ function tozsdekereses() {try{
 		parseInt(table.rows[2].cells[2].innerText,10) !== parseInt(table.rows[1].cells[2].innerText,10) ||
 		parseInt(table.rows[2].cells[3].innerText,10) !== parseInt(table.rows[1].cells[3].innerText,10)))
 	{
-		notification.push('Nyers ELADHATÓ');
+		notification.add('Nyers ELADHATÓ');
 		soundID='any';
 		isNeedSell = true;
 	}
@@ -1202,14 +1169,14 @@ function tozsdekereses() {try{
 		parseInt(table.rows[1].cells[1].innerText,10) > TOZSDE_DATA.keszlet_wood ||
 		parseInt(table.rows[1].cells[2].innerText,10) > TOZSDE_DATA.keszlet_stone ||
 		parseInt(table.rows[1].cells[3].innerText,10) > TOZSDE_DATA.keszlet_iron)) {
-		notification.push('Készleten');
+		notification.add('Készleten');
 		soundID='keszlet';
 	}
 	if (TOZSDE_DATA.action && (
 		(1 - (currentPrices[0] / EVENT.lastResult[0])) * 100 > TOZSDE_DATA.action_wood ||
 		(1 - (currentPrices[1] / EVENT.lastResult[1])) * 100 > TOZSDE_DATA.action_stone ||
 		(1 - (currentPrices[2] / EVENT.lastResult[2])) * 100 > TOZSDE_DATA.action_iron)) {
-		notification.push('Árzuhanás');
+		notification.add('Árzuhanás');
 		soundID='action';
 		isNeedSell = true;
 	}
@@ -1217,7 +1184,7 @@ function tozsdekereses() {try{
 		REF.PremiumExchange.data.capacity.wood == REF.PremiumExchange.data.stock.wood ||
 		REF.PremiumExchange.data.capacity.stone == REF.PremiumExchange.data.stock.stone ||
 		REF.PremiumExchange.data.capacity.iron == REF.PremiumExchange.data.stock.iron)) {
-		notification.push('Nyers TELÍTETT');
+		notification.add('Nyers TELÍTETT');
 		soundID='some';
 	}
 	
@@ -1237,7 +1204,7 @@ function tozsdekereses() {try{
 
 	addEvent([currentPrices, notification, changes, [table.rows[1].cells[1].innerText, table.rows[1].cells[2].innerText, table.rows[1].cells[3].innerText] ]);
 
-	if (notification.length>0 && new Date() > EVENT.hangSzunet && !(EVENT.noSoundIf && isNeedSell && REF.PremiumExchange.data.merchants < 1)) {
+	if (notification.size > 0 && new Date() > EVENT.hangSzunet && !(EVENT.noSoundIf && isNeedSell && REF.PremiumExchange.data.merchants < 1)) {
 		csengess(soundID);
 	}
 }catch(e){STATUS = 1; console.error(e);}}
@@ -1245,7 +1212,7 @@ function main() {try{
 	next = 1000;
 	if (!BOT){
 	switch(STATUS) {
-		case 1: HIBA = 0; iframeOperation('open'); STATUS = 2; next = 1333; break;
+		case 1: HIBA = 0; windowOperation('open'); STATUS = 2; next = 1333; break;
 		case 2: if (isPageLoaded(REF)) {
 			HIBA = 0;
 			tozsdekereses();
@@ -1306,3 +1273,10 @@ $('#h3_1 input, #h3_1 select, #h3_3 input:not([type="checkbox"])').on('change', 
 document.getElementById('h3_2').querySelectorAll('input').forEach(function(input) {
 	input.disabled = true;
 });
+
+/*
+FIXME: Csipogás rossz, mert a tax-al számol. Nem azzal kéne.
+FIXME: Mikor 1s-enként újra nézi, az automatika script hívkál valamit, nem kéne.
+FIXME: Hiába a gyorsgombos illesztő keyup()-ja, nem triggerel az semmit se
+AUTOMATA: Átalakítás: A kerekített értéket használja, és MAX annyit, hogy a max kereskedő 1/3-ával dolgozzon. Sorrend pedig úgy legyen, hogy a legjobb áron elérhető nyersanyaggal kereskedjen!
+ */
