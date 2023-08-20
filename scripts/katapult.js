@@ -1,5 +1,9 @@
 var LVL_MAXRIX_1 = [0, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 7, 8, 8, 9, 10, 10, 11, 12, 13, 15, 16, 17, 19, 20];
 var PLUSLEVEL = 1;
+var IGNORE_LIST = [
+	'Gyülekezőhely', 'Szobor', 'Fatelep', 'Agyagbánya', 'Vasbánya', 'Raktár', 'Rejtekhely',
+	'Rally point', 'Statue', 'Timber camp', 'Clay pit', 'Iron mine', 'Warehouse', 'Hiding place'
+];
 /* 16 bárdos kíséret kell */
 
 function setCookie(c_name, value) {
@@ -81,18 +85,11 @@ function getNextTarget(buildings) {
 			delete buildings[building];
 			continue;
 		}
-		if (building == 'Gyülekezőhely' ||
-			building == 'Szobor' ||
-			building == 'Fatelep' ||
-			building == 'Agyagbánya' ||
-			building == 'Vasbánya' ||
-			building == 'Raktár' ||
-			building == 'Rejtekhely' ||
-			(building == 'Főhadiszállás' && buildings[building] <= 1) ||
-			(building == 'Tanya' && buildings[building] <= 6) ||
+		if (IGNORE_LIST.includes(building)) continue;
+		if (((building == 'Főhadiszállás' || building == 'Headquarters') && buildings[building] <= 1) ||
+			((building == 'Tanya' || building == 'Farm') && buildings[building] <= 6) ||
 			buildings[building] == 0)
 		continue;
-		debugger;
 		return {
 			target: building,
 			level: buildings[building]
