@@ -216,6 +216,18 @@ let tozsdeStyle = `
 	h1:hover {
 		color: #555
 	}
+	.warning-text {
+		color: red;
+		font-size: 130%;
+		font-weight: bold;
+		text-align: center;
+	}
+	.auto-sugo {
+		text-align: center;
+		display: block;
+		padding-bottom: 15px;
+		color: blue;
+	}
 	#cnc_stats {
 		background: #aac;
 		margin: 10px auto;
@@ -327,8 +339,11 @@ document.body.innerHTML = '<h1 align="center" style="cursor: context-menu;text-s
 Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percre <button type="button" onclick="stopSound(this)">Hangszünet</button><br>\
 <div id="stopSoundTime"></div>\
 <input type="checkbox" checked onclick="stopSoundIf(this)"> Ne legyen hangjelzés limit alatt/eladható mennyiség/árzuhanás esetén, ha nincs szabad kereskedőd</div></div>\
-<h3 align="center" onclick="setTabVisibility(\'h3_2\', this)"><s>Automatika beállítása</s></h3>\
-<div id="h3_2" style="display:none"><table class="vis" style="margin: auto; border-collapse: collapse;" id="tozsde_auto">\
+<h3 align="center" onclick="setTabVisibility(\'h3_2\', this)">Automatika beállítása</h3>\
+<div id="h3_2" style="display:none">\
+<p class="warning-text">FIGYELEM! Az automatika kiemelten figyelt terület, könnyen bann járhat használatáért!</p>\
+<a class="auto-sugo" target="_BLANK" href="https://github.com/cncDAni2/klanhaboru/blob/main/images/tozsde/automata_sugo.png?raw=true">Súgó/példakép betanításhoz</a>\
+<table class="vis" style="margin: auto; border-collapse: collapse;" id="tozsde_auto">\
 <tr><th colspan="2">Automatika tanítása</th><th><span class="icon header wood"> </span> <button type="button" onclick="copyAuto(0)">=</button></th><th><span class="icon header stone"> </span>  <button type="button" onclick="copyAuto(1)">=</button></th><th><span class="icon header iron"> </span> <button type="button" onclick="copyAuto(2)">=</button></th></tr>\
 <tr><td rowspan="4" style="text-align:center; border-right: 2px solid #F88">Nyerseladás '+generateAutoOptions('sell')+'</td><td><span class="icon header premium"> </span> Minimum limit '+generatePlusMinus("sell","minLimit")+'</td><td><input type="number" name="auto_sell_wood_minLimit"></td><td><input type="number" name="auto_sell_stone_minLimit"></td><td><input type="number" name="auto_sell_iron_minLimit"></td></tr>\
 <tr><td><span class="icon header ressources"> </span> Minimum nyers a faluban</td><td><input type="number" name="auto_sell_wood_minRes"></td><td><input type="number" name="auto_sell_stone_minRes"></td><td><input type="number" name="auto_sell_iron_minRes"></td></tr>\
@@ -428,6 +443,18 @@ function copyAuto(inputNo) {
 		val = inputs[inputNo].value;
 		inputs.val(val).change();
 	}
+}
+function roundDown2(val) {
+	if (val == 0) return 0;
+	let newVal = val;
+	if (val < 500)
+		newVal = Math.floor(val/50) * 50;
+	else if (val < 2500)
+		newVal = Math.floor(val/100) * 100;
+	else
+		newVal = Math.floor(val/500) * 500;
+	if (newVal == 0) return 1;
+	return newVal;
 }
 
 // notificationClass: info, sell, buy, incoming-warning
@@ -828,18 +855,6 @@ function putQuickButtons(){try{
 		var result = Math.floor(nyers - (1/REF.PremiumExchange.calculateMarginalPrice(keszlet, kapacitas)));
 		return result<0?0:result;
 	}
-	function roundDown2(val) {
-		if (val == 0) return 0;
-		let newVal = val;
-		if (val < 500)
-			newVal = Math.floor(val/50) * 50;
-		else if (val < 2500)
-			newVal = Math.floor(val/100) * 100;
-		else
-			newVal = Math.floor(val/500) * 500;
-		if (newVal == 0) return 1;
-		return newVal;
-	}
 	
 	function getAutoValue(type) {
 		var upperLimit = 0, curr_price, maxxx = merchs*1000;
@@ -914,7 +929,7 @@ function autoAdd(currPrice, result, type, mode) {try{
 	
 	// SELL - feltételek
 	if (mode=='sell' && ISTOZSDE_AUTO[type].sell) {
-		cache =TOZSDE_AUTO[type].sell;
+		cache = TOZSDE_AUTO[type].sell;
 		
 		if (currPrice > cache.maxLimit ||
 			(REF.PremiumExchange.data.merchants-TOZSDE_AUTO.left_merch) * 1000 < result+currPrice ||
@@ -968,7 +983,7 @@ function startAutoProcess() {
 		for (var i=0;i<resources.length;i++) {
 			keszlet=REF.PremiumExchange.data.stock[resources[i]];
 			curr_price = getClearValue(resources[i], keszlet, "sell", true);
-			helper=autoAdd(curr_price, 0, resources[i], 'sell');
+			helper = autoAdd(curr_price, 0, resources[i], 'sell');
 			if (helper===true) {startAutoInsert(resources[i], 'sell', curr_price); return;}
 			if (typeof helper == "number" && helper > 0) {startAutoInsert(resources[i], 'sell', helper); return;}
 			curr_price = getClearValue(resources[i], keszlet, "buy");
@@ -995,7 +1010,8 @@ function startAutoProcess() {
 		TOZSDE_AUTOINFO.type=type;
 		TOZSDE_AUTOINFO.minMaxPrice=lastCurrPrice;
 		
-		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value=Math.floor(result);
+		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = roundDown2(Math.floor(result));
+		REF.$('#premium_exchange_sell_'+type+' input').trigger('input');
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 		
 		AUTO_STATUS=1;
@@ -1005,7 +1021,7 @@ function checkTransactionPopup() {
 	if (REF.document.getElementById("premium_exchange") == null || REF.document.getElementById("fader").style.display=='none') { //Nem jelent meg a popup, baj van. Tranzakció folyamatban?
 		if (new Date() - TOZSDE_AUTOINFO.startProgress < 5000) {
 			REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
-		} else { //Fatal error
+		} else { // Fatal error
 			console.info('WTF-error: Nem jelenik meg a lightbox');
 			resetAutoState();
 		}
@@ -1022,7 +1038,7 @@ function checkTransactionPopup() {
 
 	TOZSDE_AUTOINFO.sellValue = prices[0];
 	TOZSDE_AUTOINFO.ppValue = prices[1];
-	REF.document.getElementById("premium_exchange").getElementsByClassName("btn-confirm-yes")[0].click();
+	REF.document.getElementById("premium_exchange").getElementsByClassName("btn-confirm-yes")[0].click() //.innerHTML = 'ALMA';
 	AUTO_STATUS=2;
 }
 function checkSuccessfulTransaction() {
@@ -1233,10 +1249,9 @@ try{
 }
 
 function autoMotor() {try{
-	return;
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
-			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 3333) startAutoProcess();
+			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 6000) startAutoProcess();
 			break;
 		case 1: //Megjelent-e az ablak?
 					//Ha nem akkor "Számítás". Nézi az időt, 5mp után refresh-el és AUTO_STATUS=0
@@ -1253,7 +1268,7 @@ loadData();
 main();
 loadSoundData();
 window.onbeforeunload = function() {return true;}
-UI.InfoMessage("<b>PF Tőzsde</b><br><br>Automata beállítás letiltva: hasnzálatáért bann jár");
+// UI.InfoMessage("<b>PF Tőzsde</b><br><br>Automata beállítás letiltva: használatáért bann jár");
 $('#h3_2').on('change', 'input:not([type="checkbox"])', function() { //Automata
 	var butt = document.getElementById("auto_save");
 	if (butt.disabled!==false) {
@@ -1270,13 +1285,8 @@ $('#h3_1 input, #h3_1 select, #h3_3 input:not([type="checkbox"])').on('change', 
 	}
 });
 
-document.getElementById('h3_2').querySelectorAll('input').forEach(function(input) {
-	input.disabled = true;
-});
-
 /*
 FIXME: Csipogás rossz, mert a tax-al számol. Nem azzal kéne.
 FIXME: Mikor 1s-enként újra nézi, az automatika script hívkál valamit, nem kéne.
-FIXME: Hiába a gyorsgombos illesztő keyup()-ja, nem triggerel az semmit se
 AUTOMATA: Átalakítás: A kerekített értéket használja, és MAX annyit, hogy a max kereskedő 1/3-ával dolgozzon. Sorrend pedig úgy legyen, hogy a legjobb áron elérhető nyersanyaggal kereskedjen!
  */
