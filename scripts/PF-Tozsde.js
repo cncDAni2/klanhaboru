@@ -909,7 +909,7 @@ function putQuickButtons(){try{
 	@return {Int} Megemelt auto-ajánlat (result+currPrice, ha kell - ellenben result)
 */
 function autoAdd(currPrice, result, type, mode) {try{
-	var raktar = REF.game_data.village[type];
+	var availableRes = REF.game_data.village[type];
 	var cache;
 	
 	// Mennyi a beérkező nyersanyag a piacról?
@@ -920,7 +920,7 @@ function autoAdd(currPrice, result, type, mode) {try{
 			marketStatus = $(marketStatus[0]).find('>span');
 			for (var i=0;i<marketStatus.length;i++) {
 				if (marketStatus[i].getAttribute("class") == 'nowrap' && marketStatus[i].getElementsByTagName("span")[0].getAttribute("class").indexOf(type) > -1) {
-					raktar += parseInt(marketStatus[i].innerText.replace(".",""));
+					availableRes += parseInt(marketStatus[i].innerText.replace(".",""));
 					break;
 				}
 			}
@@ -934,13 +934,16 @@ function autoAdd(currPrice, result, type, mode) {try{
 		if (currPrice > cache.maxLimit ||
 			(REF.PremiumExchange.data.merchants-TOZSDE_AUTO.left_merch) * 1000 < result+currPrice ||
 			REF.game_data.village[type] < result+currPrice ||
-			(raktar-result-currPrice) < cache.minRes ||
-			REF.PremiumExchange.data.capacity[type] >= REF.PremiumExchange.data.stock[type]) return false;
+			(availableRes-result-currPrice) < cache.minRes) return false; // (??) || REF.PremiumExchange.data.capacity[type] >= REF.PremiumExchange.data.stock[type]
+
 		if (REF.PremiumExchange.data.capacity[type] < REF.PremiumExchange.data.stock[type]+result+currPrice) {
-			if (result==0) return REF.PremiumExchange.data.capacity[type] - (REF.PremiumExchange.data.stock[type]+result); else return false;
+			if (result==0)
+				return REF.PremiumExchange.data.capacity[type] - (REF.PremiumExchange.data.stock[type]+result);
+			else
+				return false;
 		}
 		if (currPrice < cache.minLimit) return true;
-		if (raktar-result > cache.minRes + ((currPrice-cache.minLimit)*((cache.maxRes-cache.minRes)/(cache.maxLimit-cache.minLimit))) ) return true; else return false;
+		if (availableRes-result > cache.minRes + ((currPrice-cache.minLimit)*((cache.maxRes-cache.minRes)/(cache.maxLimit-cache.minLimit))) ) return true; else return false;
 	}
 	
 	// BUY - feltételek
@@ -948,9 +951,9 @@ function autoAdd(currPrice, result, type, mode) {try{
 		cache = TOZSDE_AUTO[type].buy;
 		if (currPrice < cache.minLimit ||
 			REF.PremiumExchange.data.stock[type] < result+currPrice ||
-			(raktar+result+currPrice) >= cache.maxRes) return false;
-		if (currPrice >= cache.maxLimit) return raktar+result+currPrice < cache.maxRes;
-		if ( raktar+result <= cache.minRes + ((currPrice-cache.minLimit)*((cache.maxRes-cache.minRes)/(cache.maxLimit-cache.minLimit))) ) return true; else return false;
+			(availableRes+result+currPrice) >= cache.maxRes) return false;
+		if (currPrice >= cache.maxLimit) return availableRes+result+currPrice < cache.maxRes;
+		if ( availableRes+result <= cache.minRes + ((currPrice-cache.minLimit)*((cache.maxRes-cache.minRes)/(cache.maxLimit-cache.minLimit))) ) return true; else return false;
 	}
 	return false;
 }catch(e) {console.error(e); return false;}}
@@ -971,7 +974,7 @@ function resetAutoState() {
 }
 function startAutoProcess() {
 	//TOZSDE_AUTO
-	var curr_price, keszlet, resources=['wood', 'stone', 'iron'], helper;
+	var curr_price, keszlet, resources=['wood', 'stone', 'iron'], temp;
 	
 	if (TOZSDE_AUTOINFO.inProgress && TOZSDE_AUTOINFO.isError) {
 		var val = parseInt(REF.document.getElementById("premium_exchange_form")[TOZSDE_AUTOINFO.mode+'_'+TOZSDE_AUTOINFO.type].value,10);
@@ -982,12 +985,16 @@ function startAutoProcess() {
 	} else {
 		for (var i=0;i<resources.length;i++) {
 			keszlet=REF.PremiumExchange.data.stock[resources[i]];
-			curr_price = getClearValue(resources[i], keszlet, "sell", true);
-			helper = autoAdd(curr_price, 0, resources[i], 'sell');
-			if (helper===true) {startAutoInsert(resources[i], 'sell', curr_price); return;}
-			if (typeof helper == "number" && helper > 0) {startAutoInsert(resources[i], 'sell', helper); return;}
-			curr_price = getClearValue(resources[i], keszlet, "buy");
-			if (autoAdd(curr_price, 0, resources[i], 'buy')) {startAutoInsert(resources[i], 'buy', curr_price); return;}
+			if (ISTOZSDE_AUTO[resources[i]].sell) {
+				curr_price = getClearValue(resources[i], keszlet, "sell", true);
+				temp = autoAdd(curr_price, 0, resources[i], 'sell');
+				if (temp===true) {startAutoInsert(resources[i], 'sell', curr_price); return;}
+				if (typeof temp == "number" && temp > 0) { startAutoInsert(resources[i], 'sell', temp); return;}
+			}
+			if (ISTOZSDE_AUTO[resources[i]].buy) {
+				curr_price = getClearValue(resources[i], keszlet, "buy");
+				if (autoAdd(curr_price, 0, resources[i], 'buy')) { startAutoInsert(resources[i], 'buy', curr_price); return;}
+			}
 		}
 	}
 	
@@ -1251,7 +1258,10 @@ try{
 function autoMotor() {try{
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
-			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 6000) startAutoProcess();
+			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 6000 && (
+				ISTOZSDE_AUTO.wood.buy || ISTOZSDE_AUTO.wood.sell ||
+				ISTOZSDE_AUTO.stone.buy || ISTOZSDE_AUTO.stone.sell ||
+				ISTOZSDE_AUTO.iron.buy || ISTOZSDE_AUTO.iron.sell)) startAutoProcess();
 			break;
 		case 1: //Megjelent-e az ablak?
 					//Ha nem akkor "Számítás". Nézi az időt, 5mp után refresh-el és AUTO_STATUS=0
@@ -1286,7 +1296,9 @@ $('#h3_1 input, #h3_1 select, #h3_3 input:not([type="checkbox"])').on('change', 
 });
 
 /*
-FIXME: Csipogás rossz, mert a tax-al számol. Nem azzal kéne.
 FIXME: Mikor 1s-enként újra nézi, az automatika script hívkál valamit, nem kéne.
-AUTOMATA: Átalakítás: A kerekített értéket használja, és MAX annyit, hogy a max kereskedő 1/3-ával dolgozzon. Sorrend pedig úgy legyen, hogy a legjobb áron elérhető nyersanyaggal kereskedjen!
+FIXME: Eladás nem megy az automatával
+ADDME: 1-2s késleltetés legyen, mielőtt az automata megkezdi a beillesztést
+ADDME: AutoSell 1/3: MAX kereskedőszám 1/3-ával számoljon
+AUTOMATA: Eladáskor MAX annyit, hogy a max kereskedő 1/3-ával dolgozzon. Sorrend pedig úgy legyen, hogy a legjobb áron elérhető nyersanyaggal kereskedjen!
  */
