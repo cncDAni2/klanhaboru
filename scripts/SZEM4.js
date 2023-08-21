@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.08.16';
+var VERZIO = 'v4.5 Build 23.08.21';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -2493,7 +2493,7 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 		naplo('VIJE', `${koord} -- Sereg a faluban!`);
 	}
 	if (fal!=="") {
-		if (parseInt(farm_helye.cells[2].innerHTML)!==parseInt(fal, 10)) {
+		if (parseInt(farm_helye.cells[2].textContent.trim(), 10) !== parseInt(fal, 10)) {
 			farm_helye.cells[2].style.backgroundColor = '';
 			DOMINFO_FARMS[koord].szin.fal = '';
 		}
@@ -3678,7 +3678,7 @@ $(document).ready(function(){
 		if (FARM_TESZTER_TIMEOUT) clearTimeout(FARM_TESZTER_TIMEOUT);
 		FARM_TESZTER_TIMEOUT = setTimeout(() => shorttest(), 1000);
 	});
-	window.addEventListener('keydown', function(e) {
+	document.addEventListener('keydown', function(e) {
 		if (e.key === 'Escape') {
 			alert2('close');
 		}
@@ -3693,10 +3693,14 @@ $(document).ready(function(){
 FARMVÉDŐ
 minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
 
+NEW FEATURE: Ha egy parancs screen-jén futtatjuk SZEM-et, elemezze be azt, és vegye fel mint sereg (kellene hozzá támadásID lementés is?)
 BUG: screen=place&... valamni van, akkor behülyül
 BUG: túl hosszú vonat: Ha előtte volt vonat nem MAX-olja a hosszt?
 MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
 BUG: Kék jelentést is törli!?
+BUG: A fal háttérszínét néha akkor is állíthatja mikor nem kéne. Akkor mikor újra felderíti hogy 1-es!!! (FIXED!?)
+BUG: Újraélesztem a scriptet, de... de... nem nézi a falut, pedig sztem lehetne hova támadnia. Mindig figyeli azt az időt? (ill. BUT_GOOD esetén már mást úgyhmond ez előfeltétel)
+NOT_GOOD: From_villages-nél ne az legyen hogy mikor nézze legközelebb, hanem hogy az adott farmkörbe elfogyasztotta-e az összes sereget ill. kihasználta-e amit lehetett. Mikor elmegy a farmoló pihenni, ezek resettelődnek, vele együtt az egységek is így.
 
 
 - Hang átdolgozás: Választó
@@ -3711,7 +3715,11 @@ ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
 ADDME: szüneteltethető a falu támadása/pipára mint a "J?" oszlop
 ADDME: Minimalistic view: Karikába hogy SZEM4, alá heartbeat, listázni a szünetelt kiegeket, Sebesség/max táv infót?
 
+NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen
+NEW KIEG: gyűjtögető: 3rd partyst használva, vagy épp csak static unitokat
+NEW KIEG: CSS leíró + perc + ALL/1st választó -> nyom rá click() eventeket
 NEW KIEG: Auto katázó: Beadod mely faluból max hány percre, mely falukat. VIJE adatai alapján küldi, [] x+1 épületszintet feltételezve 1esével bontásra. [] előtte 2/4 kos v 2/6 kata falra
+FIXME: Header rész újra átdolgozása
 
 ADDME: VIJE opciók: [] zöld kém nélküli jeliket törölje csak
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
