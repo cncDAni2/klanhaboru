@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.08.21';
+var VERZIO = 'v4.5 Build 23.08.24';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -1744,7 +1744,7 @@ function buildArmy(attackerRow, priorityType, teher) {try{
 		return obj;
 	}, {});
 	let isOld = false;
-	if (getServerTime() - new Date(attackerRow.cells[2].textContent) > 600000) isOld = true;
+	if (attackerRow.cells[2].textContent.trim() == '' || getServerTime() - new Date(attackerRow.cells[2].textContent) > 600000) isOld = true;
 	unitEls.forEach(unitEl => {
 		if (unitEl.querySelector('input').checked) {
 			if (isOld) {
