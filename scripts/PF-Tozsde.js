@@ -10,7 +10,7 @@ Narrátor: var GELL = new Audio('https://text-to-speech-demo.ng.bluemix.net/api/
 var REF, STATUS = 1, HIBA = 0, AUTO_STATUS=0;
 var NEWMAIL=0;
 var TOZSDE_SOUNDS = ['bot2.wav', 'BOMB_SIREN_hosszu.mp3', 'Intruder_alert.mp3', 'alarm-frenzy.mp3', 'bubbling-up.mp3', 'capisci.mp3', 'decay.mp3', 'determined.mp3', 'hell-yeah.mp3', 'lovely.mp3', 'may-i-have-your-attention.mp3',
-					'nasty-error-long.mp3', 'nice-cut.mp3', 'oh-finally.mp3', 'on-serious-matters.mp3', 'system-fault.mp3', 'thats-nasty.mp3'];
+					'nasty-error-long.mp3', 'nice-cut.mp3', 'oh-finally.mp3', 'on-serious-matters.mp3', 'system-fault.mp3', 'thats-nasty.mp3', 'néma.mp3'];
 var BELL = {};
 document.body.style.backgroundImage="none";
 document.body.style.background="#e3d5b3 url(https://dshu.innogamescdn.com/asset/233cdec1/graphic/index/main_bg.jpg) scroll right top repeat";
@@ -428,7 +428,6 @@ function changeSound(el, id) {
 	BELL[id].volume = vol;
 	setTimeout(function() {
 		if (BELL[id].readyState == 4) {
-			addEvent('&#9432; Hangváltás sikeres', 'info');
 			BELL[id].play();
 		} else {
 			addEvent('&#9432; Probléma adódott a hang váltásával', 'info');
@@ -495,17 +494,22 @@ function BotvedelemBe() {
 	csengess('bot');
 	
 	BOTTIME = setInterval(function() {
+		if (REF && !(REF.document.getElementById('bot_check') || REF.document.getElementById('popup_box_bot_protection') || REF.document.title=="Bot védelem" || REF.document.getElementById('botprotection_quest'))) {
+			BotvedelemKi();
+			return;
+		}
+
 		if (typeof(window.URL) != "undefined") {
-			var worker = createWorker(function(self){
+			var worker2 = createWorker(function(self){
 				self.addEventListener("message", function(e) {
 					postMessage('');
 				}, false);
 			});
 
-			worker.onmessage = function(e) {
+			worker2.onmessage = function(e) {
 				csengess('bot');
 			};
-			worker.postMessage({});
+			worker2.postMessage({});
 		} else {
 			csengess('bot');
 		}
@@ -533,6 +537,17 @@ function isPageLoaded(ref){try{
 	ISLOGIN=true;
 	
 	if (ref.document.readyState !== "complete") return false;
+
+	if (ref.document.getElementById('botprotection_quest')) {
+		ref.document.getElementById('botprotection_quest').click();
+		BotvedelemBe();
+		return false;
+	}
+	if (ref.document.getElementById('bot_check')) {
+		BOT_REF.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
+		BotvedelemBe();
+		return false;
+	}
 	
 	if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
 		BotvedelemBe();
@@ -722,6 +737,10 @@ function prettyDatePrint(m){
 }
 
 function csengess(id){try{
+	if (!BELL[id].paused) {
+		BELL[id].pause();
+		return;
+	}
 	if (BELL[id].readyState == 4) BELL[id].play();
 	else BELL[id].load();
 }catch(e){console.error("HIBA::Playsound",e)}}
@@ -770,7 +789,7 @@ function updateAutoStatistic(mode, type, resValue, ppValue) {
 }
 
 /**
-	3rdparty from game, extended with custom stock  value! Search for these code in formatted version!
+	3rdparty from game, extended with custom stock value! Search for these code in formatted version!
 	@param {stringEnum} nyersType Resource eg. "wood"
 	@param {number} keszlet Simulated stock size
 	@param {stringEnum} mode sell/buy
@@ -778,22 +797,21 @@ function updateAutoStatistic(mode, type, resValue, ppValue) {
 */
 function getClearValue(nyersType, keszlet, mode, isFullOk) {
 	if (mode=="sell") {
-		for (var i=63;i<2000;i++) {
+		for (var i=63;i<10000;i++) {
 			if (getRealClearValue(nyersType,-i,keszlet) <= -1) break;
 		}
 	} else {
-		for (var i=63;i<2000;i++) {
+		for (var i=63;i<10000;i++) {
 			if (getRealClearValue(nyersType,i,keszlet) >= 1) break;
 		}
 	}
-	var hiany = REF.PremiumExchange.data.capacity[nyersType] - REF.PremiumExchange.data.stock[nyersType];
-	if (isFullOk && hiany>0 && (i-1) > hiany) return hiany;
+	var hiany = REF.PremiumExchange.data.capacity[nyersType] - keszlet;
+	if (mode == 'sell' && isFullOk && hiany>0 && (i-1) > hiany) return hiany;
 	return i-1;
 	
-	function getRealClearValue(e, a, r) { //E: "wood", a: Mennyi, negatív ha eladod a nyerset, R: stock
-		var t = REF.PremiumExchange.data.capacity[e];
-		let x = (1 + (0 <= a ? REF.PremiumExchange.data.tax.buy : REF.PremiumExchange.data.tax.sell)) * (REF.PremiumExchange.calculateMarginalPrice(r, t) + REF.PremiumExchange.calculateMarginalPrice(r - a, t)) * a / 2;
-		return x;
+	function getRealClearValue(e, a, t) { //e: nyerstype, pl. "wood", a: Mennyi, negatív ha eladod a nyerset, t: stock
+		var n = REF.PremiumExchange.data.capacity[e];
+		return (1 + (a >= 0 ? REF.PremiumExchange.data.tax.buy : REF.PremiumExchange.data.tax.sell)) * (REF.PremiumExchange.calculateMarginalPrice(t, n) + REF.PremiumExchange.calculateMarginalPrice(t - a, n)) * a / 2
 	}
 }
 
@@ -832,7 +850,7 @@ function putQuickButtons(){try{
 			maxButton.setAttribute("style","position: absolute; right: 0px; top: 20px;");
 			maxButton.innerHTML='\
 				<button type="button" onclick="setSellValue(\''+cellId+'\','+roundDown2(getAutoBuyValue(i))+')" style="background: #F66">A</button>\
-				<button type="button" onclick="setValue(\''+cellId+'\','+roundDown2(getAutoValue(i))+')">A</button><button type="button" onclick="setValue(\''+cellId+'\','+roundDown2(limits[i])+')">Max</button><button type="button" style="background: linear-gradient(140deg, #eee 50%, #F66 51%,#F66 100%);" onclick="setNull(\''+cellId+'\')">X</button>';
+				<button type="button" onclick="setValue(\''+cellId+'\','+roundDown2(getAutoSellValue(i))+')">A</button><button type="button" onclick="setValue(\''+cellId+'\','+limits[i]+')">Max</button><button type="button" style="background: linear-gradient(140deg, #eee 50%, #F66 51%,#F66 100%);" onclick="setNull(\''+cellId+'\')">X</button>';
 			
 			list = table.rows[5].cells[(i+1)].getElementsByClassName("cost-container")[0];
 			list.insertBefore(maxButton, list.childNodes[i]);
@@ -842,7 +860,7 @@ function putQuickButtons(){try{
 			var cellId = '';
 			switch(i) {case 0:cellId+='wood';break;case 1:cellId+='stone';break;case 2:cellId+='iron';break;}
 			table.rows[5].cells[(i+1)].getElementsByTagName("button")[0].setAttribute("onclick",'setSellValue("'+cellId+'",'+roundDown2(getAutoBuyValue(i))+')'); //AutoBuyButton
-			table.rows[5].cells[(i+1)].getElementsByTagName("button")[1].setAttribute("onclick",'setValue("'+cellId+'",'+roundDown2(getAutoValue(i))+')'); //AutoButton
+			table.rows[5].cells[(i+1)].getElementsByTagName("button")[1].setAttribute("onclick",'setValue("'+cellId+'",'+roundDown2(getAutoSellValue(i))+')'); //AutoButton
 			table.rows[5].cells[(i+1)].getElementsByTagName("button")[2].setAttribute("onclick",'setValue("'+cellId+'",'+limits[i]+')'); //MaxButton
 		}
 	}
@@ -856,7 +874,7 @@ function putQuickButtons(){try{
 		return result<0?0:result;
 	}
 	
-	function getAutoValue(type) {
+	function getAutoSellValue(type) {
 		var upperLimit = 0, curr_price, maxxx = merchs*1000;
 		if (maxxx > resources[type]) maxxx = resources[type];
 		switch(type) {
@@ -957,7 +975,7 @@ function autoAdd(currPrice, result, type, mode) {try{
 	}
 	return false;
 }catch(e) {console.error(e); return false;}}
-function resetAutoState() {
+function resetAutoState(isReloadRequire=true) {
 	TOZSDE_AUTOINFO = {
 		inProgress: false,
 		startProgress: new Date(),
@@ -970,7 +988,7 @@ function resetAutoState() {
 		lastSuccess: new Date()
 	};
 	AUTO_STATUS=0;
-	REF.location.reload();
+	if (isReloadRequire) REF.location.reload();
 }
 function startAutoProcess() {
 	//TOZSDE_AUTO
@@ -1002,12 +1020,14 @@ function startAutoProcess() {
 		var currPrice=startPrice,
 			result=0,
 			lastCurrPrice,
-			helper=true;
+			helper=true
+			noInteration=0;
 		while (helper) {
 			if (typeof helper == "number") result+=helper; else result+=currPrice;
 			lastCurrPrice=currPrice;
 			currPrice=getClearValue(type, mode=='sell'?REF.PremiumExchange.data.stock[type]+result:REF.PremiumExchange.data.stock[type]-result, mode);
 			helper = autoAdd(currPrice, result, type, mode)
+			noInteration++;
 		}
 		if (result==0) return;
 		
@@ -1016,7 +1036,9 @@ function startAutoProcess() {
 		TOZSDE_AUTOINFO.mode=mode;
 		TOZSDE_AUTOINFO.type=type;
 		TOZSDE_AUTOINFO.minMaxPrice=lastCurrPrice;
+		if (noInteration == 1) result = 1;
 		
+		console.info(`Eredmény (${noInteration}pp):`, result, '-->', roundDown2(Math.floor(result)));
 		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = roundDown2(Math.floor(result));
 		REF.$('#premium_exchange_sell_'+type+' input').trigger('input');
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
@@ -1055,7 +1077,7 @@ function checkSuccessfulTransaction() {
 		updateAutoStatistic(TOZSDE_AUTOINFO.mode,TOZSDE_AUTOINFO.type,TOZSDE_AUTOINFO.sellValue,TOZSDE_AUTOINFO.ppValue);
 		AUTO_STATUS=0;
 		if (TOZSDE_DATA.autotrans) {csengess('autotrans')}
-		resetAutoState();
+		resetAutoState(false);
 		TOZSDE_AUTOINFO.lastSuccess=new Date();
 	} else {
 		if (popupBox.getElementsByClassName("error").length>0) { // Nem teljesíthető
@@ -1258,13 +1280,13 @@ try{
 function autoMotor() {try{
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
-			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 6000 && (
+			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > (REF.PremiumExchange.COOLDOWN_SECONDS * 1000) + 1000 && (
 				ISTOZSDE_AUTO.wood.buy || ISTOZSDE_AUTO.wood.sell ||
 				ISTOZSDE_AUTO.stone.buy || ISTOZSDE_AUTO.stone.sell ||
 				ISTOZSDE_AUTO.iron.buy || ISTOZSDE_AUTO.iron.sell)) startAutoProcess();
 			break;
 		case 1: //Megjelent-e az ablak?
-					//Ha nem akkor "Számítás". Nézi az időt, 5mp után refresh-el és AUTO_STATUS=0
+					//Ha nem akkor "Számítás". Nézi az időt, szükséges cooldown + 1mp után refresh-el és AUTO_STATUS=0
 					//Ha igen akkor megnézi hogy jó-e a végleges ár és leokézza
 			checkTransactionPopup();
 			break;
