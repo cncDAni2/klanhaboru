@@ -12,6 +12,7 @@ var NEWMAIL=0;
 var TOZSDE_SOUNDS = ['bot2.wav', 'BOMB_SIREN_hosszu.mp3', 'Intruder_alert.mp3', 'alarm-frenzy.mp3', 'bubbling-up.mp3', 'capisci.mp3', 'decay.mp3', 'determined.mp3', 'hell-yeah.mp3', 'lovely.mp3', 'may-i-have-your-attention.mp3',
 					'nasty-error-long.mp3', 'nice-cut.mp3', 'oh-finally.mp3', 'on-serious-matters.mp3', 'system-fault.mp3', 'thats-nasty.mp3', 'néma.mp3'];
 var BELL = {};
+var AUTO_MOTOR_DELAYER = null;
 document.body.style.backgroundImage="none";
 document.body.style.background="#e3d5b3 url(https://dshu.innogamescdn.com/asset/233cdec1/graphic/index/main_bg.jpg) scroll right top repeat";
 var ID=game_data.world+" - K" + (game_data.village.y+'')[0] + (game_data.village.x+'')[0];
@@ -490,7 +491,7 @@ function addEvent(data, notificationClass) {try{
 
 function BotvedelemBe() {
 	BOT = true;
-	addEvent('BOT VÉDELEM AKTÍV! <a href="javascript:BotvedelemKi();" style="color: #66D;">Kattints ide a ha beírtad a kódot.</a>', 'info');
+	addEvent('BOT VÉDELEM AKTÍV! Oldd fel a játékot, vagy frissíts a lapra. <a href="javascript:BotvedelemKi();" style="color: #66D;">Frissítés</a>', 'info');
 	csengess('bot');
 	
 	BOTTIME = setInterval(function() {
@@ -516,6 +517,7 @@ function BotvedelemBe() {
 	}, 2500);
 }
 function BotvedelemKi() {
+	REF.location.reload();
 	if (BOT==false) return;
 	BELL['bot'].pause();
 	addEvent('Bot védelem rendben.', 'info');
@@ -952,7 +954,7 @@ function autoAdd(currPrice, result, type, mode) {try{
 		if (currPrice > cache.maxLimit ||
 			(REF.PremiumExchange.data.merchants-TOZSDE_AUTO.left_merch) * 1000 < result+currPrice ||
 			REF.game_data.village[type] < result+currPrice ||
-			(availableRes-result-currPrice) < cache.minRes) return false; // (??) || REF.PremiumExchange.data.capacity[type] >= REF.PremiumExchange.data.stock[type]
+			(availableRes-result-currPrice) < cache.minRes) return false; 
 
 		if (REF.PremiumExchange.data.capacity[type] < REF.PremiumExchange.data.stock[type]+result+currPrice) {
 			if (result==0)
@@ -992,7 +994,7 @@ function resetAutoState(isReloadRequire=true) {
 }
 function startAutoProcess() {
 	//TOZSDE_AUTO
-	var curr_price, keszlet, resources=['wood', 'stone', 'iron'], temp;
+	var currPrice, keszlet, resources=['wood', 'stone', 'iron'], temp;
 	
 	if (TOZSDE_AUTOINFO.inProgress && TOZSDE_AUTOINFO.isError) {
 		var val = parseInt(REF.document.getElementById("premium_exchange_form")[TOZSDE_AUTOINFO.mode+'_'+TOZSDE_AUTOINFO.type].value,10);
@@ -1001,18 +1003,34 @@ function startAutoProcess() {
 		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = val;
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 	} else {
+		var sellType = {};
 		for (var i=0;i<resources.length;i++) {
 			keszlet=REF.PremiumExchange.data.stock[resources[i]];
 			if (ISTOZSDE_AUTO[resources[i]].sell) {
-				curr_price = getClearValue(resources[i], keszlet, "sell", true);
-				temp = autoAdd(curr_price, 0, resources[i], 'sell');
-				if (temp===true) {startAutoInsert(resources[i], 'sell', curr_price); return;}
-				if (typeof temp == "number" && temp > 0) { startAutoInsert(resources[i], 'sell', temp); return;}
+				currPrice = getClearValue(resources[i], keszlet, "sell", true);
+				temp = autoAdd(currPrice, 0, resources[i], 'sell');
+				if (temp === true) {
+					if ((sellType.type && sellType.currPrice > currPrice) || !sellType.type) {
+						sellType.type = resources[i];
+						sellType.amount = currPrice;
+						sellType.currPrice = currPrice;
+					}
+					startAutoInsert(resources[i], 'sell', currPrice);
+				} else if (typeof temp == "number" && temp > 0) { 
+					if ((sellType.type && sellType.currPrice > currPrice) || !sellType.type) {
+						sellType.type = resources[i];
+						sellType.amount = temp;
+						sellType.currPrice = currPrice;
+					}
+				}
 			}
-			if (ISTOZSDE_AUTO[resources[i]].buy) {
-				curr_price = getClearValue(resources[i], keszlet, "buy");
-				if (autoAdd(curr_price, 0, resources[i], 'buy')) { startAutoInsert(resources[i], 'buy', curr_price); return;}
+			if ( !sellType.type && ISTOZSDE_AUTO[resources[i]].buy ) {
+				currPrice = getClearValue(resources[i], keszlet, "buy");
+				if (autoAdd(currPrice, 0, resources[i], 'buy')) { startAutoInsert(resources[i], 'buy', currPrice); return;}
 			}
+		}
+		if (sellType.type) {
+			startAutoInsert(sellType.type, 'sell', sellType.amount);
 		}
 	}
 	
@@ -1023,9 +1041,9 @@ function startAutoProcess() {
 			helper=true
 			noInteration=0;
 		while (helper) {
-			if (typeof helper == "number") result+=helper; else result+=currPrice;
-			lastCurrPrice=currPrice;
-			currPrice=getClearValue(type, mode=='sell'?REF.PremiumExchange.data.stock[type]+result:REF.PremiumExchange.data.stock[type]-result, mode);
+			if (typeof helper == "number") result += helper; else result += currPrice;
+			lastCurrPrice = currPrice;
+			currPrice = getClearValue(type, mode=='sell' ? REF.PremiumExchange.data.stock[type] + result:REF.PremiumExchange.data.stock[type] - result, mode);
 			helper = autoAdd(currPrice, result, type, mode)
 			noInteration++;
 		}
@@ -1038,12 +1056,19 @@ function startAutoProcess() {
 		TOZSDE_AUTOINFO.minMaxPrice=lastCurrPrice;
 		if (noInteration == 1) result = 1;
 		
-		console.info(`Eredmény (${noInteration}pp):`, result, '-->', roundDown2(Math.floor(result)));
-		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = roundDown2(Math.floor(result));
+		console.info(`Eredmény (${noInteration}pp):`, result, '-->', limitMech(roundDown2(Math.floor(result))));
+		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = limitMech(roundDown2(Math.floor(result)));
 		REF.$('#premium_exchange_sell_'+type+' input').trigger('input');
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 		
-		AUTO_STATUS=1;
+		AUTO_STATUS = 1;
+	}
+
+	function limitMech(amount) {
+		debugger;
+		let allMerch = parseInt(REF.document.getElementById('market_merchant_total_count').textContent,10);
+		let maxLimit = Math.floor(allMerch / 3) * 1000;
+		return Math.min(maxLimit, amount);
 	}
 }
 function checkTransactionPopup() {
@@ -1262,7 +1287,7 @@ function main() {try{
 			HIBA = 0;
 			tozsdekereses();
 			transformPage();
-			autoMotor();
+			if (AUTO_MOTOR_DELAYER == null) AUTO_MOTOR_DELAYER = setTimeout(() => autoMotor(), 800 + (Math.random() * 500));
 			if (EVENT.agressiveRefresh) {
 				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>3) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
 				else EVENT.agressiveRefreshTime++;
@@ -1278,6 +1303,7 @@ try{
 }
 
 function autoMotor() {try{
+	AUTO_MOTOR_DELAYER = null;
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
 			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > (REF.PremiumExchange.COOLDOWN_SECONDS * 1000) + 1000 && (
@@ -1318,9 +1344,5 @@ $('#h3_1 input, #h3_1 select, #h3_3 input:not([type="checkbox"])').on('change', 
 });
 
 /*
-FIXME: Mikor 1s-enként újra nézi, az automatika script hívkál valamit, nem kéne.
-FIXME: Eladás nem megy az automatával
-ADDME: 1-2s késleltetés legyen, mielőtt az automata megkezdi a beillesztést
-ADDME: AutoSell 1/3: MAX kereskedőszám 1/3-ával számoljon
-AUTOMATA: Eladáskor MAX annyit, hogy a max kereskedő 1/3-ával dolgozzon. Sorrend pedig úgy legyen, hogy a legjobb áron elérhető nyersanyaggal kereskedjen!
+ No task all done ^^
  */
