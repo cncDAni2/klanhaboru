@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.08.27';
+var VERZIO = 'v4.5 Build 23.08.28';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -405,6 +405,15 @@ function init(){try{
 		.szem_old_build_tooltip i {
 			font-weight: bold;
 			color: red;
+		}
+		.wagon_time {
+			position: absolute;
+			color: lavenderblush;
+			font-size: 11px;
+			top: 5px;
+			width: 42px;
+			text-align: center;
+			text-shadow: 0px 0px 1px black;
 		}
 	`;
 	let szemStyle_el = document.createElement('style');
@@ -1209,9 +1218,12 @@ function addWagons(farmRow) {
 		if (attack[2] > (prodHour * 5)) wagonType = 'wagon_nuclear.png';
 		else if (attack[2] > (prodHour * 2)) wagonType = 'wagon_coal.png';
 		else if (attack[2] < 5 && attack[0] < 5) wagonType = 'wagon_empty.png';
+
+		let min = Math.round(convertTbToTime(farmRow.cells[1].textContent, attack[0]));
 		tmp_content += `
 		<span onmouseenter="setTooltip(this, ${index})" class="tooltip_hover">
 			<img src="${pic(wagonType)}?v=4" title="" width="40px">
+			<span class="wagon_time">${(min>3 && wagonType!='wagon_nuclear.png')?min:''}</span>
 			<span class="tooltip_text"></span>
 		</span>`
 	});
