@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.5 Build 23.08.24';
+var VERZIO = 'v4.5 Build 23.08.27';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -898,12 +898,12 @@ function getServerTime(ref, isSilent=false) {
 			let newDate = new Date();
 			let diff = currentDate - newDate;
 			if (Math.abs(diff / 60000) > 2) {
-				let newZone = Math.round(diff / 60000);
-				if (TIME_ZONE != newZone && !isSilent) naplo('Időzóna', `Időeltolódás frissítve: eltolódás ${TIME_ZONE} perccel.`);
+				let newZone = Math.round(diff / 900000) * 15;
+				if (TIME_ZONE != newZone && !isSilent) naplo('Időzóna 🕐', `Időeltolódás frissítve: eltolódás ${TIME_ZONE} perccel.`);
 				TIME_ZONE = newZone;
 			}
 		} else {
-			if (!isSilent) naplo('Időzóna', `Nem megállapítható időzóna (betöltetlen lap?), frissítés sikertelen.`);
+			if (!isSilent) naplo('Időzóna 🕐', `Nem megállapítható időzóna (betöltetlen lap?), frissítés sikertelen.`);
 		}
 	}
 	let newDate = new Date();
@@ -915,7 +915,6 @@ function getServerTime(ref, isSilent=false) {
 		let newDate = dateParts[1] + "/" + dateParts[0] + "/" + dateParts[2];
 		return new Date(newDate + " " + timeString);
 	}
-	
 }
 
 function maplink(koord){
@@ -2150,8 +2149,10 @@ function szem4_farmolo_4visszaell(adatok){try{
 	
 }catch(e){debug("szem4_farmolo_4visszaell()",e); return;}}
 
-function szem4_farmolo_motor(){try{
+function szem4_farmolo_motor(){
 	var nexttime = 500;
+	var isPihen = false;
+	try {
 	nexttime = parseInt(document.getElementById("farmolo_options").sebesseg_m.value,10);
 	
 	if (BOT||FARM_PAUSE||USER_ACTIVITY) { nexttime = 5000; } else {
@@ -2173,7 +2174,7 @@ function szem4_farmolo_motor(){try{
 				if (PM1=="zero" || PM1=="ERROR") {nexttime=10000; break;} /* Ha nincs még tábla feltöltve */
 				if (PM1.travelTime == -1) { // Nincs munka
 						nexttime=parseInt(document.getElementById("farmolo_options").sebesseg_p.value,10);
-						debug('Farmoló', `Farmoló pihenni megy ${nexttime} percre`);
+						isPihen = true;
 						nexttime*=60000;
 						try {
 							if (MOBILE_MODE)
@@ -2183,8 +2184,10 @@ function szem4_farmolo_motor(){try{
 						} catch(e) {}
 						break;
 				}
-				if (!isPageLoaded(FARM_REF,koordTOid(PM1.fromVill),"screen=place") || FARM_REF.document.location.href.indexOf("try=confirm") > -1) {
-					FARM_REF=windowOpener('farm', VILL1ST.replace(/village=[0-9]+/,"village="+koordTOid(PM1.fromVill)).replace("screen=overview","screen=place"), AZON+"_Farmolo");
+				if (!isPageLoaded(FARM_REF,koordTOid(PM1.fromVill),"screen=place") ||
+					FARM_REF.document.location.href.indexOf("try=confirm") > -1 ||
+					(FARM_REF.document.location.href.includes("mode=") && !FARM_REF.document.location.href.includes('mode=command'))) {
+						FARM_REF=windowOpener('farm', VILL1ST.replace(/village=[0-9]+/,"village="+koordTOid(PM1.fromVill)).replace("screen=overview","screen=place"), AZON+"_Farmolo");
 				}
 				/*debug("Farmoló_ToStep1",PM1);*/
 				FARM_LEPES=1;
@@ -2192,8 +2195,8 @@ function szem4_farmolo_motor(){try{
 		case 1: /*Gyül.helyen vagyunk, be kell illeszteni a megfelelő sereget, -nyers.*/
 				if (isPageLoaded(FARM_REF,koordTOid(PM1.fromVill),"screen=place")) {
 					FARM_REF.document.title = 'Szem4/farmoló';
-					FARM_HIBA=0; FARM_GHIBA=0;
 					PM1=szem4_farmolo_2illeszto(PM1);
+					FARM_HIBA=0; FARM_GHIBA=0;
 					if (PM1 === 'semmi') 
 						FARM_LEPES = 0;
 					else
@@ -2228,6 +2231,9 @@ function szem4_farmolo_motor(){try{
 
 var inga=100/((Math.random()*40)+80);
 nexttime=Math.round(nexttime*inga);
+if (isPihen) {
+	debug('Farmoló', `Farmoló pihenni megy ${Math.round(nexttime / 60000)} percre`);
+}
 try{
 	worker.postMessage({'id': 'farm', 'time': nexttime});
 }catch(e){debug('farm', 'Worker engine error: ' + e);setTimeout(function(){szem4_farmolo_motor();}, 3000);}}
@@ -2570,7 +2576,7 @@ function szem4_VIJE_2elemzes(adatok){try{
 				iron: 0,
 				farm: 0,
 				wall: 0
-			}
+			};
 			
 			var spyBuildingRows_left=VIJE_REF2.document.getElementById("attack_spy_buildings_left").rows;
 			var spyBuildingRows_right=VIJE_REF2.document.getElementById("attack_spy_buildings_right").rows;
@@ -2584,15 +2590,17 @@ function szem4_VIJE_2elemzes(adatok){try{
 			}
 			DOMINFO_FARMS[adatok[1]].buildings = JSON.parse(JSON.stringify(spyLevels));
 			if (spyLevels.wall == 0) {
-				if (spyLevels.barracks == 0) spyLevels.wall--;
-				if (spyLevels.main == 2) spyLevels.wall--;
-				if (spyLevels.main == 1) spyLevels.wall-=2;
+				if (spyLevels.barracks == 0) {
+					spyLevels.wall--;
+					if (spyLevels.main == 2) spyLevels.wall--;
+					if (spyLevels.main == 1) spyLevels.wall-=2;
+				}
 			}
 			var banyak = [spyLevels.wood, spyLevels.stone, spyLevels.iron];
 			var fal = spyLevels.wall;
 		} else { /*Csak nyerset láttunk*/
-			var banyak = "";
-			var fal = "";
+			var banyak = '';
+			var fal = '';
 		}
 		VIJE_adatbeir(adatok[1],nyersossz,banyak,fal,adatok[2], hungarianDate);
 	} else if (!isOld) {

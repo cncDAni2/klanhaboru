@@ -1025,6 +1025,12 @@ function startAutoProcess() {
 	}
 	
 	function startAutoInsert(type, mode, startPrice) {
+		// DELAYER
+		if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 60000) {
+			TOZSDE_AUTOINFO.lastSuccess = new Date();
+			return;
+		}
+
 		var currPrice=startPrice,
 			result=0,
 			lastCurrPrice,
@@ -1055,7 +1061,6 @@ function startAutoProcess() {
 	}
 
 	function limitMech(amount) {
-		debugger;
 		let allMerch = parseInt(REF.document.getElementById('market_merchant_total_count').textContent,10);
 		let maxLimit = Math.floor(allMerch / 3) * 1000;
 		return Math.min(maxLimit, amount);
@@ -1277,7 +1282,7 @@ function main() {try{
 			HIBA = 0;
 			tozsdekereses();
 			transformPage();
-			if (AUTO_MOTOR_DELAYER == null) AUTO_MOTOR_DELAYER = setTimeout(() => autoMotor(), 400 + (Math.random() * 500));
+			autoMotor();
 			if (EVENT.agressiveRefresh) {
 				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>3) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
 				else EVENT.agressiveRefreshTime++;
@@ -1293,7 +1298,6 @@ try{
 }
 
 function autoMotor() {try{
-	AUTO_MOTOR_DELAYER = null;
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
 			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > (REF.PremiumExchange.COOLDOWN_SECONDS * 1000) + 1000 && (
@@ -1316,7 +1320,6 @@ loadData();
 main();
 loadSoundData();
 window.onbeforeunload = function() {return true;}
-// UI.InfoMessage("<b>PF Tőzsde</b><br><br>Automata beállítás letiltva: használatáért bann jár");
 $('#h3_2').on('change', 'input:not([type="checkbox"])', function() { //Automata
 	var butt = document.getElementById("auto_save");
 	if (butt.disabled!==false) {
