@@ -1,12 +1,3 @@
-/*
-DO IT:
-- x% haszon gomb az eladáshoz/vételhez
-- auto save-kor ellenőrzés a számokra minLimit<=maxLimit, és MinNyers<=maxNyers
-- "Jósnő"
--OK Fix: error-kor mi a helyzet? (teszt need!)
-- Hangjelzés, amikor bejövő van
-Narrátor: var GELL = new Audio('https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?text=Wood%20is%201250&download=true&accept=audio%2Fmp3')
-*/
 var REF, STATUS = 1, HIBA = 0, AUTO_STATUS=0;
 var NEWMAIL=0;
 var TOZSDE_SOUNDS = ['bot2.wav', 'BOMB_SIREN_hosszu.mp3', 'Intruder_alert.mp3', 'alarm-frenzy.mp3', 'bubbling-up.mp3', 'capisci.mp3', 'decay.mp3', 'determined.mp3', 'hell-yeah.mp3', 'lovely.mp3', 'may-i-have-your-attention.mp3',
@@ -1015,7 +1006,6 @@ function startAutoProcess() {
 						sellType.amount = currPrice;
 						sellType.currPrice = currPrice;
 					}
-					startAutoInsert(resources[i], 'sell', currPrice);
 				} else if (typeof temp == "number" && temp > 0) { 
 					if ((sellType.type && sellType.currPrice > currPrice) || !sellType.type) {
 						sellType.type = resources[i];
@@ -1287,7 +1277,7 @@ function main() {try{
 			HIBA = 0;
 			tozsdekereses();
 			transformPage();
-			if (AUTO_MOTOR_DELAYER == null) AUTO_MOTOR_DELAYER = setTimeout(() => autoMotor(), 800 + (Math.random() * 500));
+			if (AUTO_MOTOR_DELAYER == null) AUTO_MOTOR_DELAYER = setTimeout(() => autoMotor(), 400 + (Math.random() * 500));
 			if (EVENT.agressiveRefresh) {
 				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>3) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
 				else EVENT.agressiveRefreshTime++;
