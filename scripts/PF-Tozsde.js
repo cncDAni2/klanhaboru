@@ -752,9 +752,9 @@ function updateStatistic(newValues, lastValues) {
 	STATS.avg[3] += delta;
 	STATS.lastStat = d;
 	
-	updateStataTable();
+	updateStatTable();
 	
-	function updateStataTable() {
+	function updateStatTable() {
 		var x = document.getElementById("cnc_stats");
 		for (var i=0;i<3;i++) {
 			x.rows[1].cells[i+1].innerHTML = STATS.min[i];
@@ -800,6 +800,7 @@ function getClearValue(nyersType, keszlet, mode, isFullOk) {
 	}
 	var hiany = REF.PremiumExchange.data.capacity[nyersType] - keszlet;
 	if (mode == 'sell' && isFullOk && hiany>0 && (i-1) > hiany) return hiany;
+	if (mode == 'buy' && keszlet < i) return keszlet;
 	return i-1;
 	
 	function getRealClearValue(e, a, t) { //e: nyerstype, pl. "wood", a: Mennyi, negatív ha eladod a nyerset, t: stock
@@ -990,7 +991,7 @@ function startAutoProcess() {
 	if (TOZSDE_AUTOINFO.inProgress && TOZSDE_AUTOINFO.isError) {
 		var val = parseInt(REF.document.getElementById("premium_exchange_form")[TOZSDE_AUTOINFO.mode+'_'+TOZSDE_AUTOINFO.type].value,10);
 		val-=(TOZSDE_AUTOINFO.minMaxPrice*1.1);
-		if (isNaN(val) || val<=0) {resetAutoState();return;}
+		if (isNaN(val) || val<=0) { resetAutoState(); return; }
 		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = val;
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 	} else {
@@ -1016,7 +1017,11 @@ function startAutoProcess() {
 			}
 			if ( !sellType.type && ISTOZSDE_AUTO[resources[i]].buy ) {
 				currPrice = getClearValue(resources[i], keszlet, "buy");
-				if (autoAdd(currPrice, 0, resources[i], 'buy')) { startAutoInsert(resources[i], 'buy', currPrice); return;}
+				if (currPrice > TOZSDE_AUTO[resources[i]].buy.minLimit && autoAdd(currPrice, 0, resources[i], 'buy')) {
+					console.info('startAutoInsert call to buy with: ', resources[i], 'buy', currPrice);
+					startAutoInsert(resources[i], 'buy', currPrice);
+					return;
+				}
 			}
 		}
 		if (sellType.type) {
@@ -1052,7 +1057,7 @@ function startAutoProcess() {
 		TOZSDE_AUTOINFO.minMaxPrice=lastCurrPrice;
 		if (noInteration == 1) result = 1;
 		
-		console.info(`Eredmény (${noInteration}pp):`, result, '-->', limitMech(roundDown2(Math.floor(result))));
+		console.info(`Eredmény (${mode}/${noInteration}pp):`, result, '-->', limitMech(roundDown2(Math.floor(result)), mode));
 		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = limitMech(roundDown2(Math.floor(result)));
 		REF.$('#premium_exchange_sell_'+type+' input').trigger('input');
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
@@ -1060,14 +1065,17 @@ function startAutoProcess() {
 		AUTO_STATUS = 1;
 	}
 
-	function limitMech(amount) {
+	function limitMech(amount, mode) {
+		if (mode == 'buy') return amount;
 		let allMerch = parseInt(REF.document.getElementById('market_merchant_total_count').textContent,10);
 		let maxLimit = Math.floor(allMerch / 3) * 1000;
+		if (maxLimit < 100) return amount; // Ha < 3 kereskedőm van
 		return Math.min(maxLimit, amount);
 	}
 }
 function checkTransactionPopup() {
-	if (REF.document.getElementById("premium_exchange") == null || REF.document.getElementById("fader").style.display=='none') { //Nem jelent meg a popup, baj van. Tranzakció folyamatban?
+	if (REF.document.getElementById("premium_exchange") == null || REF.document.getElementById("fader").style.display=='none') {
+		//Nem jelent meg a popup, baj van. Nyomkodjuk a BUY-t újra és újra, 5mp-ig. Tranzakció folyamatban?
 		if (new Date() - TOZSDE_AUTOINFO.startProgress < 5000) {
 			REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 		} else { // Fatal error
@@ -1076,22 +1084,29 @@ function checkTransactionPopup() {
 		}
 		return;
 	}
+
+	// Nincs Confirm gomb, szóval fatal-error (nincs nyers v nincs ennyi készleten) -> reload
+	if (!REF.document.querySelector('#premium_exchange .btn-confirm-yes')) {
+		resetAutoState();
+		console.log('Nincs többé confirm. ', REF.document.querySelector('#premium_exchange .warn').textContent);
+		return;
+	}
 	
 	// Ha megváltozott az arány útközbe, reload
 	var prices = REF.document.getElementById("confirmation-msg").getElementsByTagName("table")[0].rows[1].cells[1].innerText.match(/[0-9]+/g);
 	prices[0] = parseInt(prices[0],10); prices[1] = parseInt(prices[1],10);
-	switch(TOZSDE_AUTOINFO.mode) {
-		case 'sell': if (TOZSDE_AUTOINFO.minMaxPrice < (prices[0]/prices[1])*0.97) {console.info('Hiba, végső ár nem jó',(prices[0]/prices[1])*0.97,TOZSDE_AUTOINFO.minMaxPrice); resetAutoState(); return;}break;
-		case 'buy': if (TOZSDE_AUTOINFO.minMaxPrice > (prices[0]/prices[1])*1.03) {console.info('Hiba, végső ár nem jó',(prices[0]/prices[1])*1.03,TOZSDE_AUTOINFO.minMaxPrice);resetAutoState(); return;}break;
+	switch (TOZSDE_AUTOINFO.mode) {
+		case 'sell': if (TOZSDE_AUTOINFO.minMaxPrice < (prices[0]/prices[1])*0.97) {console.info('Hiba, végső ár nem jó',(prices[0]/prices[1])*0.97,TOZSDE_AUTOINFO.minMaxPrice); resetAutoState(); return;} break;
+		case 'buy': if (TOZSDE_AUTOINFO.minMaxPrice > (prices[0]/prices[1])*1.03) { console.info('Hiba, végső ár nem jó',(prices[0]/prices[1])*1.03,TOZSDE_AUTOINFO.minMaxPrice); resetAutoState(); return;} break;
 	}
 
 	TOZSDE_AUTOINFO.sellValue = prices[0];
 	TOZSDE_AUTOINFO.ppValue = prices[1];
-	REF.document.getElementById("premium_exchange").getElementsByClassName("btn-confirm-yes")[0].click() //.innerHTML = 'ALMA';
+	REF.document.querySelector("#premium_exchange .btn-confirm-yes").click(); //.innerHTML = 'ALMA';
 	AUTO_STATUS=2;
 }
 function checkSuccessfulTransaction() {
-	var popupBox = REF.document.getElementById("confirmation-msg");
+	var popupBox = REF.document.getElementById("confirmation-box");
 	if (REF.document.getElementById("fader").style.display=='none') { // ALL OK
 		addEvent('Automata '+(TOZSDE_AUTOINFO.mode=="sell"?'eladás':'vásárlás')+': '+TOZSDE_AUTOINFO.sellValue+'<span class="icon header '+TOZSDE_AUTOINFO.type+'"> </span> &LeftArrowRightArrow; '+TOZSDE_AUTOINFO.ppValue +'<span class="icon header premium"> </span> (Átlagár: '+Math.round(TOZSDE_AUTOINFO.sellValue / TOZSDE_AUTOINFO.ppValue)+')', TOZSDE_AUTOINFO.mode);
 		updateAutoStatistic(TOZSDE_AUTOINFO.mode,TOZSDE_AUTOINFO.type,TOZSDE_AUTOINFO.sellValue,TOZSDE_AUTOINFO.ppValue);
@@ -1181,13 +1196,7 @@ function tozsdekereses() {try{
 	if (new Date() - EVENT.lastChange > 300000) {STATUS = 1; EVENT.lastChange = new Date();} 
 	if (!REF.document.getElementById("premium_exchange_form").getElementsByTagName("table")[0].classList.contains("cnc_transformed")) {putQuickButtons();route=true;}
 	
-	if (EVENT.lastResult[0] == currentPrices[0] && EVENT.lastResult[1] == currentPrices[1] && EVENT.lastResult[2] == currentPrices[2]) return;
-	EVENT.lastChange = new Date();
 	
-	updateStatistic(currentPrices, EVENT.lastResult);
-	const notification = new Set();
-	var isNeedSell = false;
-
 	var table = REF.document.getElementById("premium_exchange_form").getElementsByTagName("table")[0];
 	const onStock = [
 		parseInt(table.rows[1].cells[1].innerText,10),
@@ -1199,6 +1208,14 @@ function tozsdekereses() {try{
 		parseInt(table.rows[2].cells[2].innerText,10),
 		parseInt(table.rows[2].cells[3].innerText,10)
 	];
+
+	if (EVENT.lastResult[0] == currentPrices[0] && EVENT.lastResult[1] == currentPrices[1] && EVENT.lastResult[2] == currentPrices[2] &&
+		EVENT.lastResult[3] == onStock[0] && EVENT.lastResult[4] == onStock[1] && EVENT.lastResult[5] == onStock[2]) return;
+	EVENT.lastChange = new Date();
+	
+	updateStatistic(currentPrices, EVENT.lastResult);
+	const notification = new Set();
+	var isNeedSell = false;
 	
 	// RESET default cell colors
 	var nyersIDs = ['wood', 'stone', 'iron'];
@@ -1262,12 +1279,13 @@ function tozsdekereses() {try{
 		} else changes.push('=');
 	}
 	EVENT.lastResult = currentPrices.slice(0);
+	EVENT.lastResult.push(...onStock);
 	EVENT.lastChange = new Date();
 	
 	
 	if (!route) putQuickButtons();
 
-	addEvent([currentPrices, notification, changes, [table.rows[1].cells[1].innerText, table.rows[1].cells[2].innerText, table.rows[1].cells[3].innerText] ]);
+	addEvent([currentPrices, notification, changes, onStock ]);
 
 	if (notification.size > 0 && new Date() > EVENT.hangSzunet && !(EVENT.noSoundIf && isNeedSell && REF.PremiumExchange.data.merchants < 1)) {
 		csengess(soundID);
@@ -1275,6 +1293,7 @@ function tozsdekereses() {try{
 }catch(e){STATUS = 1; console.error(e);}}
 function main() {try{
 	next = 1000;
+	if (EVENT.agressiveRefresh) next = 200;
 	if (!BOT){
 	switch(STATUS) {
 		case 1: HIBA = 0; windowOperation('open'); STATUS = 2; next = 1333; break;
@@ -1284,7 +1303,7 @@ function main() {try{
 			transformPage();
 			autoMotor();
 			if (EVENT.agressiveRefresh) {
-				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>3) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
+				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>10) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
 				else EVENT.agressiveRefreshTime++;
 			} 
 		} else {
@@ -1337,5 +1356,10 @@ $('#h3_1 input, #h3_1 select, #h3_3 input:not([type="checkbox"])').on('change', 
 });
 
 /*
- No task all done ^^
+ BUG: Dupla vásárlás van. Néha. (Lehet jobb is?) Nem a kerekítés miatt? BUY-nál FEL kéne kerekítani, de amúgyis a current_price kéne hogy megmondja a kerekítést
+ BUG: Nem tudja mennyi kereskedőm van  miután már volt tranzakció, mivel már nem frissít a lapra. Honnan nézi ezt? Nézd má' meg la'
+ BUG: Néha 0 <-> 0 az ajánlat. Ez játék-hiba, ilyenkor refresh-page
+ FEAT: Alarm: legyen kiiktatható ha csak a capacity miatt olcsó a nyers - ekkor színezze, csak soundplay ne legyen
+ FEAT: Lehetséges eladni valamit/Nem lehet: Ezek is pipálhatónak kéne h legyen
+ FEAT: Külön hang mikor az automata vesz v elad
  */
