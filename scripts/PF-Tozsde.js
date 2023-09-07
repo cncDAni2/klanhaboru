@@ -67,6 +67,7 @@ var EVENT = {
 	lastChange: new Date(),
 	noSoundIf: true,
 	agressiveRefresh: false,
+	agressiveRefresh_win: false,
 	agressiveRefreshTime: 0
 };
 var TOZSDE_AUTO = {
@@ -215,6 +216,11 @@ let tozsdeStyle = `
 		text-align: center;
 	}
 	.auto-sugo {
+		width: 300px;
+		display: block;
+		margin: auto;
+	}
+	.auto-sugo a {
 		text-align: center;
 		display: block;
 		padding-bottom: 15px;
@@ -334,7 +340,7 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <h3 align="center" onclick="setTabVisibility(\'h3_2\', this)">Automatika beállítása</h3>\
 <div id="h3_2" style="display:none">\
 <p class="warning-text">FIGYELEM! Az automatika kiemelten figyelt terület, könnyen bann járhat használatáért!</p>\
-<a class="auto-sugo" target="_BLANK" href="https://github.com/cncDAni2/klanhaboru/blob/main/images/tozsde/automata_sugo.png?raw=true">Súgó/példakép betanításhoz</a>\
+<span class="auto-sugo"><a target="_BLANK" href="https://github.com/cncDAni2/klanhaboru/blob/main/images/tozsde/automata_sugo.png?raw=true">Súgó/példakép betanításhoz</a></span>\
 <table class="vis" style="margin: auto; border-collapse: collapse;" id="tozsde_auto">\
 <tr><th colspan="2">Automatika tanítása</th><th><span class="icon header wood"> </span> <button type="button" onclick="copyAuto(0)">=</button></th><th><span class="icon header stone"> </span>  <button type="button" onclick="copyAuto(1)">=</button></th><th><span class="icon header iron"> </span> <button type="button" onclick="copyAuto(2)">=</button></th></tr>\
 <tr><td rowspan="4" style="text-align:center; border-right: 2px solid #F88">Nyerseladás '+generateAutoOptions('sell')+'</td><td><span class="icon header premium"> </span> Minimum limit '+generatePlusMinus("sell","minLimit")+'</td><td><input type="number" name="auto_sell_wood_minLimit"></td><td><input type="number" name="auto_sell_stone_minLimit"></td><td><input type="number" name="auto_sell_iron_minLimit"></td></tr>\
@@ -355,7 +361,7 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <tr><td>"Beérkező"</td><td><input name="nameOfBeerkezo"></td>\
 <tr><td>"Elad"</td><td><input name="nameOfElad"></td>\
 <tr><td>"Vásárolj"</td><td><input name="nameOfVasarolj"></td></tr></table>\
-<p style="width: 350px;margin: 10px auto;text-align: center;"><input type="checkbox" onclick="setAgressiveRefresh(this)"> <strong>AGRESSZÍV FRISSÍTÉS</strong> (nem ajánlott)</p></div>\
+<p style="width: 500px;margin: 10px auto;text-align: center;"><input type="checkbox" onclick="setAgressiveRefresh(this)"><input type="checkbox" onclick="setAgressiveRefresh2(this)"> <strong>AGRESSZÍV LAPFRISSÍTÉS/GYORS REAGÁLÁS</strong> (nem ajánlott)</p></div>\
 <div style="width:800px; text-align:center;margin:10px auto"><button type="button" disabled onclick="saveTozsdeData()" id="tozsde_save">Hangbeállítások alkalmazása</button> <button type="button" onclick="loadData(); loadSoundData();">Visszaállítás</button> <button type="button" id="auto_save" onclick="saveAuto()">Automata beállításainak alkalmazása</button></div></form>\
 <h3 align="center" class="openedH3" onclick="setTabVisibility(\'h3_4\', this)">Árfolyam alakulása</h3>\
 <div id="h3_4"><table id="cnc_stats"><tr><th>Statisztika</th><th><span class="icon header wood"> </span></th><th><span class="icon header stone"> </span></th><th><span class="icon header iron"> </span></th><th><span class="icon header premium"> </span></th></tr>\
@@ -401,6 +407,9 @@ function stopSoundIf(el) {
 	EVENT.noSoundIf = el.checked;
 }
 function setAgressiveRefresh(el) {
+	EVENT.agressiveRefresh_win = el.checked;
+}
+function setAgressiveRefresh2(el) {
 	EVENT.agressiveRefresh = el.checked;
 }
 function setTabVisibility(id, el) {
@@ -1293,7 +1302,7 @@ function tozsdekereses() {try{
 }catch(e){STATUS = 1; console.error(e);}}
 function main() {try{
 	next = 1000;
-	if (EVENT.agressiveRefresh) next = 200;
+	if (EVENT.agressiveRefresh) next = 150 + (Math.random() * 100);
 	if (!BOT){
 	switch(STATUS) {
 		case 1: HIBA = 0; windowOperation('open'); STATUS = 2; next = 1333; break;
@@ -1302,7 +1311,7 @@ function main() {try{
 			tozsdekereses();
 			transformPage();
 			autoMotor();
-			if (EVENT.agressiveRefresh) {
+			if (EVENT.agressiveRefresh_win) {
 				if (AUTO_STATUS==0 && EVENT.agressiveRefreshTime>10) {REF.location.reload(); EVENT.agressiveRefreshTime = 0;}
 				else EVENT.agressiveRefreshTime++;
 			} 
@@ -1319,7 +1328,7 @@ try{
 function autoMotor() {try{
 	switch(AUTO_STATUS) {
 		case 0: //Kell-e eladni v venni? Beilleszti és "Számítás"
-			if (new Date() - TOZSDE_AUTOINFO.lastSuccess > (REF.PremiumExchange.COOLDOWN_SECONDS * 1000) + 1000 && (
+			if ((EVENT.agressiveRefresh || new Date() - TOZSDE_AUTOINFO.lastSuccess > (REF.PremiumExchange.COOLDOWN_SECONDS * 1000) + 1000) && (
 				ISTOZSDE_AUTO.wood.buy || ISTOZSDE_AUTO.wood.sell ||
 				ISTOZSDE_AUTO.stone.buy || ISTOZSDE_AUTO.stone.sell ||
 				ISTOZSDE_AUTO.iron.buy || ISTOZSDE_AUTO.iron.sell)) startAutoProcess();
