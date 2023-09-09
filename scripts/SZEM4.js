@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Alfa Build 23.09.08';
+var VERZIO = 'v4.6 Alfa Build 23.09.10';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -702,12 +702,6 @@ function shorttest() {
 		if (parseInt(optsForm.sebesseg_m.value, 10) < 200) hiba += 'A leggyorsabb ciklusidő: 200 ms\n';
 		if (parseInt(optsForm.sebesseg_m.value, 10) > 5000) hiba += '5000 ms-nél több ciklusidő felesleges, és feltűnő. Írj be 5000 alatti értéket.\n';
 
-		const termeles = parseInt(optsForm.termeles.value, 10);
-		const minsereg = parseInt(optsForm.minsereg.value, 10);
-		const megbizhatosag = parseInt(optsForm.megbizhatosag.value, 10);
-		if (termeles * (megbizhatosag / 60) < (Math.ceil(minsereg / 4) * 80)) hiba += 'Túl alacsony az alapértelmezett termelés, vagy a menetrend megbízhatósági része, vagy a min sereg/falu. Ezáltal új falukat nem tudna támadni SZEM. Emeld valamelyiket.\n';
-		
-
 		if (optsForm.raktar.value == '' || parseInt(optsForm.raktar.value, 10) < 20) hiba += 'Raktár telítettségi értéke túl alacsony, így vélhetőleg sehonnan se fog fosztani. Min 20%';
 
 		if (optsForm.megbizhatosag.value == '' || parseInt(optsForm.megbizhatosag.value, 10) < 5 || parseInt(optsForm.megbizhatosag.value, 10) > 180) hiba += 'Megbízhatósági szint 5-180 perc között legyen';
@@ -805,24 +799,31 @@ function naplo(script,szoveg){
 	playSound("naplobejegyzes");
 	return;
 }
-function debug(script,szoveg){
-	var d=new Date();
-	var perc=d.getMinutes(); var mp=d.getSeconds(); if (perc<10) perc="0"+perc; if (mp<10) mp="0"+mp;
-	var honap=new Array("Jan","Febr","March","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
+function debug(script,szoveg) {
+	let d = new Date();
 	var table=document.getElementById("debugger");
 	var row=table.insertRow(1);
 	var cell1=row.insertCell(0);
 	var cell2=row.insertCell(1);
 	var cell3=row.insertCell(2);
-	cell1.innerHTML=honap[d.getMonth()]+" "+d.getDate()+", "+d.getHours()+":"+perc+":"+mp;
+	cell1.innerHTML=d.toLocaleString();
 	cell2.innerHTML=script;
 	cell3.innerHTML=szoveg;
 	if (table.rows.length > 300) {
 		$("#debugger").find('tr:gt(150)').remove();
 	}
-	if (table.rows.length > 10 && d - new Date(`${d.getFullYear()} ${table.rows[10].cells[0].textContent}`) < 180000) {
-		naplo('Auto-error', 'Túl sok hiba valahol?');
-		playSound('kritikus_hiba');
+	if (table.rows.length > 10 && d - new Date(`${table.rows[10].cells[0].textContent}`) < 180000) {
+		let errorCount = 0;
+		for (var i = 1; i < 11; i++) {
+			let cellText = table.rows[i].cells[2].textContent;
+			if (cellText.toLowerCase().includes("error")) {
+				errorCount++;
+			}
+		}
+		if (errorCount > 4) {
+			naplo('Auto-error', 'Túl sok hiba valahol?');
+			playSound('kritikus_hiba');
+		}
 	}
 }
 function debug_urit() {
@@ -1237,7 +1238,7 @@ function saveSettings() {
 function loadSettings() {
 	const allOptions = document.getElementById('settings');
 	Array.from(allOptions.elements).forEach((input) => {
-		if (input.name && SZEM4_SETTINGS[input.name]) {
+		if (input.name && SZEM4_SETTINGS[input.name] !== undefined) {
 			if (input.type === 'checkbox') {
 				input.checked = SZEM4_SETTINGS[input.name];
 			} else if (input.value) {
@@ -1445,7 +1446,7 @@ function rebuildDOM_farm() {try{
 	// BEÁLLÍTÁSOK
 	const optsForm = document.querySelector('#farmolo_options');
 	for (const el of optsForm) {
-		if (!el.name || !SZEM4_FARM.OPTIONS[el.name]) continue;
+		if (!el.name || SZEM4_FARM.OPTIONS[el.name] == undefined) continue;
 		if (el.type == 'checkbox') {
 			el.checked = SZEM4_FARM.OPTIONS[el.name];
 		} else {
@@ -1807,6 +1808,7 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
 			if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('planAttack', `Nem is szám: nyers_VIJE=${nyers_VIJE} -- nyers_termeles=${nyers_termeles}`);
 			let max_termeles = (SZEM4_FARM.DOMINFO_FARMS[farmCoord].prodHour / 60) * SZEM4_FARM.OPTIONS.megbizhatosag;
 			nyers_termeles = Math.min(nyers_termeles, max_termeles);
+			let isMax = nyers_termeles == max_termeles;
 			let teher = nyers_VIJE + nyers_termeles;
 			if (teher < hatarszam) {
 				if (priority == 'heavy' || priority == 'light') {
@@ -1817,8 +1819,9 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
 			}
 
 			// buildArmy - mivel getSlowestUnit kérés volt, így ebből az egységből biztos van, nem lehet 0
-			let plannedArmy = buildArmy(SZEM4_FARM.DOMINFO_FROM[attacker], priority, teher);
-			if (plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam) {
+			let plannedArmy = buildArmy(SZEM4_FARM.DOMINFO_FROM[attacker], priority, teher, isMax);
+			if (plannedArmy.units.pop == 0) break;
+			if (!isMax && (plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam)) {
 				break;
 			}
 			bestSpeed = myTime;
@@ -1830,7 +1833,8 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
 				slowestUnit: priority,
 				nyersToFarm: teher,
 				debug_teher: plannedArmy.teher,
-				debug_hatar: hatarszam
+				debug_hatar: hatarszam,
+				isMax: isMax
 			};
 			break;
 		}
@@ -1844,7 +1848,7 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
 	//			Ha TERV során nem tudtunk elég egységet megfogni, újratervezés gyalogosokkal
 	//	Ha a végén üres az eddigi_legjobb_terv, akkor return "NO_PLAN"; -> ugrás a következő farmra
 }catch(e) {console.error(e); debug('planAttack', e);}}
-function buildArmy(attacker, priorityType, teher) {try{
+function buildArmy(attacker, priorityType, teher, isMax) {try{
 	let originalTeher = teher;
 	const availableUnits = UNITS.reduce((obj, unit) => {
 		obj[unit] = attacker.isUnits[unit] ? attacker.noOfUnits[unit] : 0;
@@ -1934,6 +1938,7 @@ function buildArmy(attacker, priorityType, teher) {try{
 		if (availableUnits[type] == undefined || availableUnits[type] < 1) return usedUp;
 		if (availableUnits[type] * TEHER[type] > teher) {
 			usedUp.unit = Math.round(teher / TEHER[type]);
+			if (isMax && usedUp.unit == 0) { usedUp.unit = 1; }
 		} else {
 			usedUp.unit = availableUnits[type];
 		}
@@ -1942,6 +1947,33 @@ function buildArmy(attacker, priorityType, teher) {try{
 		return usedUp;
 	}
 }catch(e) {console.error(e); debug('buildArmy', e);}}
+function extendArmy(oArmy, falukoord, slowestUnit) {try{
+	/*  oArmy:
+		units: {spear: 1, sword: 2, ..., pop: 3},
+		teher: 322000
+	 */
+	switch(slowestUnit) {
+		case 'heavy': tryAdd('heavy'); tryAdd('light'); tryAdd('marcher'); break;
+		case 'light': tryAdd('light'); tryAdd('marcher'); break;
+		case 'sword': tryAdd('sword'); tryAdd('axe'); tryAdd('spear'); tryAdd('archer'); break;
+		case 'spear': tryAdd('axe'); tryAdd('spear'); tryAdd('archer'); break;
+	}
+	return oArmy;
+
+	function tryAdd(unitType) {
+		if (!SZEM4_FARM.DOMINFO_FROM[falukoord].isUnits[unitType]) return;
+		if (!oArmy.units[unitType]) oArmy.units[unitType] = 0;
+		while (oArmy.units.pop < SZEM4_FARM.OPTIONS.minsereg) {
+			if (SZEM4_FARM.DOMINFO_FROM[falukoord].noOfUnits[unitType] < oArmy.units[unitType] + 1) {
+				SZEM4_FARM.DOMINFO_FROM[falukoord].noOfUnits[unitType] = 0; //Hogy még 1x ne hozza fel, mert a minimumot se tudom elküldeni!
+				break;
+			}
+			oArmy.units[unitType]++;
+			oArmy.units.pop += TANYA[unitType];
+			oArmy.teher += TEHER[unitType];
+		}
+	}
+}catch(e){ console.error(e); debug('extendArmy', 'Error: '+e); return oArmy; }}
 
 function getSlowestUnit(attacker) {try{
 	// Get unit speed of the smallest available, but priorize horse
@@ -2047,6 +2079,9 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	updateAvailableUnits(SZEM4_FARM.DOMINFO_FROM[bestPlan.fromVill]);
 	//attackerRow, priorityType, teher
 	const plannedArmy = buildArmy(SZEM4_FARM.DOMINFO_FROM[bestPlan.fromVill], bestPlan.slowestUnit, bestPlan.nyersToFarm);
+	if (bestPlan.isMax && plannedArmy.units.pop < minSereg) {
+		extendArmy(plannedArmy, bestPlan.fromVill, bestPlan.slowestUnit);
+	}
 	if (!plannedArmy.units || plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam) {
 		console.info(`Invalid config, replanning. minSereg: ${minSereg}, hatarszam: ${hatarszam}, prodHour: ${SZEM4_FARM.DOMINFO_FARMS[bestPlan.farmVill].prodHour} Config was:`, JSON.stringify(bestPlan), 'Config expected: ', JSON.stringify(plannedArmy));
 		return 'semmi'; // FIXME: Nem jó, újratervezés
@@ -2431,7 +2466,7 @@ function readUpVijeOpts() {
 }
 function rebuildDOM_VIJE() {
 	document.querySelectorAll('#vije_opts input').forEach(el => {
-		if (!SZEM4_VIJE.i18ns[el.name]) return;
+		if (SZEM4_VIJE.i18ns[el.name] == undefined) return;
 		if (el.type == 'text') {
 			el.value = SZEM4_VIJE.i18ns[el.name];
 		} else if (el.type == 'checkbox') {
@@ -3235,7 +3270,7 @@ function gyujto_setVill(villId, el) {
 function rebuildDOM_gyujto() {
 	const f = document.querySelector('#gyujto_form');
 	for (let villId in SZEM4_GYUJTO) {
-		f['f' + villId].checked = SZEM4_GYUJTO[villId];
+		if (SZEM4_GYUJTO[villId] === true) f['f' + villId].checked = true;
 	}
 }
 var SZEM4_GYUJTO = {}; //VillId: isEnabled
@@ -3261,7 +3296,7 @@ function szem4_ADAT_saveNow(tipus) {
 	if (dateEl) dateEl = dateEl.closest('tr').cells[2];
 	switch (tipus) {
 		case "farm":   localStorage.setItem(AZON+"_farm", JSON.stringify(SZEM4_FARM)); break;
-		case "epito":  szem4_ADAT_epito_save(); break;
+		case "epit":   szem4_ADAT_epito_save(); break;
 		case "vije":   localStorage.setItem(AZON+"_vije", JSON.stringify(SZEM4_VIJE)); break;
 		case "sys":    localStorage.setItem(AZON+"_sys", JSON.stringify(SZEM4_SETTINGS)); break;
 		case "gyujto": localStorage.setItem(AZON + '_gyujto', JSON.stringify(SZEM4_GYUJTO)); break;
@@ -3272,30 +3307,30 @@ function szem4_ADAT_saveNow(tipus) {
 }
 function szem4_ADAT_loadNow(tipus) {try{
 	let dataObj = localStorage.getItem(`${AZON}_${tipus}`);
-	if (!dataObj) return; else dataObj = JSON.parse(dataObj);
+	if (!dataObj) return; else if (tipus != 'epit') dataObj = JSON.parse(dataObj);
 	switch (tipus) {
 		case "farm":
 			for (let a in SZEM4_FARM) {
-				if (dataObj[a]) SZEM4_FARM[a] = dataObj[a];
+				if (dataObj[a] !== undefined) SZEM4_FARM[a] = dataObj[a];
 			}
 			rebuildDOM_farm();
 			break;
-		case "epito":  szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
+		case "epit":  szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
 		case "vije":
 			for (let a in SZEM4_VIJE) {
-				if (dataObj[a]) SZEM4_VIJE[a] = dataObj[a];
+				if (dataObj[a] !== undefined) SZEM4_VIJE[a] = dataObj[a];
 			}
 			rebuildDOM_VIJE();
 			break;
 		case "sys":
 			for (let a in SZEM4_SETTINGS) {
-				if (dataObj[a]) SZEM4_SETTINGS[a] = dataObj[a];
+				if (dataObj[a] !== undefined) SZEM4_SETTINGS[a] = dataObj[a];
 			}
 			loadSettings();
 			break;
 		case "gyujto":
 			for (let a in SZEM4_GYUJTO) {
-				if (dataObj[a]) SZEM4_GYUJTO[a] = dataObj[a];
+				if (dataObj[a] !== undefined) SZEM4_GYUJTO[a] = dataObj[a];
 			}
 			rebuildDOM_gyujto();
 			break;
@@ -3347,14 +3382,14 @@ function szem4_ADAT_epito_save(){try{
 		eredmeny+=adat[i].cells[1].getElementsByTagName("select")[0].value;
 		if (i<adat.length-1) eredmeny+=".";
 	}
-	localStorage.setItem(AZON+"_epito",eredmeny);
+	localStorage.setItem(AZON+"_epit",eredmeny);
 	var d=new Date(); document.getElementById("adat_opts").rows[2].cells[2].textContent=d.toLocaleString();
 	return;
 }catch(e){debug("ADAT_epito_save",e);}}
 
 /** OBSOLATE, NEED REFACTOR */
 function szem4_ADAT_epito_load(){try{
-	if(localStorage.getItem(AZON+"_epito")) var suti=localStorage.getItem(AZON+"_epito"); else return;
+	if(localStorage.getItem(AZON+"_epit")) var suti=localStorage.getItem(AZON+"_epit"); else return;
 	/* START: Minden adat törlése a listából és falukból!*/
 	var adat=document.getElementById("epit").getElementsByTagName("table")[0];
 	for (var i=adat.rows.length-1;i>1;i--) {
@@ -3473,7 +3508,7 @@ function loadCloudDataIntoLocal() {
 	readUpData().then((cloudData) => {
 		localStorage.setItem(AZON+"_farm",   cloudData.farm);
 		localStorage.setItem(AZON+"_vije",   cloudData.vije);
-		localStorage.setItem(AZON+"_epito",  cloudData.epit);
+		localStorage.setItem(AZON+"_epit",  cloudData.epit);
 		localStorage.setItem(AZON+"_sys",    cloudData.sys);
 		localStorage.setItem(AZON+"_gyujto", cloudData.gyujto);
 		szem4_ADAT_LoadAll();
@@ -3493,7 +3528,7 @@ function saveLocalDataToCloud(isAll, isByHand=false) {
 	}
 	var jsonToSave = {
 		farm:  localStorage.getItem(AZON+"_farm"),
-		epit:  localStorage.getItem(AZON+"_epito"),
+		epit:  localStorage.getItem(AZON+"_epit"),
 		vije:  localStorage.getItem(AZON+"_vije"),
 		sys:   localStorage.getItem(AZON+"_sys"),
 		gyujto:localStorage.getItem(AZON+"_gyujto"),
@@ -3535,7 +3570,7 @@ ujkieg("adatok","Adatmentő",'<tr><td>\
 <p align="center"><b>Figyelem!</b> Az adatmentő legelső elindításakor betölti a lementett adatokat (ha van), nem törődve azzal, hogy jelenleg mi a munkafolyamat.<br>Új adatok használatához az adatmentő indítása előtt használd a törlést a lenti táblázatból.</p>\
 <form id="adatmento-form"><table class="vis" id="adat_opts" style="margin-bottom: 50px;"><tr><th>Engedélyezés</th><th style="padding-right: 20px">Kiegészítő neve</th><th style="min-width:125px; padding-right: 20px;">Utolsó mentés ideje</th><th style="width:150px">Adat kezelése</th></tr>\
 <tr><td><input type="checkbox" name="farm" checked></td><td>Farmoló</td><td></td><td>'+szem4_ADAT_AddImageRow("farm")+'</td></tr>\
-<tr><td><input type="checkbox" name="epito" checked></td><td>Építő</td><td></td><td>'+szem4_ADAT_AddImageRow("epito")+'</td></tr>\
+<tr><td><input type="checkbox" name="epit" checked></td><td>Építő</td><td></td><td>'+szem4_ADAT_AddImageRow("epit")+'</td></tr>\
 <tr><td><input type="checkbox" name="vije" checked></td><td>Jelentés elemző</td><td></td><td>'+szem4_ADAT_AddImageRow("vije")+'</td></tr>\
 <tr><td><input type="checkbox" name="sys" checked></td><td>Hangok, témák</td><td></td><td>'+szem4_ADAT_AddImageRow("sys")+'</td></tr>\
 <tr><td><input type="checkbox" name="gyujto" checked></td><td>Gyűjtögető</td><td></td><td>'+szem4_ADAT_AddImageRow("gyujto")+'</td></tr>\
@@ -3621,62 +3656,56 @@ $(document).ready(function(){
 
 });
 /*
-Extension architecture:
-ujkieg(ID, NAME, HTML content)
---> Süti: AZON+$ID
---> GlobalObj: $ID, több esetén $ID.custom1: ...
---> Firebase: $ID: Object
---> RebuildDOM($ID) -> DOM felépítése -> Áthív máshova, pl. RebuildDOM_$ID();
-
+NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen ~~ Helye: "Farmolandó falu hozzáadása" cells[2]-be 
+BUG: Zöld háttérjelzést mindig kiszedi miután elemez... 0-s volt, 0-s lett, kém is volt, de bumm eltűnt!
+BUG: Bot védelemkor nagyon sokszor írja hogy bot védelem + duplán csipog + kiütéskor nem frissíti a lapokat + hibára futkos váhhhh
 FEAT: Téma profil
 FEAT: Jelszóvédett profil
-FEAT: Ahol játékos van, azt a jelit ne törölje, hiába zöld a jelentés. 
-FEAT: Kék hátteret a bányára menti, de elvileg nem kéne merthogy... tudjuk, nem?
 NEW KIEG: gyűjtögető: 3rd partyst használva, vagy épp csak static unitokat
 	1.) Hívja ezt: $.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');
 	2.) HA $('.duration-section').last()[0].style.display != 'none' AKKOR $('.btn.btn-default.free_send_button').last()[0].click()
 	3.) Amíg $('.btn.btn-default.free_send_button').length > 0
-
-BUG: Zöld háttérjelzést mindig kiszedi miután elemez.... 0-s volt, 0-s lett, kém is volt, de bumm eltűnt!
-BUG: Bot védelemkor nagyon sokszor írja hogy bot védelem + duplán csipog + kiütéskor nem frissíti a lapokat + hibára futkos váhhhh
+MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
+ADDME: J? -> FAKE limit, és ennek figyelembe vétele
+ADDME: Farmok rendezése táv szerint
+ADDME: Effect themes: Hozzuk be a havas témám a weboldalról, valamint legyen hullámzó víz a content tetején, átlátszó? egérre mozgó? https://jsfiddle.net/TjaBz/
+CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
+FEAT: Minden kiírt falu ami a tied, rátéve az egeret írja ki a nevét, és ha a csoportképzőbe csoporthoz van adva, akkor azt is!
+FEAT: Ahol játékos van, azt a jelit ne törölje, hiába zöld a jelentés. 
+FEAT: Kék hátteret a bányára menti, de elvileg nem kéne merthogy... tudjuk, nem?
+FIXME: Header rész újra átdolgozása: több soros sok-kieg.-re felkészülés
+ADDME: VIJE opciók: [] zöld kém nélküli jeliket törölje csak
+ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
+FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
+	Teszt: ANY(FASTEST(MINES 25))
+FEAT: Építőbe TRAIN xx; épület, ami xx barakk és xx-5 istállót épít felváltva
+NEW KIEG: Farmkezelő bot: Szimplán nézi a "Time"-ot, és ha user általa megadott időn belül van, akkor C-t nyom, ellenben meg A-t.
+ADDON: Defibrillátor - minden script state-ét 0-ra állítja, mindent stop-ol majd elindítja a motorokat. Manuális lefejlesztés
+FEAT: Reset - Adatmentőbe hiányzó függvény. Az alap értékeket állítja be neki.
 
 FARMVÉDŐ
+ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
 minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
 FAL	MIN
 0	80 lándzsa	4 kard+6 lándzsa	3 bárd+6 lándzsa	1 ló
 1	8800lándzsa	300k+200 lándzsa	100b+50 lándzsa		4 kló	6 íló	(3nló)
 2	32 kl	6kl+10íló
 
-MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
 NEW FEATURE: Ha egy parancs screen-jén futtatjuk SZEM-et, elemezze be azt, és vegye fel mint sereg (kellene hozzá támadásID lementés is?)
-ADDME: Themes: Hozzuk be a havas témám a weboldalról, valamint legyen víz, hullámzó víz a content tetején, átlátszó? egérre mozgó? https://jsfiddle.net/TjaBz/
 
 - Hang átdolgozás: Választó
-CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
-ADDME: Farmok rendezése táv szerint
-
 ADDME: Saját falunál csatára készülés: Érjenek vissza xx:xx-re
-ADDME: Fokozato SZEM betöltés/indítás: preLoader (gyors beállítások), midLoader (mostani init()), endLoader (motorok indítása)
-
-ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
+ADDME: Fokozatos SZEM betöltés/indítás: preLoader (gyors beállítások), midLoader (mostani init()), endLoader (motorok indítása)
 ADDME: szüneteltethető a falu támadása pipára mint a "J?" oszlop ~~> Ikon legyen: balta/ember + tooltip
 ADDME: Minimalistic view: Karikába hogy SZEM4, alá heartbeat, listázni a szünetelt kiegeket, Sebesség/max táv infót?
-
-FEAT: Minden kiírt falu ami a tied, rátéve az egeret írja ki a nevét, és ha a csoportképzőbe csoporthoz van adva, akkor azt is!
-NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen ~~ Farmolandó falu hozzáadása cells[2]-be 
 NEW KIEG: Autoclicker: CSS leíró + perc + ALL/1st választó -> nyom rá click() eventeket
 NEW KIEG: Auto katázó: Beadod mely faluból max hány percre, mely falukat. VIJE adatai alapján küldi, [] x+1 épületszintet feltételezve 1esével bontásra. [] előtte 2/4 kos v 2/6 kata falra
-FIXME: Header rész újra átdolgozása: több soros sok-kieg.-re felkészülés
-
-ADDME: VIJE opciók: [] zöld kém nélküli jeliket törölje csak
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
 ADDME: Ai: Automatikus, falunkénti megbízhatóság- és hatászám számolás. Csak perc alapú, és farmvédő alapú
-ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
 EXTRA: Pihenés sync: Ha Farmoló pihen, VIJE is (külön opció VIJE-nél: recommended ha zöld-törlése be van pipálva). Előbb VIJE, aztán farmolás!
 ADDME: Signal-system: A főbb botok tudják egymásnak jelezni hogy ki dolgozik mikor, és ne üssék egymást, ill. tudjanak ezáltal adatot átdobni egymásnak
 ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT FOR [x] MINUTES
 ADDME: Teherbírás módosító
-ADDME: J? -> FAKE limit, és ennek figyelembe vétele
 */
 
 void(0);
