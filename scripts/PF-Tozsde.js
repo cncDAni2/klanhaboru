@@ -361,7 +361,10 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <tr><td>"Beérkező"</td><td><input name="nameOfBeerkezo"></td>\
 <tr><td>"Elad"</td><td><input name="nameOfElad"></td>\
 <tr><td>"Vásárolj"</td><td><input name="nameOfVasarolj"></td></tr></table>\
-<p style="width: 500px;margin: 10px auto;text-align: center;"><input type="checkbox" onclick="setAgressiveRefresh(this)"><input type="checkbox" onclick="setAgressiveRefresh2(this)"> <strong>AGRESSZÍV LAPFRISSÍTÉS/GYORS REAGÁLÁS</strong> (nem ajánlott)</p></div>\
+<p style="width: 500px;margin: 10px auto;text-align: center;">\
+	<input type="checkbox" onclick="setAgressiveRefresh(this)"><strong>AGRESSZÍV LAPFRISSÍTÉS</strong> (nem ajánlott)<br>\
+	<input type="checkbox" onclick="setAgressiveRefresh2(this)"><strong>GYORS REAGÁLÁS</strong> (nem ajánlott)\
+</p></div>\
 <div style="width:800px; text-align:center;margin:10px auto"><button type="button" disabled onclick="saveTozsdeData()" id="tozsde_save">Hangbeállítások alkalmazása</button> <button type="button" onclick="loadData(); loadSoundData();">Visszaállítás</button> <button type="button" id="auto_save" onclick="saveAuto()">Automata beállításainak alkalmazása</button></div></form>\
 <h3 align="center" class="openedH3" onclick="setTabVisibility(\'h3_4\', this)">Árfolyam alakulása</h3>\
 <div id="h3_4"><table id="cnc_stats"><tr><th>Statisztika</th><th><span class="icon header wood"> </span></th><th><span class="icon header stone"> </span></th><th><span class="icon header iron"> </span></th><th><span class="icon header premium"> </span></th></tr>\
@@ -1040,7 +1043,7 @@ function startAutoProcess() {
 	
 	function startAutoInsert(type, mode, startPrice) {
 		// DELAYER
-		if (new Date() - TOZSDE_AUTOINFO.lastSuccess > 60000) {
+		if (!EVENT.agressiveRefresh && new Date() - TOZSDE_AUTOINFO.lastSuccess > 60000) {
 			TOZSDE_AUTOINFO.lastSuccess = new Date();
 			return;
 		}
