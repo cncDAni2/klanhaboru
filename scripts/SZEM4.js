@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Alfa Build 23.09.10';
+var VERZIO = 'v4.6 Build 23.09.11';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -77,7 +77,7 @@ try{ /*Rendszeradatok*/
 	var MAX_IDO_PERC = 20; // shorttest-be van felülírva!!!
 	AZON=game_data.player.id+"_"+game_data.world+AZON;
 	var CLOUD_AUTHS = localStorage.getItem('szem_firebase');
-	var USER_ACTIVITY = false;
+	var USER_ACTIVITY = true;
 	var USER_ACTIVITY_TIMEOUT;
 	var worker = createWorker(function(self){
 		self.TIMERS = {};
@@ -96,6 +96,7 @@ try{ /*Rendszeradatok*/
 			case 'vije': szem4_VIJE_motor(); break;
 			case 'epit': szem4_EPITO_motor(); break;
 			case 'adatok': szem4_ADAT_motor(); break;
+			case 'gyujto': szem4_GYUJTO_motor(); break;
 			default: debug('worker','Ismeretlen ID', JSON.stringify(worker_message))
 		}
 	};
@@ -870,6 +871,10 @@ function szunet(script,kep){try{
 		case "adatok":
 			ADAT_PAUSE=!ADAT_PAUSE;
 			var sw=ADAT_PAUSE;
+			break;
+		case 'gyujto':
+			GYUJTO_PAUSE = !GYUJTO_PAUSE;
+			var sw = GYUJTO_PAUSE;
 			break;
 		default: {alert2("Sikertelen script megállatás. Nincs ilyen alscript: "+script);return;}
 	}
@@ -1808,7 +1813,8 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
 			if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('planAttack', `Nem is szám: nyers_VIJE=${nyers_VIJE} -- nyers_termeles=${nyers_termeles}`);
 			let max_termeles = Math.ceil((SZEM4_FARM.DOMINFO_FARMS[farmCoord].prodHour / 60) * SZEM4_FARM.OPTIONS.megbizhatosag);
 			nyers_termeles = Math.min(nyers_termeles, max_termeles);
-			let isMax = nyers_termeles * 0.95 < max_termeles;
+
+			let isMax = nyers_termeles >= max_termeles * 0.95;
 			let teher = nyers_VIJE + nyers_termeles;
 			if (teher < hatarszam) {
 				if (priority == 'heavy' || priority == 'light') {
@@ -3273,11 +3279,82 @@ function rebuildDOM_gyujto() {
 		if (SZEM4_GYUJTO[villId] === true) f['f' + villId].checked = true;
 	}
 }
-var SZEM4_GYUJTO = {}; //VillId: isEnabled
+function szem4_GYUJTO_1keres() {
+	let d = getServerTime();
+	for (let vill in SZEM4_GYUJTO) {
+		if (SZEM4_GYUJTO[vill] === true && (!GYUJTO_VILLINFO[vill] || GYUJTO_VILLINFO[vill] < d)) {
+			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
+			GYUJTO_STATE = 1;
+			GYUJTO_DATA = vill;
+			return;
+		}
+	}
+}
+function szem4_GYUJTO_3elindit() {
+	const buttons = GYUJTO_REF.document.querySelectorAll('#scavenge_screen .free_send_button');
+	const startButton = buttons[buttons.length-1];
+	const scavTime = startButton.closest('.scavenge-option').querySelector('.duration-section');
+	if (scavTime.style.display == 'none') {
+		const allReturnTimer = GYUJTO_REF.document.querySelectorAll('.return-countdown');
+		let d = getServerTime(GYUJTO_REF);
+		if (allReturnTimer.length == 0) {
+			// Nem lehet gyűjtögetni itt.
+			d = d.setMinutes(d.getMinutes() + 10);
+			return;
+		}
+		const timesInSec = [];
+		allReturnTimer.forEach(el => {
+			let [hours, minutes, seconds] = el.textContent.split(":").map(Number);
+			timesInSec.push(hours * 3600 + minutes * 60 + seconds);
+		});
+
+		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.max(...timesInSec) + 10);
+		return;
+	}
+	startButton.click();
+}
+function szem4_GYUJTO_motor() {
+	let nexttime = 2000;
+	try {
+		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
+			nexttime=5000;
+		} else {
+			switch (GYUJTO_STATE) {
+				case 0:
+					// Search & OpenVill
+					szem4_GYUJTO_1keres();
+					break;
+				case 1:
+					// run 3rdparty script
+					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge')) {
+						GYUJTO_REF.$.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');
+						GYUJTO_STATE = 2;
+					}
+					break;
+				case 2:
+					// Check, click, store
+					szem4_GYUJTO_3elindit();
+					GYUJTO_STATE = 0;
+					break;
+			}
+		}
+	} catch(e) {
+		console.error(e);
+		debug('gyujto_motor', e);
+	}
+	try{
+		worker.postMessage({'id': 'gyujto', 'time': nexttime});
+	}catch(e){debug('gyujto_motor', 'Worker engine error: ' + e);setTimeout(function(){szem4_GYUJTO_motor();}, 1000);}
+}
+var SZEM4_GYUJTO = {}, //VillId: isEnabled
+GYUJTO_VILLINFO = {}, // villId: {returned: xxx, }
+GYUJTO_STATE = 0,
+GYUJTO_REF,
+GYUJTO_DATA,
+GYUJTO_PAUSE = false;
 ujkieg('gyujto','Gyűjtő',`<tr><td>
 	<h2 align="center">3rdparty gyűjtögető</h2>
 	<h4 align="center">Powered by TwCheese</h4>
-	<h4 align="center">...FEJLESZTÉS ALATT/NEM MŰKÖDIK...</h4>
 	<br><br>
 	Ez a script külön beállítást igényel. Ehhez az alábbi, legálisan is futtható scriptet kell futtatnod a gyülekezőhelyeden, a gyűjtögetésnél:<br>
 	<pre>$.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');</pre><br>
@@ -3289,6 +3366,7 @@ ujkieg('gyujto','Gyűjtő',`<tr><td>
 		</table>
 	</form>
 </td></tr>`);
+szem4_GYUJTO_motor();
 
 /*-----------------Adatmentő kezelő--------------------*/
 function szem4_ADAT_saveNow(tipus) {
@@ -3323,15 +3401,11 @@ function szem4_ADAT_loadNow(tipus) {try{
 			rebuildDOM_VIJE();
 			break;
 		case "sys":
-			for (let a in SZEM4_SETTINGS) {
-				if (dataObj[a] !== undefined) SZEM4_SETTINGS[a] = dataObj[a];
-			}
+			SZEM4_SETTINGS = dataObj;
 			loadSettings();
 			break;
 		case "gyujto":
-			for (let a in SZEM4_GYUJTO) {
-				if (dataObj[a] !== undefined) SZEM4_GYUJTO[a] = dataObj[a];
-			}
+			SZEM4_GYUJTO = dataObj;
 			rebuildDOM_gyujto();
 			break;
 		default: debug('szem4_ADAT_loadNow', `Nincs ilyen típus: ${tipus}`);
@@ -3355,7 +3429,7 @@ function szem4_ADAT_StopAll(){
 
 function szem4_ADAT_LoadAll(){
 	ALL_EXTENSION.forEach(id => {
-		szem4_ADAT_loadNow(id);
+		try{szem4_ADAT_loadNow(id);}catch(e){console.error(e); debug('szem4_ADAT_LoadAll', 'Error ID: ' + id + ' -- ' + e)}
 	});
 	szem4_ADAT_loadNow('sys');
 }
@@ -3585,7 +3659,6 @@ var FARM_TESZTER_TIMEOUT;
 
 $(document).ready(function(){
 	nyit("naplo");
-	onWallpChange();
 	naplo('Globál','Verzió ['+VERZIO+'] legfrissebb állapotban, GIT-ről szedve.');
 	naplo("Indulás","SZEM 4.6 elindult.");
 	naplo("Indulás","Farmolók szünetelő módban.");
@@ -3604,6 +3677,7 @@ $(document).ready(function(){
 		}
 	} else {
 		szem4_ADAT_StopAll();
+		onWallpChange();
 	}
 	setTimeout(function(){soundVolume(1.0);},2000);
 	
