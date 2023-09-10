@@ -2476,7 +2476,7 @@ function rebuildDOM_VIJE() {
 		if (el.type == 'text') {
 			el.value = SZEM4_VIJE.i18ns[el.name];
 		} else if (el.type == 'checkbox') {
-			el.value = SZEM4_VIJE.i18ns[el.name];
+			el.checked = SZEM4_VIJE.i18ns[el.name];
 		}
 	});
 }
@@ -3323,6 +3323,7 @@ function szem4_GYUJTO_motor() {
 				case 0:
 					// Search & OpenVill
 					szem4_GYUJTO_1keres();
+					if (GYUJTO_REF && GYUJTO_REF.document) GYUJTO_REF.document.title = 'szem4/gyűjtögető';
 					break;
 				case 1:
 					// run 3rdparty script
