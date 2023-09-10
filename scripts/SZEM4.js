@@ -1806,9 +1806,9 @@ function planAttack(farmRow, nyers_VIJE, bestSpeed, hatarszam) {try{
 			if (isNaN(nyers_termeles)) { nyers_termeles = 0; debug('planAttack', `nyers_termeles = NaN - ${farmCoord}`); }
 			if (isNaN(nyers_VIJE)) { nyers_VIJE = 0; debug('planAttack', `nyers_VIJE = NaN - ${farmCoord}`); } 
 			if (!(Number.isInteger(nyers_VIJE) && Number.isInteger(nyers_termeles))) debug('planAttack', `Nem is szám: nyers_VIJE=${nyers_VIJE} -- nyers_termeles=${nyers_termeles}`);
-			let max_termeles = (SZEM4_FARM.DOMINFO_FARMS[farmCoord].prodHour / 60) * SZEM4_FARM.OPTIONS.megbizhatosag;
+			let max_termeles = Math.ceil((SZEM4_FARM.DOMINFO_FARMS[farmCoord].prodHour / 60) * SZEM4_FARM.OPTIONS.megbizhatosag);
 			nyers_termeles = Math.min(nyers_termeles, max_termeles);
-			let isMax = nyers_termeles == max_termeles;
+			let isMax = nyers_termeles * 0.95 < max_termeles;
 			let teher = nyers_VIJE + nyers_termeles;
 			if (teher < hatarszam) {
 				if (priority == 'heavy' || priority == 'light') {
@@ -1869,7 +1869,7 @@ function buildArmy(attacker, priorityType, teher, isMax) {try{
 			teher -= temp_plan.teher;
 			unitToSend.heavy = temp_plan.unit;
 			unitToSend.pop += temp_plan.pop;
-			if (teher < 40)	break;
+			if (!(isMax && temp_plan.pop == 0) && teher < 40)	break;
 		case 'light':
 			temp_plan = useUpUnit('marcher', teher);
 			if (temp_plan.pop !== 0) {
@@ -1877,7 +1877,7 @@ function buildArmy(attacker, priorityType, teher, isMax) {try{
 				unitToSend.marcher = temp_plan.unit;
 				unitToSend.pop += temp_plan.pop;
 			}
-			if (teher < 40)	break;
+			if (!(isMax && temp_plan.pop == 0) && teher < 40)	break;
 
 			temp_plan = useUpUnit('light', teher);
 			if (temp_plan.pop !== 0) {
@@ -1897,7 +1897,7 @@ function buildArmy(attacker, priorityType, teher, isMax) {try{
 			teher -= temp_plan.teher;
 			unitToSend.sword = temp_plan.unit;
 			unitToSend.pop += temp_plan.pop;
-			if (teher < 40)	break;
+			if (!(isMax && temp_plan.pop == 0) && teher < 40)	break;
 		case 'spear':
 			temp_plan = useUpUnit('spear', teher);
 			if (temp_plan.pop !== 0) {
@@ -1905,7 +1905,7 @@ function buildArmy(attacker, priorityType, teher, isMax) {try{
 				unitToSend.spear = temp_plan.unit;
 				unitToSend.pop += temp_plan.pop;
 			}
-			if (teher < 20)	break;
+			if (!(isMax && temp_plan.pop == 0) && teher < 20)	break;
 
 			temp_plan = useUpUnit('axe', teher);
 			if (temp_plan.pop !== 0) {
@@ -1913,7 +1913,7 @@ function buildArmy(attacker, priorityType, teher, isMax) {try{
 				unitToSend.axe = temp_plan.unit;
 				unitToSend.pop += temp_plan.pop;
 			}
-			if (teher < 20)	break;
+			if (!(isMax && temp_plan.pop == 0) && teher < 20)	break;
 
 			temp_plan = useUpUnit('archer', teher);
 			if (temp_plan.pop !== 0) {
@@ -3315,7 +3315,7 @@ function szem4_ADAT_loadNow(tipus) {try{
 			}
 			rebuildDOM_farm();
 			break;
-		case "epit":  szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
+		case "epit": szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
 		case "vije":
 			for (let a in SZEM4_VIJE) {
 				if (dataObj[a] !== undefined) SZEM4_VIJE[a] = dataObj[a];
