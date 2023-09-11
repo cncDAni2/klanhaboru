@@ -2855,7 +2855,7 @@ var VIJE2_HIBA=0; var VIJE2_GHIBA=0;
 var SZEM4_VIJE = {
 	ALL_VIJE_SAVED: {}, // coord: date (legfrissebb elemzés a faluról),
 	i18ns: {}, // épületId: fordítás
-	ELEMZETT: []
+	ELEMZETT: [],
 };
 readUpVijeOpts();
 var PM2;
@@ -3271,7 +3271,6 @@ function gyujto_setVill(villId, el) {
 	else
 		SZEM4_GYUJTO[villId] = !SZEM4_GYUJTO[villId];
 	el.querySelector('input').checked = SZEM4_GYUJTO[villId];
-	console.info(SZEM4_GYUJTO);
 }
 function rebuildDOM_gyujto() {
 	const f = document.querySelector('#gyujto_form');
@@ -3279,22 +3278,26 @@ function rebuildDOM_gyujto() {
 		if (SZEM4_GYUJTO[villId] === true) f['f' + villId].checked = true;
 	}
 }
-function szem4_GYUJTO_1keres() {
+function szem4_GYUJTO_1keres() {try{
 	let d = getServerTime();
 	for (let vill in SZEM4_GYUJTO) {
 		if (SZEM4_GYUJTO[vill] === true && (!GYUJTO_VILLINFO[vill] || GYUJTO_VILLINFO[vill] < d)) {
 			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
 			GYUJTO_STATE = 1;
 			GYUJTO_DATA = vill;
-			return;
+			return false;
 		}
 	}
-}
-function szem4_GYUJTO_3elindit() {
+	return true;
+} catch(e) { console.error(e); debug('szem4_GYUJTO_1keres', e); }}
+function szem4_GYUJTO_3elindit() { try{
 	const buttons = GYUJTO_REF.document.querySelectorAll('#scavenge_screen .free_send_button');
-	const startButton = buttons[buttons.length-1];
-	const scavTime = startButton.closest('.scavenge-option').querySelector('.duration-section');
-	if (scavTime.style.display == 'none') {
+	let startButton, scavTime;
+	if (buttons.length > 0) {
+		startButton = buttons[buttons.length-1];
+		scavTime = startButton.closest('.scavenge-option').querySelector('.duration-section');
+	}
+	if (buttons.length == 0 || scavTime.style.display == 'none') {
 		const allReturnTimer = GYUJTO_REF.document.querySelectorAll('.return-countdown');
 		let d = getServerTime(GYUJTO_REF);
 		if (allReturnTimer.length == 0) {
@@ -3308,11 +3311,11 @@ function szem4_GYUJTO_3elindit() {
 			timesInSec.push(hours * 3600 + minutes * 60 + seconds);
 		});
 
-		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.max(...timesInSec) + 10);
+		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 10);
 		return;
 	}
 	startButton.click();
-}
+} catch(e) { console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
 function szem4_GYUJTO_motor() {
 	let nexttime = 2000;
 	try {
@@ -3322,7 +3325,7 @@ function szem4_GYUJTO_motor() {
 			switch (GYUJTO_STATE) {
 				case 0:
 					// Search & OpenVill
-					szem4_GYUJTO_1keres();
+					if (szem4_GYUJTO_1keres()) nexttime = 60000;
 					if (GYUJTO_REF && GYUJTO_REF.document) GYUJTO_REF.document.title = 'szem4/gyűjtögető';
 					break;
 				case 1:
