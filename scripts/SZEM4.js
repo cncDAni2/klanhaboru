@@ -3389,24 +3389,20 @@ function szem4_ADAT_loadNow(tipus) {try{
 	if (!dataObj) return; else if (tipus != 'epit') dataObj = JSON.parse(dataObj);
 	switch (tipus) {
 		case "farm":
-			for (let a in SZEM4_FARM) {
-				if (dataObj[a] !== undefined) SZEM4_FARM[a] = dataObj[a];
-			}
+			SZEM4_FARM = Object.assign({}, SZEM4_FARM, dataObj);
 			rebuildDOM_farm();
 			break;
 		case "epit": szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
 		case "vije":
-			for (let a in SZEM4_VIJE) {
-				if (dataObj[a] !== undefined) SZEM4_VIJE[a] = dataObj[a];
-			}
+			SZEM4_VIJE = Object.assign({}, SZEM4_VIJE, dataObj);
 			rebuildDOM_VIJE();
 			break;
 		case "sys":
-			SZEM4_SETTINGS = dataObj;
+			SZEM4_SETTINGS = Object.assign({}, SZEM4_SETTINGS, dataObj);
 			loadSettings();
 			break;
 		case "gyujto":
-			SZEM4_GYUJTO = dataObj;
+			SZEM4_GYUJTO = Object.assign({}, SZEM4_GYUJTO, dataObj);
 			rebuildDOM_gyujto();
 			break;
 		default: debug('szem4_ADAT_loadNow', `Nincs ilyen típus: ${tipus}`);
