@@ -2603,15 +2603,6 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 		SZEM4_FARM.DOMINFO_FARMS[koord].prodHour = getProdHour(banya.join(','));
 		farm_helye.cells[1].style.backgroundColor = '';
 		SZEM4_FARM.DOMINFO_FARMS[koord].szin.banya = '';
-		if (fal == '') {
-			// Elméletileg ilyen nincs
-			debug('VIJE_adatbeir', `Megtörtént a lehetetlen: Látok bányát -> ${banya}, de nem tudtam megmondani a fal szintjét -> ${fal}`)
-			fal = 0;
-			if (parseInt(farm_helye.cells[2].innerHTML) !== 0) {
-				farm_helye.cells[2].style.backgroundColor= '';
-				SZEM4_FARM.DOMINFO_FARMS[koord].szin.fal = '';
-			}
-		}
 	}
 	if (szin == 'SEREG') {
 		farm_helye.cells[0].style.backgroundColor = 'red';
@@ -2621,7 +2612,6 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 	}
 	if (fal !== '') {
 		if (parseInt(farm_helye.cells[2].textContent.trim(), 10) !== parseInt(fal, 10)) {
-			debug('VIJE_adatbeir', `Falszint változott. Volt: ${farm_helye.cells[2].textContent.trim()}, lett: ${fal}`)
 			farm_helye.cells[2].style.backgroundColor = '';
 			SZEM4_FARM.DOMINFO_FARMS[koord].szin.fal = '';
 		}
@@ -2711,11 +2701,11 @@ function szem4_VIJE_2elemzes(adatok){try{
 				}
 			}
 			SZEM4_FARM.DOMINFO_FARMS[adatok[1]].buildings = JSON.parse(JSON.stringify(spyLevels));
-			if (spyLevels.wall == 0) {
-				if (spyLevels.barracks == 0) {
+			if (spyLevels.wall === 0) {
+				if (spyLevels.barracks === 0) {
 					spyLevels.wall--;
-					if (spyLevels.main == 2) spyLevels.wall--;
-					if (spyLevels.main == 1) spyLevels.wall-=2;
+					if (spyLevels.main === 2) spyLevels.wall--;
+					if (spyLevels.main === 1) spyLevels.wall-=2;
 				}
 			}
 			var banyak = [spyLevels.wood, spyLevels.stone, spyLevels.iron];
@@ -3033,7 +3023,7 @@ function szem4_EPITO_addIdo(sor, perc){try{
 	if (perc == "del") {
 		document.getElementById("epit_lista").deleteRow(sor.rowIndex);
 	} else {
-		if (perc == 0) perc = 30;
+		if (perc === 0) perc = 30;
 		var d=getServerTime();
 		d.setSeconds(d.getMinutes() + (perc * 60));
 		sor.cells[2].innerHTML=d.toLocaleString();
@@ -3086,7 +3076,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 		if (firstBuildTime>180) firstBuildTime=180;
 	}catch(e){var buildList=";"; var allBuildTime=0; var firstBuildTime=0;}
 	
-	if (buildList == '') buildList = ';';
+	if (buildList === '') buildList = ';';
 	buildList=buildList.split(";");
 	buildList.pop();
 	if (buildList.length>4) {
@@ -3133,7 +3123,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 	}
 
 	/* Minden épület kész */
-	if (nextToBuild == '') {
+	if (nextToBuild === '') {
 		naplo("Építő",'<a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+PMEP[0])+'" target="_BLANK">'+EPIT_REF.game_data.village.name+" ("+EPIT_REF.game_data.village.x+"|"+EPIT_REF.game_data.village.y+")</a> falu teljesen felépült és törlődött a listából");
 		setTimeout(() => playSound("falu_kesz"), 1500);
 		szem4_EPITO_addIdo(PMEP[2],"del");
@@ -3735,10 +3725,6 @@ BUG: Zöld háttérjelzést mindig kiszedi miután elemez... 0-s volt, 0-s lett,
 BUG: Bot védelemkor nagyon sokszor írja hogy bot védelem + duplán csipog + kiütéskor nem frissíti a lapokat + hibára futkos váhhhh
 FEAT: Téma profil
 FEAT: Jelszóvédett profil
-NEW KIEG: gyűjtögető: 3rd partyst használva, vagy épp csak static unitokat
-	1.) Hívja ezt: $.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');
-	2.) HA $('.duration-section').last()[0].style.display != 'none' AKKOR $('.btn.btn-default.free_send_button').last()[0].click()
-	3.) Amíg $('.btn.btn-default.free_send_button').length > 0
 MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
 ADDME: J? -> FAKE limit, és ennek figyelembe vétele
 ADDME: Farmok rendezése táv szerint
