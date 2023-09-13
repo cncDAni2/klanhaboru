@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.11';
+var VERZIO = 'v4.6 Build 23.09.13';
 var SZEM4_SETTINGS = {};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
@@ -1110,15 +1110,20 @@ var BOTORA, ALTBOT2=false, BOT_VOL=0.0; /*ALTBOT2 --> megnyílt e már 1x az abl
 var BOT_REF;
 function BotvedelemBe(){
 	try{
-		if (!BOT_REF) {
+		let isload = true;
+		if (!BOT_REF || BOT_REF.closed) {
 			BOT_REF = window.open(VILL1ST);
+			isload = false;
 			throw "Waiting for auto-resolver...";
+		} else if (!(BOT_REF.document.querySelector("#serverTime") && BOT_REF.document.querySelector("#serverTime").innerHTML.length > 4)) {
+			isload = false;
 		} else if (BOT_REF.document.getElementById('botprotection_quest')) {
 			BOT_REF.document.getElementById('botprotection_quest').click();
 		} else if (BOT_REF.document.getElementById('bot_check')) {
-			BOT_REF.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
+			if (BOT_REF.document.querySelector('#bot_check a'))
+				BOT_REF.document.querySelector('#bot_check a').click();
 		}
-		if (BOT_REF && !(BOT_REF.document.getElementById('bot_check') || BOT_REF.document.getElementById('popup_box_bot_protection') || BOT_REF.document.title=="Bot védelem" || BOT_REF.document.getElementById('botprotection_quest'))) {
+		if (isload && !(BOT_REF.document.getElementById('bot_check') || BOT_REF.document.getElementById('popup_box_bot_protection') || BOT_REF.document.title=="Bot védelem" || BOT_REF.document.getElementById('botprotection_quest'))) {
 			BotvedelemKi();
 			return;
 		}
@@ -1141,15 +1146,22 @@ function BotvedelemKi(){
 	BOT_REF.close();
 	BOT_REF = null;
 	document.getElementById("audio1").pause;
-	alert2("OK");
+	alert2('Bot védelem rendben');
 	clearTimeout(BOTORA);
 	/*Megnyitott lapok frissítése*/
-	try{FARM_REF.location.reload();}catch(e){}
-	try{VIJE_REF1.location.reload();}catch(e){}
-	try{VIJE_REF2.location.reload();}catch(e){}
-	try{IDTAMAD_REF.location.reload();}catch(e){}
-	try{EPIT_REF.location.reload();}catch(e){}
+	for (const propertyName in window) {
+		if (window.hasOwnProperty(propertyName)) {
+			const propertyValue = window[propertyName];
+			if (propertyName.includes("REF") && isWindowReference(propertyValue) && !propertyValue.closed) {
+				try{propertyValue.location.reload();}catch(e){console.error("Not reloadable", propertyName);}
+			}
+		}
+	}
 	return;
+
+	function isWindowReference(obj) {
+		return obj && typeof obj === "object" && "window" in obj && obj.window === obj;
+	}
 }
 
 function isPageLoaded(ref,faluid,address){try{
@@ -1444,6 +1456,7 @@ function add_attackerRow(attackerCoord) {
 		});
 	} else {
 		// UPDATE (Not a valid case)
+		debug('add_attackerRow', 'Invalid case: No update possible');
 	}
 }
 
@@ -1464,6 +1477,7 @@ function rebuildDOM_farm() {try{
 	for (attacker in SZEM4_FARM.DOMINFO_FROM) {
 		add_attackerRow(attacker);
 	}
+	debug('rebuildDOM_farm', '(1) Loading debug: FROM = ' + JSON.stringify(SZEM4_FARM.DOMINFO_FROM));
 
 	// FARMOK
 	const farmTable = document.getElementById('farm_hova');
@@ -1523,6 +1537,7 @@ function rebuildDOM_farm() {try{
 		drawWagons(farm);
 	}
 	hideFarms();
+	debug('rebuildDOM_farm', '(2) Loading debug: FROM = ' + JSON.stringify(SZEM4_FARM.DOMINFO_FROM));
 } catch(e) {
 	debug('rebuildDOM_farms', e);
 	alert2('ERROR__ rebuild: \n' + e);
@@ -3288,6 +3303,7 @@ function szem4_GYUJTO_3elindit() { try{
 		scavTime = startButton.closest('.scavenge-option').querySelector('.duration-section');
 	}
 	if (buttons.length == 0 || scavTime.style.display == 'none') {
+		GYUJTO_STATE = 0;
 		const allReturnTimer = GYUJTO_REF.document.querySelectorAll('.return-countdown');
 		let d = getServerTime(GYUJTO_REF);
 		if (allReturnTimer.length == 0) {
@@ -3307,7 +3323,7 @@ function szem4_GYUJTO_3elindit() { try{
 	startButton.click();
 } catch(e) { console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
 function szem4_GYUJTO_motor() {
-	let nexttime = 2000;
+	let nexttime = 1000;
 	try {
 		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
 			nexttime=5000;
@@ -3328,7 +3344,6 @@ function szem4_GYUJTO_motor() {
 				case 2:
 					// Check, click, store
 					szem4_GYUJTO_3elindit();
-					GYUJTO_STATE = 0;
 					break;
 			}
 		}
@@ -3383,6 +3398,7 @@ function szem4_ADAT_loadNow(tipus) {try{
 	switch (tipus) {
 		case "farm":
 			SZEM4_FARM = Object.assign({}, SZEM4_FARM, dataObj);
+			debug('szem4_ADAT_loadNow', 'Loading debug: FROM = ' + JSON.stringify(SZEM4_FARM.DOMINFO_FROM));
 			rebuildDOM_farm();
 			break;
 		case "epit": szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
