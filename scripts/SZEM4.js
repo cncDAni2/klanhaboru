@@ -13,8 +13,14 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.13';
-var SZEM4_SETTINGS = {};
+var VERZIO = 'v4.6 Build 23.09.14';
+var SZEM4_SETTINGS = {
+	selectedProfile: 1,
+	profile1: {},
+	profile2: {},
+	profile3: {},
+	profile4: {}
+};
 var TIME_ZONE = 0;
 try{ /*Rendszeradatok*/
 	var AZON="S0";
@@ -270,6 +276,25 @@ function init(){try{
 		#adat_opts tr th {
 			text-align: center;
 			vertical-align: middle;
+		}
+		.profileselector {
+			display: flex;
+			justify-content: center;
+		}
+		.profileselector .profile {
+			background: white;
+			border: 1px solid transparent;
+			color: black;
+			padding: 10px;
+			margin: 5px;
+			cursor: pointer;
+		}
+		.profileselector .profile:hover {
+			border: 1px dashed blue;
+		}
+		.profileselector .profile.active {
+			background: grey;
+			border: 1px dashed black;
 		}
 		.szem4_vije_optsTable {
 			margin: initial;
@@ -560,7 +585,14 @@ function init(){try{
 			</b>
 		</div>
 		<h1 align="center">Háttér- és stílus beállítás</h1>
-		<div><table class="style-settings-table">
+		<div>
+			<div class="profileselector">
+				<div class="profile" onclick="selectTheme(1)">Téma 1</div>
+				<div class="profile" onclick="selectTheme(2)">Téma 2</div>
+				<div class="profile" onclick="selectTheme(3)">Téma 3</div>
+				<div class="profile" onclick="selectTheme(4)">Téma 4</div>
+			</div>
+			<table class="style-settings-table">
 			<tr><td>Bal háttérkép</td><td><input type="text" size="80" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"><br>
 										Videó: <input type="text" size="70" name="wallp_left_vid" value="-" onchange="onWallpChange()"><br>
 										Tükrözött? <input type="checkbox" onclick="onWallpChange()" name="wallp_left_mirror"></td><td rowspan="2">Videólink. Ha nincs/invalid, háttérkép. Ha az sincs akkor háttérszín lesz használva</td></tr>
@@ -571,10 +603,10 @@ function init(){try{
 			<tr><td>Tartalom betűszíne</td><td><input type="text" size="30" name="content_fontcolor" value="white" onchange="onWallpChange()"></td><td>[Default: white] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
 			<tr><td>Keret színe</td><td><input type="text" size="30" name="content_border" value="yellow" onchange="onWallpChange()"></td><td>[Default: yellow] Valid CSS "border-color" property támogatott. <a href="https://www.w3schools.com/css/css_border_color.asp" target="_BLANK">W3School link</a></td></tr>
 			<tr><td>Vetett árnyék</td><td><input type="text" size="30" name="content_shadow" value="0 0 12px black" onchange="onWallpChange()"></td><td>[Default: 0 0 12px black] Valid CSS "box-shadow" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_box-shadow.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Beállítás táblázat háttere</td>       <td><input type="text" size="30" name="table_bgcolor"      value="-" onchange="onWallpChange(undefined, 'table_bgcolor')"></td>     <td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Beállítás táblázat szövegszíne</td>   <td><input type="text" size="30" name="table_color"        value="-" onchange="onWallpChange(undefined, 'table_color')"></td>       <td>[Default: -] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Táblázatok fejlécének háttere</td>    <td><input type="text" size="30" name="table_head_bgcolor" value="-" onchange="onWallpChange(undefined, 'table_head_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
-			<tr><td>Táblázatok fejlécének szövegszíne</td><td><input type="text" size="30" name="table_head_color"   value="-" onchange="onWallpChange(undefined, 'table_head_color')"></td>  <td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Beállítás táblázat háttere</td>       <td><input type="text" size="30" name="table_bgcolor"      value="-" onchange="onWallpChange(true, 'table_bgcolor')"></td>     <td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Beállítás táblázat szövegszíne</td>   <td><input type="text" size="30" name="table_color"        value="-" onchange="onWallpChange(true, 'table_color')"></td>       <td>[Default: -] Minden CSS "color" property támogatott. <a href="https://www.w3schools.com/cssref/css_colors_legal.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Táblázatok fejlécének háttere</td>    <td><input type="text" size="30" name="table_head_bgcolor" value="-" onchange="onWallpChange(true, 'table_head_bgcolor')"></td><td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
+			<tr><td>Táblázatok fejlécének szövegszíne</td><td><input type="text" size="30" name="table_head_color"   value="-" onchange="onWallpChange(true, 'table_head_color')"></td>  <td>[Default: -] A háttér cellánként értendő. Minden CSS "background" property támogatott. <a href="https://www.w3schools.com/cssref/css3_pr_background.php" target="_BLANK">W3School link</a></td></tr>
 		</div></table>
 	</form></td></tr>
 </tbody></table>`;
@@ -594,6 +626,30 @@ function picBuilding(bId) {
 	return `<img src="https://dshu.innogamescdn.com/asset/88651122/graphic/buildings/mid/${bId}3.png">`;
 }
 
+function selectTheme(themeId) {
+	if (themeId == undefined || isNaN(themeId) || themeId < 0 || themeId > 4) themeId = 1;
+	SZEM4_SETTINGS.selectedProfile = themeId;
+	const themeboxes = document.querySelectorAll('.profileselector .profile');
+	themeboxes.forEach((el, i) => {
+		if (themeId == i+1) el.classList.add('active'); else el.classList.remove('active');
+	});
+	SZEM4_SETTINGS = Object.assign(SZEM4_SETTINGS, SZEM4_SETTINGS[`profile${themeId}`]);
+
+	//Load Theme
+	const loadObj = SZEM4_SETTINGS[`profile${themeId}`];
+	const themeOptions = document.querySelectorAll('#settings .style-settings-table input');
+	themeOptions.forEach((inputEl) => {
+		if (inputEl.name && loadObj[inputEl.name] !== undefined) {
+			if (inputEl.type === 'checkbox') {
+				inputEl.checked = loadObj[inputEl.name];
+			} else if (inputEl.value) {
+				inputEl.value = loadObj[inputEl.name];
+			}
+		}
+	});
+	onWallpChange(true, 'ALL');
+}
+
 function onWallpChange(isUpdate=true, changedText) {
 	const settingsForm = document.getElementById('settings');
 
@@ -611,7 +667,8 @@ function onWallpChange(isUpdate=true, changedText) {
 		document.querySelector('.right-background').classList.remove('mirrored_bg');
 
 	$('body').css('background',settingsForm.content_bgcolor.value);
-	$('.menuitem').css('background',settingsForm.content_bgcolor.value);
+	// $('.menuitem').css('background',settingsForm.content_bgcolor.value);
+	$('#content').css('background',settingsForm.content_bgcolor.value);
 	$('table.menuitem').css('color',settingsForm.content_fontcolor.value);
 	$('#content a').css('color',settingsForm.content_fontcolor.value);
 	$('table.style-settings-table').css('color',settingsForm.content_fontcolor.value);
@@ -1241,13 +1298,27 @@ function switchMobileMode() {
 }
 function saveSettings() {
 	const allOptions = document.getElementById('settings');
-	SZEM4_SETTINGS = {};
-	Array.from(allOptions.elements).forEach((input) => {
-		if (input.name) {
-			if (input.type === 'checkbox') {
-				SZEM4_SETTINGS[input.name] = input.checked;
-			} else if (input.value) {
-				SZEM4_SETTINGS[input.name] = input.value;
+	Array.from(allOptions.elements).forEach((inputEl) => {
+		if (inputEl.name) {
+			if (inputEl.type === 'checkbox') {
+				SZEM4_SETTINGS[inputEl.name] = inputEl.checked;
+			} else if (inputEl.value) {
+				SZEM4_SETTINGS[inputEl.name] = inputEl.value;
+			}
+		}
+	});
+
+	//Save Theme
+	let themeId = SZEM4_SETTINGS.selectedProfile;
+	if (themeId == undefined || isNaN(themeId) || themeId < 0 || themeId > 4) themeId = 1;
+	const saveObj = SZEM4_SETTINGS[`profile${themeId}`];
+	const themeOptions = document.querySelectorAll('#settings .style-settings-table input');
+	themeOptions.forEach((inputEl) => {
+		if (inputEl.name) {
+			if (inputEl.type === 'checkbox') {
+				saveObj[inputEl.name] = inputEl.checked;
+			} else if (inputEl.value) {
+				saveObj[inputEl.name] = inputEl.value;
 			}
 		}
 	});
@@ -1263,7 +1334,7 @@ function loadSettings() {
 			}
 		}
 	});
-	onWallpChange(false, 'ALL');
+	selectTheme(SZEM4_SETTINGS.selectedProfile);
 }
 
 function restartKieg(type) {
