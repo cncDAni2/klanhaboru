@@ -2092,7 +2092,7 @@ function updateAvailableUnits(attacker, isError=false) {try{
 		let unitToSend = isError ? 0 : parseInt(unitToSendString,10);
 		attacker.noOfUnits[UNITS[i]] = allUnit - unitToSend;
 	}
-}catch(e) { console.error(e); debug('updateAvailableUnits', e);}}
+}catch(e) { console.error(e); debug('updateAvailableUnits', `Lépés: ${FARM_LEPES}, hiba: ${e}`);}}
 function setNoUnits(attacker, unitType) {try{
 	for (let i=0;i<UNITS.length;i++) {
 		let unit = UNITS[i];
@@ -3365,7 +3365,7 @@ function szem4_GYUJTO_1keres() {try{
 		}
 	}
 	return true;
-} catch(e) { console.error(e); debug('szem4_GYUJTO_1keres', e); }}
+} catch(e) { GYUJTO_HIBA++; console.error(e); debug('szem4_GYUJTO_1keres', e); }}
 function szem4_GYUJTO_3elindit() { try{
 	const buttons = GYUJTO_REF.document.querySelectorAll('#scavenge_screen .free_send_button');
 	let startButton, scavTime;
@@ -3392,13 +3392,14 @@ function szem4_GYUJTO_3elindit() { try{
 		return;
 	}
 	startButton.click();
-} catch(e) { console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
+} catch(e) { GYUJTO_HIBA++; console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
 function szem4_GYUJTO_motor() {
 	let nexttime = 1000;
 	try {
 		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
 			nexttime=5000;
 		} else {
+			if (GYUJTO_HIBA > 5) {GYUJTO_STATE = 0; GYUJTO_HIBA = 0; }
 			switch (GYUJTO_STATE) {
 				case 0:
 					// Search & OpenVill
@@ -3410,11 +3411,13 @@ function szem4_GYUJTO_motor() {
 					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge')) {
 						GYUJTO_REF.$.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');
 						GYUJTO_STATE = 2;
-					}
+					} else GYUJTO_HIBA++;
 					break;
 				case 2:
 					// Check, click, store
-					szem4_GYUJTO_3elindit();
+					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge')) {
+						szem4_GYUJTO_3elindit();
+					} else GYUJTO_HIBA++;
 					break;
 			}
 		}
@@ -3431,6 +3434,7 @@ GYUJTO_VILLINFO = {}, // villId: {returned: xxx, }
 GYUJTO_STATE = 0,
 GYUJTO_REF,
 GYUJTO_DATA,
+GYUJTO_HIBA = 0,
 GYUJTO_PAUSE = false;
 ujkieg('gyujto','Gyűjtő',`<tr><td>
 	<h2 align="center">3rdparty gyűjtögető</h2>
