@@ -652,6 +652,20 @@ function selectTheme(themeId) {
 
 function onWallpChange(isUpdate=true, changedText) {
 	const settingsForm = document.getElementById('settings');
+	for (let i=0;i<settingsForm.length;i++) {
+		const el = settingsForm[i];
+		if (el.type == 'text' && el.value === '') el.value = '-';
+	}
+
+	if (settingsForm.wallp_left_vid.value === '-')
+		document.querySelector('.left-background video').style.display = 'none';
+	else
+		document.querySelector('.left-background video').style.display = 'inline';
+
+	if (settingsForm.wallp_right_vid.value === '-')
+		document.querySelector('.right-background video').style.display = 'none';
+	else
+		document.querySelector('.right-background video').style.display = 'inline';
 
 	document.querySelector('.left-background video').src = settingsForm.wallp_left_vid.value;
 	document.querySelector('.right-background video').src = settingsForm.wallp_right_vid.value;
@@ -1165,9 +1179,10 @@ function addFreezeNotification() {
 
 var BOTORA, ALTBOT2=false, BOT_VOL=0.0; /*ALTBOT2 --> megnyílt e már 1x az ablak*/
 var BOT_REF;
-function BotvedelemBe(){
-	try{
+function BotvedelemBe() {
+	try {
 		let isload = true;
+		BOT = true;
 		if (!BOT_REF || BOT_REF.closed) {
 			BOT_REF = window.open(VILL1ST);
 			isload = false;
@@ -1180,7 +1195,7 @@ function BotvedelemBe(){
 			if (BOT_REF.document.querySelector('#bot_check a'))
 				BOT_REF.document.querySelector('#bot_check a').click();
 		}
-		if (isload && !(BOT_REF.document.getElementById('bot_check') || BOT_REF.document.getElementById('popup_box_bot_protection') || BOT_REF.document.title=="Bot védelem" || BOT_REF.document.getElementById('botprotection_quest'))) {
+		if (isload && BOT_REF.document.querySelector('#bot_check') == null && BOT_REF.document.querySelector('#popup_box_bot_protection') == null && BOT_REF.document.querySelector('#botprotection_quest') == null) {
 			BotvedelemKi();
 			return;
 		}
@@ -1188,7 +1203,6 @@ function BotvedelemBe(){
 		if (BOT_VOL>1.0) BOT_VOL=1.0;
 		soundVolume(BOT_VOL);
 		playSound("bot2");
-		BOT=true;
 		alert2('BOT VÉDELEM!!!<br>Írd be a kódot, és kattints ide lentre!<br><br><a href="javascript: BotvedelemKi()">Beírtam a kódot, mehet tovább!</a>');
 		if (SZEM4_SETTINGS.altbot && !ALTBOT2) {
 			window.open(document.getElementById("altbotURL").value);
@@ -1347,6 +1361,12 @@ function restartKieg(type) {
 		}
 	}, 133);
 }
+function sendCustomEvent(messageId, data={}) {
+	const customEvent = new CustomEvent(messageId, {
+		detail: data
+	});
+	document.dispatchEvent(customEvent);
+}
 /* ------------------- FARMOLÓ ----------------------- */
 function drawWagons(koord) {
 	let farms = document.getElementById('farm_hova').rows;
@@ -1488,6 +1508,7 @@ function add_farmolo(){ try{
 				SZEM4_FARM.DOMINFO_FROM[faluk[i]].noOfUnits[el.name] = 999;
 			});
 
+			debug('add_farmolo', `Calling add_attackerRow with ${faluk[i]}`);
 			add_attackerRow(faluk[i]);
 		}
 	}
@@ -1510,6 +1531,7 @@ function hideFarms() {
 }
 
 function add_attackerRow(attackerCoord) {
+	debug('add_attackerRow', `Added new vill ${attackerCoord}`);
 	const attackerRow = document.querySelector(`#ffrom_${attackerCoord.replace('|','-')}`);
 	if (!attackerRow) {
 		// CREATE
@@ -2364,6 +2386,7 @@ function szem4_farmolo_motor(){
 						nexttime=parseInt(document.getElementById("farmolo_options").sebesseg_p.value,10);
 						nexttime*=60000;
 						isPihen = true;
+						sendCustomEvent('farm_pihen');
 						// Reset round
 						for (let aUnit in SZEM4_FARM.DOMINFO_FROM) {
 							Object.keys(SZEM4_FARM.DOMINFO_FROM[aUnit].noOfUnits).reduce((item, key) => {
@@ -3389,8 +3412,10 @@ function szem4_GYUJTO_3elindit() { try{
 		});
 
 		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 10);
+		GYUJTO_HIBA = 0;
 		return;
 	}
+	GYUJTO_HIBA++;
 	startButton.click();
 } catch(e) { GYUJTO_HIBA++; console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
 function szem4_GYUJTO_motor() {
@@ -3474,6 +3499,10 @@ function szem4_ADAT_loadNow(tipus) {try{
 		case "farm":
 			SZEM4_FARM = Object.assign({}, SZEM4_FARM, dataObj);
 			debug('szem4_ADAT_loadNow', 'Loading debug: FROM = ' + JSON.stringify(SZEM4_FARM.DOMINFO_FROM));
+			debug('szem4_ADAT_loadNow', 'Loading debug: FROM original = ' + JSON.stringify(dataObj));
+			if (Object.keys(SZEM4_FARM.DOMINFO_FROM) == 0) {
+				alert('Nem található a model-ben farmoló falu. Hiba? Lehet újra hozzá kell adnod.')
+			}
 			rebuildDOM_farm();
 			break;
 		case "epit": szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
@@ -3663,7 +3692,7 @@ function loadCloudDataIntoLocal() {
 	readUpData().then((cloudData) => {
 		localStorage.setItem(AZON+"_farm",   cloudData.farm);
 		localStorage.setItem(AZON+"_vije",   cloudData.vije);
-		localStorage.setItem(AZON+"_epit",  cloudData.epit);
+		localStorage.setItem(AZON+"_epit",   cloudData.epit);
 		localStorage.setItem(AZON+"_sys",    cloudData.sys);
 		localStorage.setItem(AZON+"_gyujto", cloudData.gyujto);
 		szem4_ADAT_LoadAll();
@@ -3811,10 +3840,11 @@ $(document).ready(function(){
 
 });
 /*
+FEAT: Gyűjtő strat: Legkésőbbit várja/azonnal menjen
+FEAT: document.addEventListener() -- sync-elés gyűjtögetővel ill. VIJE-vel
 NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen ~~ Helye: "Farmolandó falu hozzáadása" cells[2]-be 
 BUG: Zöld háttérjelzést mindig kiszedi miután elemez... 0-s volt, 0-s lett, kém is volt, de bumm eltűnt!
 BUG: Bot védelemkor nagyon sokszor írja hogy bot védelem + duplán csipog + kiütéskor nem frissíti a lapokat + hibára futkos váhhhh
-FEAT: Téma profil
 FEAT: Jelszóvédett profil
 MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
 ADDME: J? -> FAKE limit, és ennek figyelembe vétele
