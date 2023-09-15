@@ -2768,8 +2768,9 @@ function szem4_VIJE_2elemzes(adatok){try{
 	hungarianDate = new Date(Date.parse(hungarianDate.replace(/jan\./g, "Jan").replace(/febr?\./g, "Feb").replace(/márc\./g, "Mar").replace(/ápr\./g, "Apr").replace(/máj\./g, "May").replace(/jún\./g, "Jun").replace(/júl\./g, "Jul").replace(/aug\./g, "Aug").replace(/szept\./g, "Sep").replace(/okt\./g, "Oct").replace(/nov\./g, "Nov").replace(/dec\./g, "Dec")));
 	hungarianDate = hungarianDate.getTime();
 	if (SZEM4_VIJE.ALL_VIJE_SAVED[adatok[1]] >= hungarianDate) isOld = true;
-	if (!isOld && VIJE_REF2.document.getElementById("attack_spy_resources")) {
+	if (!isOld && VIJE_REF2.document.querySelector('#attack_spy_resources') !== null && VIJE_REF2.document.querySelector('#attack_spy_resources').rows[0].cells[1].querySelector('a') == null) {
 		var x=VIJE_REF2.document.getElementById("attack_spy_resources").rows[0].cells[1];
+
 		if (adatok[4]) { var nyersossz=''; debug("VIJE2","Nem kell elemezni (régi)"); } else {
 			try{
 				if (/\d/.test(x.textContent)) {
