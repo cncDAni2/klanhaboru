@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.14';
+var VERZIO = 'v4.6 Build 23.09.16';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -197,6 +197,7 @@ function init(){try{
 			color: white;
 			position: relative;
 			box-shadow: 0 0 12px black;
+			z-index: 3;
 		}
 		.fej a {
 			color: white;
@@ -595,7 +596,7 @@ function init(){try{
 			<table class="style-settings-table">
 			<tr><td>Bal háttérkép</td><td><input type="text" size="80" name="wallp_left" value="${pic('default_bg_left.jpg')}" onchange="onWallpChange()"><br>
 										Videó: <input type="text" size="70" name="wallp_left_vid" value="-" onchange="onWallpChange()"><br>
-										Tükrözött? <input type="checkbox" onclick="onWallpChange()" name="wallp_left_mirror"></td><td rowspan="2">Videólink. Ha nincs/invalid, háttérkép. Ha az sincs akkor háttérszín lesz használva</td></tr>
+										Tükrözött? <input type="checkbox" onclick="onWallpChange()" name="wallp_left_mirror"></td><td rowspan="2">Videólink. Ha nem szeretnél írj "-" -t, és háttérképet használ. Ha az sincs vagy érvénytelen, akkor háttérszín lesz használva</td></tr>
 			<tr><td>Jobb háttérkép</td><td><input type="text" size="80"  name="wallp_right" value="${pic('default_bg_right.jpg')}" onchange="onWallpChange()"><br>
 										Videó: <input type="text" size="70" name="wallp_right_vid" value="-" onchange="onWallpChange()"><br>
 										Tükrözött? <input type="checkbox" onclick="onWallpChange()" name="wallp_right_mirror"></td></tr>
@@ -3382,7 +3383,7 @@ function szem4_GYUJTO_1keres() {try{
 	let d = getServerTime();
 	for (let vill in SZEM4_GYUJTO) {
 		if (SZEM4_GYUJTO[vill] === true && (!GYUJTO_VILLINFO[vill] || GYUJTO_VILLINFO[vill] < d)) {
-			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
+			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace(/village=[0-9]+/g, 'village=' + vill).replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
 			GYUJTO_STATE = 1;
 			GYUJTO_DATA = vill;
 			return false;
@@ -3843,6 +3844,11 @@ $(document).ready(function(){
 /*
 FEAT: Gyűjtő strat: Legkésőbbit várja/azonnal menjen
 FEAT: document.addEventListener() -- sync-elés gyűjtögetővel ill. VIJE-vel
+FEAT: VIJE: "FARM" jelentést törli. Szóval ha kos v ilyesmi van, azt ne!
+FEAT: VIJE: PF-el látni hogy van-e ott még nyers - ha csak arra vagyunk kíváncsiak akkor... use_this
+REFACT: VIJE: Van olyan script ami csinál statot a jelikből, azt h csinálja? PF esetén csak? Lehetne használni, nem megnyitogatni egyesivel
+REFACT: VIJE: utolsó kémkedés IDEJÉT ne törölje már, max ha már csak pl. 3 napos v ilyesmi ~> "Ismeretlen/régi" is az legyen hogy ">3 napos". Nézi hogy ennél frissebb-e az elemzett jeli? + hogy az ELEMZETT-ek listájában nincs-e benne ugye
+FEAT: Scav -> $.getScript('https://gistcdn.githack.com/filipemiguel97/ba2591b1ae081c1cfdbfc2323145e331/raw/scavenging_legal.js') -> new strat? Mindig futtatni kell, ki kéne belezni
 NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen ~~ Helye: "Farmolandó falu hozzáadása" cells[2]-be 
 BUG: Zöld háttérjelzést mindig kiszedi miután elemez... 0-s volt, 0-s lett, kém is volt, de bumm eltűnt!
 BUG: Bot védelemkor nagyon sokszor írja hogy bot védelem + duplán csipog + kiütéskor nem frissíti a lapokat + hibára futkos váhhhh
