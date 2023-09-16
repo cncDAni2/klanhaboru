@@ -3430,7 +3430,10 @@ function szem4_GYUJTO_motor() {
 			switch (GYUJTO_STATE) {
 				case 0:
 					// Search & OpenVill
-					if (szem4_GYUJTO_1keres()) nexttime = 60000;
+					if (szem4_GYUJTO_1keres()) {
+						nexttime = 60000;
+						if (MOBILE_MODE) GYUJTO_REF.close()
+					}
 					if (GYUJTO_REF && GYUJTO_REF.document) GYUJTO_REF.document.title = 'szem4/gyűjtögető';
 					break;
 				case 1:
