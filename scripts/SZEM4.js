@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.16';
+var VERZIO = 'v4.6 Build 23.09.21';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -211,6 +211,14 @@ function init(){try{
 			top: 0;
 			left: -22px;
 			width: 18px;
+		}
+		#debugger {
+			table-layout: fixed;
+    		width: 100%;
+		}
+		#debugger td, #debugger th {
+			word-wrap: break-word;
+    		max-width: 100%;
 		}
 		#global_notifications img { width: 18px; }
 		#global_notifications img.rotate { animation: rotation 2s infinite linear; }
@@ -552,8 +560,15 @@ function init(){try{
 		<br>
 		<br>
 		<button type="button" onclick="debug_urit()">Ürít</button>
-		<button type="button" onclick="switchMobileMode()">Mobile_mode</button>
-		<table align="center" class="vis" id="debugger"><tbody>
+		<button type="button" onclick="switchMobileMode()">Mobile_mode</button><br>
+		<br>
+		<table align="center" class="vis" id="debugger">
+		<colgroup>
+			<col style="width: 165px;">
+			<col style="width: 165px;">
+			<col style="width: calc(100% - 330px);">
+		</colgroup>
+		<tbody>
 			<tr>
 				<th onclick="rendez('datum2',false,this,'debugger',0)" style="cursor: pointer;">Dátum</th>
 				<th onclick="rendez('szoveg',false,this,'debugger',1)" style="cursor: pointer;">Script</th>
@@ -906,7 +921,7 @@ function debug_urit() {
 function ujkieg(id,nev,tartalom){
 	if (document.getElementById(nev)) return false;
 	ALL_EXTENSION.push(id);
-	document.getElementById("kiegs").innerHTML+='<img onclick=\'szunet("'+id+'",this)\' name="'+id+'" onmouseover=\'sugo(this,"Az érintett scriptet tudod megállítani/elindítani.")\' src="'+pic(((id=='farm'||id=='vije')?'pause':'play')+ ".png")+'" alt="Stop" title="Klikk a szüneteltetéshez"> <a href=\'javascript: nyit("'+id+'");\'>'+nev.toUpperCase()+'</a> ';
+	document.getElementById("kiegs").innerHTML+='<img onclick=\'szunet("'+id+'",this)\' name="'+id+'" onmouseover=\'sugo(this,"Az érintett scriptet tudod megállítani/elindítani.")\' src="'+pic(((id=='farm'||id=='vije'||id=='gyujto')?'pause':'play')+ ".png")+'" alt="Stop" title="Klikk a szüneteltetéshez"> <a href=\'javascript: nyit("'+id+'");\'>'+nev.toUpperCase()+'</a> ';
 	document.getElementById("content").innerHTML+='<table class="menuitem" width="1024px" align="center" id="'+id+'" style="display: none">'+tartalom+'</table>';
 	return true;
 }
@@ -2198,8 +2213,15 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 		extendArmy(plannedArmy, bestPlan.fromVill, bestPlan.slowestUnit);
 	}
 	if (!plannedArmy.units || plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam) {
-		console.info(`Invalid config, replanning. minSereg: ${minSereg}, hatarszam: ${hatarszam}, prodHour: ${SZEM4_FARM.DOMINFO_FARMS[bestPlan.farmVill].prodHour} Config was:`, JSON.stringify(bestPlan), 'Config expected: ', JSON.stringify(plannedArmy));
-		return 'semmi'; // FIXME: Nem jó, újratervezés
+	/*
+		Invalid config, replanning. minSereg: 4, hatarszam: 173.7, prodHour: 347.4
+		Config was: {"fromVill":"420|543","farmVill":"418|534","units":{"pop":4,"light":1},"travelTime":93.12671168982715,"slowestUnit":"light","nyersToFarm":348,"debug_teher":80,"debug_hatar":173.7,"isMax":true}
+		Config expected:  {"units":{"pop":4,"light":1},"teher":80}
+ 	*/
+		console.info(`Invalid config, replanning. minSereg: ${minSereg}, isMax? ${bestPlan.isMax} hatarszam: ${hatarszam}, prodHour: ${SZEM4_FARM.DOMINFO_FARMS[bestPlan.farmVill].prodHour}`,
+			`Config was: ${JSON.stringify(bestPlan)}`,
+			`Config expected: ${JSON.stringify(plannedArmy)}`);
+		return 'semmi'; // Nem jó, újratervezés
 	}
 	bestPlan.nyersToFarm = plannedArmy.teher;
 
@@ -3413,7 +3435,7 @@ function szem4_GYUJTO_3elindit() { try{
 			timesInSec.push(hours * 3600 + minutes * 60 + seconds);
 		});
 
-		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 10);
+		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 30);
 		GYUJTO_HIBA = 0;
 		return;
 	}
@@ -3426,7 +3448,12 @@ function szem4_GYUJTO_motor() {
 		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
 			nexttime=5000;
 		} else {
-			if (GYUJTO_HIBA > 5) {GYUJTO_STATE = 0; GYUJTO_HIBA = 0; }
+			if (GYUJTO_HIBA > 5) {
+				naplo('szem4_GYUJTO_motor', 'Valami baj van a gyűjtögetőnél - újraindítom...');
+				GYUJTO_REF.close();
+				GYUJTO_STATE = 0;
+				GYUJTO_HIBA = 0;
+			}
 			switch (GYUJTO_STATE) {
 				case 0:
 					// Search & OpenVill
@@ -3465,7 +3492,7 @@ GYUJTO_STATE = 0,
 GYUJTO_REF,
 GYUJTO_DATA,
 GYUJTO_HIBA = 0,
-GYUJTO_PAUSE = false;
+GYUJTO_PAUSE = true;
 ujkieg('gyujto','Gyűjtő',`<tr><td>
 	<h2 align="center">3rdparty gyűjtögető</h2>
 	<h4 align="center">Powered by TwCheese</h4>
@@ -3643,7 +3670,7 @@ function loadCloudSync() {
 			CLOUD_AUTHS = JSON.parse(CLOUD_AUTHS);
 			if (!CLOUD_AUTHS.authDomain || !CLOUD_AUTHS.projectId || !CLOUD_AUTHS.storageBucket || !CLOUD_AUTHS.messagingSenderId || !CLOUD_AUTHS.appId || !CLOUD_AUTHS.email || !CLOUD_AUTHS.password || !CLOUD_AUTHS.collection || !CLOUD_AUTHS.myDocument)
 				throw 'Must consist these fields: authDomain projectId storageBucket messagingSenderId appId email password';
-		} catch(e) { naplo('Sync', 'Invalid Auth data ' + e); }
+		} catch(e) { naplo('☁️ Sync', 'Invalid Auth data ' + e); }
 	} else {
 		return;
 	}
@@ -3675,7 +3702,7 @@ function loadCloudSync() {
 					return 'Error: '+e;
 				}
 			}
-			window.naplo('Sync', 'Firebase felhő kapcsolat létrejött');
+			window.naplo('☁️ Sync', 'Firebase felhő kapcsolat létrejött');
 			if (confirm("Firebase adatok importálása helyi adatokra?")) {
 				window.loadCloudDataIntoLocal();
 				window.document.querySelector('#adat_opts input[name="cloud"]').checked = true;
@@ -3776,17 +3803,16 @@ $(document).ready(function(){
 	nyit("naplo");
 	naplo('Globál','Verzió ['+VERZIO+'] legfrissebb állapotban, GIT-ről szedve.');
 	naplo("Indulás","SZEM 4.6 elindult.");
-	naplo("Indulás","Farmolók szünetelő módban.");
-	naplo("Indulás","⚠️ Teljes adatmentés átalakítás történt, a korábbi lementésed ebben a verzióban már nem érvényes.");
-	if (TIME_ZONE != 0) naplo('Időzóna 🕐', `Időeltolódás frissítve: eltolódás ${TIME_ZONE} perccel.`);
+	naplo("Indulás","Kiegészítők szünetelő módban.");
+	if (TIME_ZONE != 0) naplo('🕐 Időzóna', `Időeltolódás frissítve: eltolódás ${TIME_ZONE} perccel.`);
 	soundVolume(0.0);
 	playSound("bot2"); /* Ha elmegy a net, tudjon csipogni */
 	if (confirm("Engedélyezed az adatok mentését?\nKésőbb is elindíthatja, ha visszapipálja a mentés engedélyezését - ekkor szükséges kézi adatbetöltés is előtte.")) {
 		if (CLOUD_AUTHS) {
-			naplo("Sync","Connecting to Firebase Cloud System...");
+			naplo("☁️ Sync","Connecting to Firebase Cloud System...");
 			loadCloudSync();
 		} else {
-			naplo("Sync","Firebase Cloud System is not setup. Create 'szem_firebase' localStorage item with credentials");
+			naplo("☁️ Sync","Firebase Cloud System is not setup. Create 'szem_firebase' localStorage item with credentials");
 			naplo("Adat","Adatbetöltés helyi adatokból...");
 			szem4_ADAT_LoadAll();
 		}
@@ -3845,43 +3871,43 @@ $(document).ready(function(){
 
 });
 /*
-FEAT: Gyűjtő strat: Legkésőbbit várja/azonnal menjen
-FEAT: document.addEventListener() -- sync-elés gyűjtögetővel ill. VIJE-vel
+Important addons
+	FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
+	  Teszt: ANY(FASTEST(MINES 25))
+
+Essencial functions
+	FEAT: Menetrend Switcher: Ne idő, hanem határszám alapú legyen. Input disabled legyen + kiírás. Határszám alapúnál legyen minimum vonatköz is, azaz pl. 10p-enkéntnél gyakrabban ne támadja
+	FEAT: Gyűjtő strat: Legkésőbbit várja/azonnal menjen
+	FEAT: document.addEventListener() -- sync-elés gyűjtögetővel ill. VIJE-vel
+	REFACT: VIJE: utolsó kémkedés IDEJÉT ne törölje már, max ha már csak pl. 3 napos v ilyesmi ~> "Ismeretlen/régi" is az legyen hogy ">3 napos". Nézi hogy ennél frissebb-e az elemzett jeli? + hogy az ELEMZETT-ek listájában nincs-e benne ugye
+	ADDME: Farmok rendezése táv szerint
+POCs
+	REFACT: VIJE: Van olyan script ami csinál statot a jelikből, azt h csinálja? PF esetén csak? Lehetne használni, nem megnyitogatni egyesivel ->  https://twscripts.dev/scripts/farmingEfficiencyCalculator.js
+Téma
+	FEAT: Jelszóvédett profil
+	ADDME: Effect themes: Hozzuk be a havas témám a weboldalról, valamint legyen hullámzó víz a content tetején, átlátszó? egérre mozgó? https://jsfiddle.net/TjaBz/
+Speedups/simplify/shadow modes
+	ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
+UI 
+	CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
+	FIXME: Header rész újra átdolgozása: több soros sok-kieg.-re felkészülés
+	ADDME: Defibrillátor - minden script state-ét 0-ra állítja, mindent stop-ol majd elindítja a motorokat. Manuális lefejlesztés
+	ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT FOR [x] MINUTES
+	
+	
 FEAT: VIJE: "FARM" jelentést törli. Szóval ha kos v ilyesmi van, azt ne!
-FEAT: VIJE: PF-el látni hogy van-e ott még nyers - ha csak arra vagyunk kíváncsiak akkor... use_this
-REFACT: VIJE: Van olyan script ami csinál statot a jelikből, azt h csinálja? PF esetén csak? Lehetne használni, nem megnyitogatni egyesivel
-REFACT: VIJE: utolsó kémkedés IDEJÉT ne törölje már, max ha már csak pl. 3 napos v ilyesmi ~> "Ismeretlen/régi" is az legyen hogy ">3 napos". Nézi hogy ennél frissebb-e az elemzett jeli? + hogy az ELEMZETT-ek listájában nincs-e benne ugye
 FEAT: Scav -> $.getScript('https://gistcdn.githack.com/filipemiguel97/ba2591b1ae081c1cfdbfc2323145e331/raw/scavenging_legal.js') -> new strat? Mindig futtatni kell, ki kéne belezni
 NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen ~~ Helye: "Farmolandó falu hozzáadása" cells[2]-be 
-BUG: Zöld háttérjelzést mindig kiszedi miután elemez... 0-s volt, 0-s lett, kém is volt, de bumm eltűnt!
-BUG: Bot védelemkor nagyon sokszor írja hogy bot védelem + duplán csipog + kiütéskor nem frissíti a lapokat + hibára futkos váhhhh
-FEAT: Jelszóvédett profil
-MAIN BUG: Ha max időre is kevés a sereg, akkor küldendő sereg = min sereg kéne
 ADDME: J? -> FAKE limit, és ennek figyelembe vétele
-ADDME: Farmok rendezése táv szerint
-ADDME: Effect themes: Hozzuk be a havas témám a weboldalról, valamint legyen hullámzó víz a content tetején, átlátszó? egérre mozgó? https://jsfiddle.net/TjaBz/
-CONVERT: alert notification áthelyezése, +önmagától idővel eltűnő alertek
 FEAT: Minden kiírt falu ami a tied, rátéve az egeret írja ki a nevét, és ha a csoportképzőbe csoporthoz van adva, akkor azt is!
 FEAT: Ahol játékos van, azt a jelit ne törölje, hiába zöld a jelentés. 
-FEAT: Kék hátteret a bányára menti, de elvileg nem kéne merthogy... tudjuk, nem?
-FIXME: Header rész újra átdolgozása: több soros sok-kieg.-re felkészülés
 ADDME: VIJE opciók: [] zöld kém nélküli jeliket törölje csak
-ADDME: Sebesség ms-e leOKézáskor ne legyen érvényes, azt csinálja gyorsabban (konstans rnd(500ms)?)
-FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
-	Teszt: ANY(FASTEST(MINES 25))
 FEAT: Építőbe TRAIN xx; épület, ami xx barakk és xx-5 istállót épít felváltva
 NEW KIEG: Farmkezelő bot: Szimplán nézi a "Time"-ot, és ha user általa megadott időn belül van, akkor C-t nyom, ellenben meg A-t.
-ADDON: Defibrillátor - minden script state-ét 0-ra állítja, mindent stop-ol majd elindítja a motorokat. Manuális lefejlesztés
 FEAT: Reset - Adatmentőbe hiányzó függvény. Az alap értékeket állítja be neki.
 
-FARMVÉDŐ
-ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
-minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
-FAL	MIN
-0	80 lándzsa	4 kard+6 lándzsa	3 bárd+6 lándzsa	1 ló
-1	8800lándzsa	300k+200 lándzsa	100b+50 lándzsa		4 kló	6 íló	(3nló)
-2	32 kl	6kl+10íló
-
+FEAT: VIJE: PF-el látni hogy van-e ott még nyers - ha csak arra vagyunk kíváncsiak akkor... use_this
+FEAT: Kék hátteret a bányára menti, de elvileg nem kéne merthogy... tudjuk, nem?
 NEW FEATURE: Ha egy parancs screen-jén futtatjuk SZEM-et, elemezze be azt, és vegye fel mint sereg (kellene hozzá támadásID lementés is?)
 
 - Hang átdolgozás: Választó
@@ -3891,12 +3917,20 @@ ADDME: szüneteltethető a falu támadása pipára mint a "J?" oszlop ~~> Ikon l
 ADDME: Minimalistic view: Karikába hogy SZEM4, alá heartbeat, listázni a szünetelt kiegeket, Sebesség/max táv infót?
 NEW KIEG: Autoclicker: CSS leíró + perc + ALL/1st választó -> nyom rá click() eventeket
 NEW KIEG: Auto katázó: Beadod mely faluból max hány percre, mely falukat. VIJE adatai alapján küldi, [] x+1 épületszintet feltételezve 1esével bontásra. [] előtte 2/4 kos v 2/6 kata falra
+NEW KIEG: Auto kosozó: falszintenként 2 féle sereg-template, + max idő
 ADDME: VIJE stat, h hány %-osan térnek vissza az egységek. Óránként resettelni!?
 ADDME: Ai: Automatikus, falunkénti megbízhatóság- és hatászám számolás. Csak perc alapú, és farmvédő alapú
 EXTRA: Pihenés sync: Ha Farmoló pihen, VIJE is (külön opció VIJE-nél: recommended ha zöld-törlése be van pipálva). Előbb VIJE, aztán farmolás!
 ADDME: Signal-system: A főbb botok tudják egymásnak jelezni hogy ki dolgozik mikor, és ne üssék egymást, ill. tudjanak ezáltal adatot átdobni egymásnak
-ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT FOR [x] MINUTES
 ADDME: Teherbírás módosító
+
+FARMVÉDŐ (Nem kell, helyette jó a >fal nézés)
+ADDME: New kieg.: FARMVÉDŐ (Farmolóba, opciókhoz)
+minimum sereg definiálása falszintenként kísérő (ami kard, bárd, vagy kl lehet csak)+any.unit
+FAL	MIN
+0	80 lándzsa	4 kard+6 lándzsa	3 bárd+6 lándzsa	1 ló
+1	8800lándzsa	300k+200 lándzsa	100b+50 lándzsa		4 kló	6 íló	(3nló)
+2	32 kl	6kl+10íló
 */
 
 void(0);
