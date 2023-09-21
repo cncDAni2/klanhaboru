@@ -2213,11 +2213,13 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 		extendArmy(plannedArmy, bestPlan.fromVill, bestPlan.slowestUnit);
 	}
 	if (!plannedArmy.units || plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam) {
-	/*
-		Invalid config, replanning. minSereg: 4, hatarszam: 173.7, prodHour: 347.4
-		Config was: {"fromVill":"420|543","farmVill":"418|534","units":{"pop":4,"light":1},"travelTime":93.12671168982715,"slowestUnit":"light","nyersToFarm":348,"debug_teher":80,"debug_hatar":173.7,"isMax":true}
-		Config expected:  {"units":{"pop":4,"light":1},"teher":80}
- 	*/
+		if (bestPlan.isMax && plannedArmy.teher < hatarszam)  {
+			// Ha olyan messzi van a falu, amire a megbízhatóságnyi szintet is el tudná hozni, de olyan kevés ott a sereg, hogy az még a határszámnyi elhozásra se elég.
+			for (let unitType in plannedArmy.units) {
+				if (unitType === 'pop') continue;
+				SZEM4_FARM.DOMINFO_FROM[bestPlan.fromVill].noOfUnits[unitType] = 0;
+			}
+		}
 		console.info(`Invalid config, replanning. minSereg: ${minSereg}, isMax? ${bestPlan.isMax} hatarszam: ${hatarszam}, prodHour: ${SZEM4_FARM.DOMINFO_FARMS[bestPlan.farmVill].prodHour}`,
 			`Config was: ${JSON.stringify(bestPlan)}`,
 			`Config expected: ${JSON.stringify(plannedArmy)}`);
@@ -3893,9 +3895,12 @@ UI
 	FIXME: Header rész újra átdolgozása: több soros sok-kieg.-re felkészülés
 	ADDME: Defibrillátor - minden script state-ét 0-ra állítja, mindent stop-ol majd elindítja a motorokat. Manuális lefejlesztés
 	ADDME: [Lebegő ablak] PAUSE ALL, I'M OUT FOR [x] MINUTES
+	ADDME: Új üzenet érkezett icon
+	ADDME: Bejövők száma/Új bejövők száma icon
 	
 	
 FEAT: VIJE: "FARM" jelentést törli. Szóval ha kos v ilyesmi van, azt ne!
+FEAT: VIJE: Silence mód: Csak színeket nézzen, színváltozás esetén nyissa csak a jelit (igen, így a kéket mindig)
 FEAT: Scav -> $.getScript('https://gistcdn.githack.com/filipemiguel97/ba2591b1ae081c1cfdbfc2323145e331/raw/scavenging_legal.js') -> new strat? Mindig futtatni kell, ki kéne belezni
 NEW FEATURE: Frissítse a bari listát: használja a birKer-t, nekünk csak egy számot kelljen megadni, hány mezőre keressen ~~ Helye: "Farmolandó falu hozzáadása" cells[2]-be 
 ADDME: J? -> FAKE limit, és ennek figyelembe vétele
