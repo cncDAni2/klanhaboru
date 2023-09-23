@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.21';
+var VERZIO = 'v4.6 Build 23.09.23';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -675,16 +675,20 @@ function onWallpChange(isUpdate=true, changedText) {
 
 	if (settingsForm.wallp_left_vid.value === '-')
 		document.querySelector('.left-background video').style.display = 'none';
-	else
+	else {
 		document.querySelector('.left-background video').style.display = 'inline';
+		loadVideoWithRetry(document.querySelector('.left-background video'), settingsForm.wallp_left_vid.value);
+	}
 
 	if (settingsForm.wallp_right_vid.value === '-')
 		document.querySelector('.right-background video').style.display = 'none';
-	else
+	else {
 		document.querySelector('.right-background video').style.display = 'inline';
+		loadVideoWithRetry(document.querySelector('.right-background video'), settingsForm.wallp_right_vid.value);
+	}
 
-	document.querySelector('.left-background video').src = settingsForm.wallp_left_vid.value;
-	document.querySelector('.right-background video').src = settingsForm.wallp_right_vid.value;
+	// document.querySelector('.left-background video').src = settingsForm.wallp_left_vid.value;
+	// document.querySelector('.right-background video').src = settingsForm.wallp_right_vid.value;
 	document.getElementsByClassName('left-background')[0].style.backgroundImage = `url('${settingsForm.wallp_left.value}')`;
 	document.getElementsByClassName('right-background')[0].style.backgroundImage = `url('${settingsForm.wallp_right.value}')`;
 	if (settingsForm.wallp_left_mirror.checked)
@@ -706,31 +710,58 @@ function onWallpChange(isUpdate=true, changedText) {
 	$('.fej > table').css('border-color', settingsForm.content_border.value);
 	$('#content > table').css('box-shadow', settingsForm.content_shadow.value);
 	$('.fej').css('box-shadow', settingsForm.content_shadow.value);
-	if (changedText == 'table_bgcolor' || changedText == 'ALL') {
+	if (changedText === 'table_bgcolor' || changedText === 'ALL') {
 		const styleElement = $("<style>")
 			.attr("type", "text/css")
 			.html(`.vis:not(#farm_honnan):not(#farm_hova) td { background: ${settingsForm.table_bgcolor.value}; }`);
 		$("head").append(styleElement);
 	}
-	if (changedText == 'table_head_bgcolor' || changedText == 'ALL') {
+	if (changedText === 'table_head_bgcolor' || changedText === 'ALL') {
 		const styleElement = $("<style>")
 			.attr("type", "text/css")
 			.html(`.vis th { background: ${settingsForm.table_head_bgcolor.value} !important; }`);
 		$("head").append(styleElement);
 	}
-	if (changedText == 'table_color' || changedText == 'ALL') {
+	if (changedText === 'table_color' || changedText === 'ALL') {
 		const styleElement = $("<style>")
 			.attr("type", "text/css")
 			.html(`.vis:not(#farm_honnan):not(#farm_hova) td { color: ${settingsForm.table_color.value}; }`);
 		$("head").append(styleElement);
 	}
-	if (changedText == 'table_head_color' || changedText == 'ALL') {
+	if (changedText === 'table_head_color' || changedText === 'ALL') {
 		const styleElement = $("<style>")
 			.attr("type", "text/css")
 			.html(`.vis th { color: ${settingsForm.table_head_color.value} !important; }`);
 		$("head").append(styleElement);
 	}
 	if (isUpdate) saveSettings();
+
+	function loadVideoWithRetry(videoElement, videoSrc, maxAttempts=5, delayBetweenAttempts=1000) {
+		let attempts = 0;
+	
+		function tryLoadVideo() {
+			if (attempts >= maxAttempts) {
+				console.error('Max attempts reached. Video not available.');
+				return;
+			}
+		
+			videoElement.src = videoSrc;
+			attempts++;
+		
+			// Add an event listener to check for errors
+			videoElement.addEventListener('error', function errorHandler() {
+				console.error(`Error loading video from ${videoElement.src}`);
+				// Retry loading the video after a delay
+				setTimeout(tryLoadVideo, delayBetweenAttempts);
+				// Remove the event listener to prevent multiple error events
+				videoElement.removeEventListener('error', errorHandler);
+			});
+		
+			videoElement.load();
+		}
+	
+		tryLoadVideo();
+	}
 }
 
 function soundVolume(vol){
@@ -1251,7 +1282,7 @@ function BotvedelemKi(){
 	}
 }
 
-function isPageLoaded(ref,faluid,address){try{
+function isPageLoaded(ref, faluid, address, elements=[]){try{
 	if (ref.closed) return false;
 	if (ref.document.getElementById('botprotection_quest')) {
 		ref.document.getElementById('botprotection_quest').click();
@@ -1279,11 +1310,14 @@ function isPageLoaded(ref,faluid,address){try{
 		return false;
 	}
 	if (!address) return false;
+	for (let i=0; i < elements.length; i++) {
+		if (ref.document.querySelector(elements[i]) === null) return false;
+	}
 	if (address.indexOf("not ")>-1) var neg=true; else var neg=false;
 	if (faluid>-1) if (ref.game_data.village.id!=faluid) return false;
 	if (ref.document.getElementById("serverTime").innerHTML.length>4) {
 		if (neg) {
-			if (ref.document.location.href.indexOf(address.split(" ")[1])==-1) return true;
+			if (ref.document.location.href.indexOf(address.split(" ")[1]) == -1) return true;
 		} else {
 			if (ref.document.location.href.indexOf(address)>-1)	return true;
 		}
@@ -3474,7 +3508,7 @@ function szem4_GYUJTO_motor() {
 					break;
 				case 2:
 					// Check, click, store
-					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge')) {
+					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge', ['#twcheese-sidebar'])) {
 						szem4_GYUJTO_3elindit();
 					} else GYUJTO_HIBA++;
 					break;
@@ -3873,6 +3907,10 @@ $(document).ready(function(){
 
 });
 /*
+VIJE: Ha kék jeli van ahol nincs sereg, az tegye már "zölddé" a falut
+Gyűjtő: Minimum teherbírás; minimum óránként nézzen már rá
+FEAT: Napló: "Bot védelem" bejegyzés hozzáadása
+
 Important addons
 	FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
 	  Teszt: ANY(FASTEST(MINES 25))
