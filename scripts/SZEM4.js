@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.23';
+var VERZIO = 'v4.6 Build 23.09.26';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -148,7 +148,7 @@ function init(){try{
 		#alert2 {
 			width: 300px;
 			background-color: #0d47a1;
-    		color: #FFF;
+			color: #FFF;
 			position: fixed;
 			left:40%;
 			top:40%;
@@ -214,11 +214,11 @@ function init(){try{
 		}
 		#debugger {
 			table-layout: fixed;
-    		width: 100%;
+			width: 100%;
 		}
 		#debugger td, #debugger th {
 			word-wrap: break-word;
-    		max-width: 100%;
+			max-width: 100%;
 		}
 		#global_notifications img { width: 18px; }
 		#global_notifications img.rotate { animation: rotation 2s infinite linear; }
@@ -421,7 +421,7 @@ function init(){try{
 			left: 0;
 			top: 0;
 			background-repeat: no-repeat;
-    		background-position-x: right;
+			background-position-x: right;
 			background-size: cover;
 		}
 		.left-background video,
@@ -463,7 +463,7 @@ function init(){try{
 			right: 0;
 			top: 0;
 			background-repeat: no-repeat;
-    		background-position-x: left;
+			background-position-x: left;
 			background-size: cover;
 		}
 		.right-background.mirrored_bg {
@@ -1437,7 +1437,7 @@ function addWagons(farmRow) {
 	let koord = farmRow.cells[0].textContent;
 	let attacks = SZEM4_FARM.ALL_UNIT_MOVEMENT[koord];
 	
-	farmRow.cells[5].innerHTML = ''; //Fixme: Nem csak ez van  (Why? lesz?) itt, ne töröld az egészet
+	farmRow.cells[5].innerHTML = ''; // Fixme: Nem csak ez van (Why? lesz?) itt, ne töröld az egészet
 	if (!attacks) return;
 	attacks.sort((a, b) => a[1] - b[1]);
 	const tmp = document.createElement('div');
@@ -2246,15 +2246,15 @@ function szem4_farmolo_2illeszto(bestPlan){try{/*FIXME: határszám alapján sz�
 	if (bestPlan.isMax && plannedArmy.units.pop < minSereg) {
 		extendArmy(plannedArmy, bestPlan.fromVill, bestPlan.slowestUnit);
 	}
-	if (!plannedArmy.units || plannedArmy.units.pop < minSereg || plannedArmy.teher < hatarszam) {
-		if (bestPlan.isMax && plannedArmy.teher < hatarszam)  {
+	if (!plannedArmy.units || plannedArmy.units.pop < minSereg || (plannedArmy.teher + 50) < hatarszam) {
+		if (bestPlan.isMax && plannedArmy.teher < hatarszam) {
 			// Ha olyan messzi van a falu, amire a megbízhatóságnyi szintet is el tudná hozni, de olyan kevés ott a sereg, hogy az még a határszámnyi elhozásra se elég.
 			for (let unitType in plannedArmy.units) {
 				if (unitType === 'pop') continue;
 				SZEM4_FARM.DOMINFO_FROM[bestPlan.fromVill].noOfUnits[unitType] = 0;
 			}
 		}
-		console.info(`Invalid config, replanning. minSereg: ${minSereg}, isMax? ${bestPlan.isMax} hatarszam: ${hatarszam}, prodHour: ${SZEM4_FARM.DOMINFO_FARMS[bestPlan.farmVill].prodHour}`,
+		console.info(new Date().toLocaleString(), `Invalid config, replanning. minSereg: ${minSereg}, isMax? ${bestPlan.isMax} hatarszam: ${hatarszam}, prodHour: ${SZEM4_FARM.DOMINFO_FARMS[bestPlan.farmVill].prodHour}`,
 			`Config was: ${JSON.stringify(bestPlan)}`,
 			`Config expected: ${JSON.stringify(plannedArmy)}`);
 		return 'semmi'; // Nem jó, újratervezés
@@ -2315,7 +2315,7 @@ function szem4_farmolo_3egyeztet(adatok){try{
 	/*Piros szöveg*/
 	try {
 		if (FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].getAttribute("class")=="error_box") {
-			naplo("Farmoló", `Hiba  ${adatok.plannedArmy.farmVill} farmolásánál: ${FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].textContent}. Tovább nem támadom`);
+			naplo("Farmoló", `Hiba ${adatok.plannedArmy.farmVill} farmolásánál: ${FARM_REF.document.getElementById("content_value").getElementsByTagName("div")[0].textContent}. Tovább nem támadom`);
 			farm_helye.cells[0].style.backgroundColor="red";
 			SZEM4_FARM.DOMINFO_FARMS[adatok.plannedArmy.farmVill].szin.falu = 'red';
 			if (FARM_REF.document.querySelector('.village-item')) {
@@ -2555,7 +2555,7 @@ ujkieg("farm","Farmoló",`<tr><td>
 			
 			<tr><td><div class="combo-cell"><div class="imgbox"><img src="${pic('sebesseg.png')}"></div><strong>Sebesség</strong></div></td>
 			<td>
-			<input name="sebesseg_p" onkeypress="validate(event)" type="text" size="2" value="10"  onmouseover="sugo(this,'Ha a farmoló nem talál több feladatot magának megáll, ennyi időre. Érték lehet: 1-300. Javasolt érték: 15 perc')">perc /
+			<input name="sebesseg_p" onkeypress="validate(event)" type="text" size="2" value="10" onmouseover="sugo(this,'Ha a farmoló nem talál több feladatot magának megáll, ennyi időre. Érték lehet: 1-300. Javasolt érték: 15 perc')">perc /
 						<input name="sebesseg_m" onkeypress="validate(event)" type="text" size="3" value="900" onmouseover="sugo(this,'Egyes utasítások/lapbetöltődések ennyi időközönként hajtódnak végre. Érték lehet: 200-6000. Javasolt: gépi: 500ms, emberi: 3000.')">ms.
 			</td></tr></table>
 			</form>
@@ -3457,6 +3457,11 @@ function szem4_GYUJTO_3elindit() { try{
 		scavTime = startButton.closest('.scavenge-option').querySelector('.duration-section');
 	}
 	if (buttons.length == 0 || scavTime.style.display == 'none') {
+		if (buttons.length > 0) {
+			console.info(new Date().toLocaleString(), `faluId: ${GYUJTO_DATA} VÉGE`, buttons.length, buttons, scavTime.style.display, scavTime.innerHTML);
+			debug('szem4_GYUJTO_3elindit', 'Hiba? Gyűjtögető úgy véli végzett, de nem minden slot foglalt');
+			playSound('naplobejegyzes');
+		}
 		GYUJTO_STATE = 0;
 		const allReturnTimer = GYUJTO_REF.document.querySelectorAll('.return-countdown');
 		let d = getServerTime(GYUJTO_REF);
@@ -3908,21 +3913,21 @@ $(document).ready(function(){
 });
 /*
 VIJE: Ha kék jeli van ahol nincs sereg, az tegye már "zölddé" a falut
-Gyűjtő: Minimum teherbírás; minimum óránként nézzen már rá
+Gyűjtő: Minimum teherbírás; minimum óránként nézzen már rá; stratégia: Maximum time-kor nézzen rá / azonnal / optimal
 FEAT: Napló: "Bot védelem" bejegyzés hozzáadása
 
 Important addons
 	FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
-	  Teszt: ANY(FASTEST(MINES 25))
+	Teszt: ANY(FASTEST(MINES 25))
 
 Essencial functions
-	FEAT: Menetrend Switcher: Ne idő, hanem határszám alapú legyen. Input disabled legyen + kiírás. Határszám alapúnál legyen minimum vonatköz is, azaz pl. 10p-enkéntnél gyakrabban ne támadja
 	FEAT: Gyűjtő strat: Legkésőbbit várja/azonnal menjen
 	FEAT: document.addEventListener() -- sync-elés gyűjtögetővel ill. VIJE-vel
 	REFACT: VIJE: utolsó kémkedés IDEJÉT ne törölje már, max ha már csak pl. 3 napos v ilyesmi ~> "Ismeretlen/régi" is az legyen hogy ">3 napos". Nézi hogy ennél frissebb-e az elemzett jeli? + hogy az ELEMZETT-ek listájában nincs-e benne ugye
 	ADDME: Farmok rendezése táv szerint
+
 POCs
-	REFACT: VIJE: Van olyan script ami csinál statot a jelikből, azt h csinálja? PF esetén csak? Lehetne használni, nem megnyitogatni egyesivel ->  https://twscripts.dev/scripts/farmingEfficiencyCalculator.js
+	REFACT: VIJE: Van olyan script ami csinál statot a jelikből, azt h csinálja? PF esetén csak? Lehetne használni, nem megnyitogatni egyesivel -> https://twscripts.dev/scripts/farmingEfficiencyCalculator.js
 Téma
 	FEAT: Jelszóvédett profil
 	ADDME: Effect themes: Hozzuk be a havas témám a weboldalról, valamint legyen hullámzó víz a content tetején, átlátszó? egérre mozgó? https://jsfiddle.net/TjaBz/
@@ -3936,7 +3941,7 @@ UI
 	ADDME: Új üzenet érkezett icon
 	ADDME: Bejövők száma/Új bejövők száma icon
 	
-	
+FEAT: Menetrend Switcher: Ne idő, hanem határszám alapú legyen. Input disabled legyen + kiírás. Határszám alapúnál legyen minimum vonatköz is, azaz pl. 10p-enkéntnél gyakrabban ne támadja	
 FEAT: VIJE: "FARM" jelentést törli. Szóval ha kos v ilyesmi van, azt ne!
 FEAT: VIJE: Silence mód: Csak színeket nézzen, színváltozás esetén nyissa csak a jelit (igen, így a kéket mindig)
 FEAT: Scav -> $.getScript('https://gistcdn.githack.com/filipemiguel97/ba2591b1ae081c1cfdbfc2323145e331/raw/scavenging_legal.js') -> new strat? Mindig futtatni kell, ki kéne belezni
