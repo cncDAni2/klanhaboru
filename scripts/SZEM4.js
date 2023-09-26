@@ -1292,7 +1292,6 @@ function isPageLoaded(ref, faluid, address, elements=[]){try{
 		return false;
 	}
 	if (ref.document.getElementById('bot_check')) {
-		BOT_REF.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
 		naplo("Globális","Bot védelem aktív!!!");
 		document.getElementById("audio1").volume=0.2;
 		BotvedelemBe();
@@ -3923,6 +3922,7 @@ $(document).ready(function(){
 VIJE: Ha kék jeli van ahol nincs sereg, az tegye már "zölddé" a falut
 Gyűjtő: Minimum teherbírás; minimum óránként nézzen már rá; stratégia: Maximum time-kor nézzen rá / azonnal / optimal
 FEAT: Napló: "Bot védelem" bejegyzés hozzáadása
+FEAT: csak 1 falura érvényes settings, falukijelölő (Beállítások [Összes] V Faluválasztás) + vizuális visszajelzés + reset (mindent ALL-ra)
 
 Important addons
 	FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
