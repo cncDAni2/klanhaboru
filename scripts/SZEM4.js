@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.26';
+var VERZIO = 'v4.6 Build 23.09.27';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -490,6 +490,9 @@ function init(){try{
 			width: 42px;
 			text-align: center;
 			text-shadow: 0px 0px 1px black;
+		}
+		#gyujto_form {
+			text-align: center;
 		}
 		.gyujto_table td:nth-child(2) {
 			cursor: pointer;
@@ -3419,7 +3422,7 @@ szem4_EPITO_perccsokkento();
 function gyujto_listAllVillages() {
 	let rows = '';
 	for (const key in KTID) {
-		rows += `<tr><td>${key}</td><td onclick="gyujto_setVill(${KTID[key]}, this)"><input name="f${KTID[key]}" type="checkbox"></td></tr>`;
+		rows += `<tr id="gy_${KTID[key]}"><td>${key}</td><td onclick="gyujto_setVill(${KTID[key]}, this)"><input name="f${KTID[key]}" type="checkbox"></td><td>---</td></tr>`;
 	}
 	return rows;
 }
@@ -3435,15 +3438,17 @@ function rebuildDOM_gyujto() {
 	for (let villId in SZEM4_GYUJTO) {
 		if (SZEM4_GYUJTO[villId] === true) f['f' + villId].checked = true;
 	}
+	f.strategy.value = SZEM4_GYUJTO.settings.strategy;
 }
 function szem4_GYUJTO_1keres() {try{
 	let d = getServerTime();
-	for (let vill in SZEM4_GYUJTO) {
-		if (!GYUJTO_VILLINFO[vill]) GYUJTO_VILLINFO[vill] = { retry: false };
-		if (SZEM4_GYUJTO[vill] === true && (!GYUJTO_VILLINFO[vill].returned || GYUJTO_VILLINFO[vill].returned < d)) {
-			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace(/village=[0-9]+/g, 'village=' + vill).replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
+	for (const coord in KTID) {
+		const villId = KTID[coord];
+		if (!GYUJTO_VILLINFO[villId]) GYUJTO_VILLINFO[villId] = { retry: false };
+		if (SZEM4_GYUJTO[villId] === true && (!GYUJTO_VILLINFO[villId].returned || GYUJTO_VILLINFO[villId].returned < d)) {
+			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace(/village=[0-9]+/g, 'village=' + villId).replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
 			GYUJTO_STATE = 1;
-			GYUJTO_DATA = vill;
+			GYUJTO_DATA = villId;
 			return false;
 		}
 	}
@@ -3482,7 +3487,9 @@ function szem4_GYUJTO_3elindit() { try{
 			timesInSec.push(hours * 3600 + minutes * 60 + seconds);
 		});
 
-		GYUJTO_VILLINFO[GYUJTO_DATA].returned = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 30);
+		const nextTime = SZEM4_GYUJTO.settings.strategy === 'max' ? Math.max(...timesInSec) : Math.min(...timesInSec);
+		GYUJTO_VILLINFO[GYUJTO_DATA].returned = d.setSeconds(d.getSeconds() + nextTime + 60);
+		document.querySelector(`#gy_${GYUJTO_DATA}`).cells[2].innerHTML = new Date(GYUJTO_VILLINFO[GYUJTO_DATA].returned).toLocaleString();
 		GYUJTO_HIBA = 0;
 		return;
 	}
@@ -3491,7 +3498,7 @@ function szem4_GYUJTO_3elindit() { try{
 	startButton.click();
 } catch(e) { GYUJTO_HIBA++; console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
 function szem4_GYUJTO_motor() {
-	let nexttime = 1000;
+	let nexttime = 2000;
 	try {
 		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
 			nexttime=5000;
@@ -3534,7 +3541,11 @@ function szem4_GYUJTO_motor() {
 		worker.postMessage({'id': 'gyujto', 'time': nexttime});
 	}catch(e){debug('gyujto_motor', 'Worker engine error: ' + e);setTimeout(function(){szem4_GYUJTO_motor();}, 1000);}
 }
-var SZEM4_GYUJTO = {}, //VillId: isEnabled
+var SZEM4_GYUJTO = {
+	settings: {
+		strategy: 'max'
+	}
+}, //VillId: isEnabled
 GYUJTO_VILLINFO = {}, // villId: {returned: xxxDatexxx, retry: bool}
 GYUJTO_STATE = 0,
 GYUJTO_REF,
@@ -3550,9 +3561,15 @@ ujkieg('gyujto','Gyűjtő',`<tr><td>
 	SZEM ezt a scriptet fogja automata módban futtatni az alább bejelöld faluidban, az ott beállított módon.
 	<form id="gyujto_form">
 		<table class="vis gyujto_table">
-			<thead><tr><th>Falu</th><th>Gyűjtögetés?</th></thead>
+			<thead><tr><th>Falu</th><th>Gyűjtögetés?</th><th>Gyűjtés eddig</th></thead>
 			<tbody>${gyujto_listAllVillages()}</tbody>
 		</table>
+		<br><br>
+		Stratégia:
+		<select name="strategy">
+			<option value="min">Amint kész egy gyűjtés, küldje a következőt</option>
+			<option value="max">Várja meg amíg minden opció kész, és utána küldje újra</option>
+		</select>
 	</form>
 </td></tr>`);
 szem4_GYUJTO_motor();
@@ -3923,6 +3940,7 @@ VIJE: Ha kék jeli van ahol nincs sereg, az tegye már "zölddé" a falut
 Gyűjtő: Minimum teherbírás; minimum óránként nézzen már rá; stratégia: Maximum time-kor nézzen rá / azonnal / optimal
 FEAT: Napló: "Bot védelem" bejegyzés hozzáadása
 FEAT: csak 1 falura érvényes settings, falukijelölő (Beállítások [Összes] V Faluválasztás) + vizuális visszajelzés + reset (mindent ALL-ra)
+EXTRA: Farm végére position-álj már egy "...további xxx falu"-t ha rejted
 
 Important addons
 	FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
