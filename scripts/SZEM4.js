@@ -3440,7 +3440,8 @@ function rebuildDOM_gyujto() {
 function szem4_GYUJTO_1keres() {try{
 	let d = getServerTime();
 	for (let vill in SZEM4_GYUJTO) {
-		if (SZEM4_GYUJTO[vill] === true && (!GYUJTO_VILLINFO[vill] || GYUJTO_VILLINFO[vill] < d)) {
+		if (!GYUJTO_VILLINFO[vill]) GYUJTO_VILLINFO[vill] = { retry: false };
+		if (SZEM4_GYUJTO[vill] === true && (!GYUJTO_VILLINFO[vill].returned || GYUJTO_VILLINFO[vill].returned < d)) {
 			GYUJTO_REF = windowOpener('gyujto', VILL1ST.replace(/village=[0-9]+/g, 'village=' + vill).replace('screen=overview','screen=place&mode=scavenge'), AZON + '_gyujto');
 			GYUJTO_STATE = 1;
 			GYUJTO_DATA = vill;
@@ -3457,11 +3458,17 @@ function szem4_GYUJTO_3elindit() { try{
 		scavTime = startButton.closest('.scavenge-option').querySelector('.duration-section');
 	}
 	if (buttons.length == 0 || scavTime.style.display == 'none') {
+		if (buttons.length > 0 && GYUJTO_VILLINFO[GYUJTO_DATA].retry !== true) {
+			GYUJTO_VILLINFO[GYUJTO_DATA].retry = true;
+			GYUJTO_STATE = 0;
+			return;
+		}
 		if (buttons.length > 0) {
-			console.info(new Date().toLocaleString(), `faluId: ${GYUJTO_DATA} VÉGE`, buttons.length, buttons, scavTime.style.display, scavTime.innerHTML);
-			debug('szem4_GYUJTO_3elindit', 'Hiba? Gyűjtögető úgy véli végzett, de nem minden slot foglalt');
+			console.info(new Date().toLocaleString(), `faluId: ${GYUJTO_DATA} STILL VÉGE`, buttons.length, buttons, scavTime.style.display, scavTime.innerHTML);
+			debug('szem4_GYUJTO_3elindit', 'Hiba? Gyűjtögető úgy véli végzett, 2x is, de nem minden slot foglalt');
 			playSound('naplobejegyzes');
 		}
+		GYUJTO_VILLINFO[GYUJTO_DATA].retry = false;
 		GYUJTO_STATE = 0;
 		const allReturnTimer = GYUJTO_REF.document.querySelectorAll('.return-countdown');
 		let d = getServerTime(GYUJTO_REF);
@@ -3476,10 +3483,11 @@ function szem4_GYUJTO_3elindit() { try{
 			timesInSec.push(hours * 3600 + minutes * 60 + seconds);
 		});
 
-		GYUJTO_VILLINFO[GYUJTO_DATA] = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 30);
+		GYUJTO_VILLINFO[GYUJTO_DATA].returned = d.setSeconds(d.getSeconds() + Math.min(...timesInSec) + 30);
 		GYUJTO_HIBA = 0;
 		return;
 	}
+	GYUJTO_VILLINFO[GYUJTO_DATA].retry = false;
 	GYUJTO_HIBA++;
 	startButton.click();
 } catch(e) { GYUJTO_HIBA++; console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
@@ -3528,7 +3536,7 @@ function szem4_GYUJTO_motor() {
 	}catch(e){debug('gyujto_motor', 'Worker engine error: ' + e);setTimeout(function(){szem4_GYUJTO_motor();}, 1000);}
 }
 var SZEM4_GYUJTO = {}, //VillId: isEnabled
-GYUJTO_VILLINFO = {}, // villId: {returned: xxx, }
+GYUJTO_VILLINFO = {}, // villId: {returned: xxxDatexxx, retry: bool}
 GYUJTO_STATE = 0,
 GYUJTO_REF,
 GYUJTO_DATA,
