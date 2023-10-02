@@ -549,7 +549,7 @@ function isPageLoaded(ref){try{
 		return false;
 	}
 	if (ref.document.getElementById('bot_check')) {
-		BOT_REF.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
+		ref.document.getElementById('bot_check').getElementsByTagName('a')[0].click();
 		BotvedelemBe();
 		return false;
 	}
