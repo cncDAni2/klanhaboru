@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.09.27';
+var VERZIO = 'v4.6 Build 23.10.11';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -123,8 +123,30 @@ function init(){try{
 	if (document.getElementById("techs_table")) var PFA=document.getElementById("techs_table");
 	else {
 		alert("Ilyen nézetbe való futtatás nem támogatott. Kísérlet az áttekintés betöltésére...\n\nLaunching from this view is not supported. Trying to load overview...");
-		document.location.href=document.location.href.replace(/screen=[a-zA-Z]+/g,"screen=overview_villages");
+		document.location.href = document.location.href.replace(/screen=[a-zA-Z]+/g,"screen=overview_villages");
 		return false;
+	}
+	if (document.querySelectorAll('#paged_view_content .group-menu-item').length > 0) {
+		let isError = false;
+		document.querySelectorAll('#paged_view_content .group-menu-item').forEach(e => {
+			if (e.href && e.href.includes('group=0')) {
+				alert('Ebben a nézetben nem látszódik minden falud, mert csoportra vagy szűrve. SZEM csak azon falukat ismeri ami lát is, így biztosítsd a teljes listát. Kíéslet az átirányításra...');
+				document.location.href = e.href;
+				isError = true;
+			}
+		});
+		if (isError) return false;
+	}
+	if (document.querySelectorAll('#paged_view_content .paged-nav-item').length > 0) {
+		let isError = false;
+		document.querySelectorAll('#paged_view_content .paged-nav-item').forEach(e => {
+			if (e.href && e.href.includes('page=-1')) {
+				alert('Ebben a nézetben nem látszódik minden falud, mert a lapozhatóság elrejti. SZEM csak azon falukat ismeri ami lát is, így biztosítsd a teljes listát. Kíéslet az átirányításra...');
+				document.location.href = e.href;
+				isError = true;
+			}
+		});
+		if (isError) return false;
 	}
 	var patt = new RegExp(/[0-9]+(\|)[0-9]+/);
 	if (patt.test(PFA.rows[1].cells[0].textContent)) var oszl=0; else
@@ -3160,7 +3182,7 @@ function szem4_EPITO_cscheck(alma){try{
 		if (parseInt(Z[i].match(/[0-9]+/g)[0])>30) throw "Túl magas épületszint: "+Z[i];
 	}
 	alert2("Minden OK");
-}catch(e){alert2("Hibás lista:\n"+e);}}
+}catch(e){alert2(`Hibás lista: [${i}]\n ${e}`);}}
 
 function szem4_EPITO_most(objektum){try{
 	var d=getServerTime();
@@ -3941,6 +3963,7 @@ Gyűjtő: Minimum teherbírás; minimum óránként nézzen már rá; stratégia
 FEAT: Napló: "Bot védelem" bejegyzés hozzáadása
 FEAT: csak 1 falura érvényes settings, falukijelölő (Beállítások [Összes] V Faluválasztás) + vizuális visszajelzés + reset (mindent ALL-ra)
 EXTRA: Farm végére position-álj már egy "...további xxx falu"-t ha rejted
+FEAT: VIJE_2 nem külön ref, hanem iframe a VIJE1-be!
 
 Important addons
 	FEAT: Építőbe "FASTEST()" és "ANY()" opció. Fastest: a leggyorsabban felépítülőt építi. Any: Amire van nyersed. Használható a kettő együtt, így "amire van nyersed, abból a leggyorsabban épülő"
