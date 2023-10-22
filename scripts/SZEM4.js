@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.10.11';
+var VERZIO = 'v4.6 Build 23.10.22';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -35,9 +35,10 @@ try{ /*Rendszeradatok*/
 	var ALL_EXTENSION = [];
 
 	var KTID={}, /*Koord-ID párosok*/
-	TERMELES=[5,30,35,41,47,55,64,74,86,100,117,136,158,184,214,249,289,337,391,455,530,616,717,833,969,1127,1311,1525,1774,2063,2400],
-	UNITS=["spear","sword","axe","archer","spy","light","marcher","heavy"],
-	TEHERARR=[25,15,10,10,0,80,50,50];
+		ID_TO_INFO = {}, /*ID: name: falunév, point: pont, pop: tanya párosok*/
+		TERMELES=[5,30,35,41,47,55,64,74,86,100,117,136,158,184,214,249,289,337,391,455,530,616,717,833,969,1127,1311,1525,1774,2063,2400],
+		UNITS=["spear","sword","axe","archer","spy","light","marcher","heavy"],
+		TEHERARR=[25,15,10,10,0,80,50,50];
 	if (parseFloat(CONFIG.getElementsByTagName("archer")[0].textContent) == 0) {
 		let index = UNITS.findIndex(el => el.includes("archer"));
 		UNITS.splice(index, 1);
@@ -148,16 +149,48 @@ function init(){try{
 		});
 		if (isError) return false;
 	}
-	var patt = new RegExp(/[0-9]+(\|)[0-9]+/);
-	if (patt.test(PFA.rows[1].cells[0].textContent)) var oszl=0; else
-	if (patt.test(PFA.rows[1].cells[1].textContent)) var oszl=1; else
-	if (patt.test(PFA.rows[1].cells[2].textContent)) var oszl=2; else
-	{alert("Nem találok koordinátákat ebbe a listába.\n\nI can not find coordinates in this view."); return false;}
-	VILL1ST=PFA.rows[1].cells[oszl].getElementsByTagName("a")[0].href;
+
+	var faluNevOszlopNo = -1,
+		faluPontOszlopNo = -1,
+		faluTanyaOszlopNo = -1;
+	for (let i=0;i<PFA.rows[0].cells.length;i++) {
+		let linkText = PFA.rows[0].cells[i].querySelector('a');
+		if (linkText) linkText = linkText.href; else continue;
+		if (linkText.includes('order=name')) faluNevOszlopNo=i;
+		if (linkText.includes('order=points')) faluPontOszlopNo=i;
+		if (linkText.includes('order=pop')) faluTanyaOszlopNo=i;
+	}
+	if (faluNevOszlopNo == -1) {
+		alert("Nem találok koordinátákat ebbe a listába.\n\nI can not find coordinates in this view.");
+		return false;
+	}
+	if (faluPontOszlopNo == -1) {
+		alert("Nem találok pontokat ebbe a listába a falukhoz.\n\nI can not find points for villages in this view.");
+		return false;
+	}
+	if (faluTanyaOszlopNo == -1) {
+		alert("Nem találok népességmutatót ebbe a listába a falukhoz.\n\nI can not find farm states for villages in this view.");
+		return false;
+	}
+
+	VILL1ST=PFA.rows[1].cells[faluNevOszlopNo].getElementsByTagName("a")[0].href;
 	for (var i=1;i<PFA.rows.length;i++) {
-		var kord=PFA.rows[i].cells[oszl].textContent.match(/[0-9]+(\|)[0-9]+/g);
+		let kord=PFA.rows[i].cells[faluNevOszlopNo].textContent.match(/[0-9]+(\|)[0-9]+/g);
 		kord=kord[kord.length-1];
-		KTID[kord] = PFA.rows[i].cells[oszl].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0];
+		let faluId = PFA.rows[i].cells[faluNevOszlopNo].getElementsByTagName("span")[0].getAttribute("data-id").match(/[0-9]+/g)[0] 
+		KTID[kord] = faluId;
+
+		let faluNev = PFA.rows[i].cells[faluNevOszlopNo].getElementsByTagName("span")[0].textContent.trim().split(' ');
+		faluNev.pop();
+		faluNev.pop();
+
+		let faluPont = PFA.rows[i].cells[faluPontOszlopNo].textContent.trim();
+		let faluPop = PFA.rows[i].cells[faluTanyaOszlopNo].textContent.trim();
+		ID_TO_INFO[faluId] = {
+			name: faluNev.join(' '),
+			point: faluPont,
+			pop: faluPop
+		}
 	}
 	const szemStyle = `
 		body { background: #111; scrollbar-width: none; padding-bottom: 0; }
@@ -166,6 +199,9 @@ function init(){try{
 		#side-notification-container {
 			pointer-events: none;
 			display: none;
+		}
+		*[onclick] {
+			cursor: pointer;
 		}
 		#alert2 {
 			width: 300px;
@@ -513,7 +549,8 @@ function init(){try{
 			text-align: center;
 			text-shadow: 0px 0px 1px black;
 		}
-		#gyujto_form {
+		#gyujto_form td:nth-child(4),
+		#gyujto_form td:nth-child(5) {
 			text-align: center;
 		}
 		.gyujto_table td:nth-child(2) {
@@ -1043,35 +1080,36 @@ function distCalc(S,D){
 	return Math.abs(Math.sqrt(Math.pow(S[0]-D[0],2)+Math.pow(S[1]-D[1],2)));
 }
 
-function rendez(tipus, isAsc, thislink, table_azon, oszlop){try{
-/*Tipus: "szoveg" v "szam"*/
-	var OBJ=document.getElementById(table_azon).getElementsByTagName("tbody")[0];
+function rendez(tipus, isAsc, thislink, table_azon, oszlopNo){try{
+    /*Tipus: "szoveg" v "szam" */
+	var OBJ=document.getElementById(table_azon);
 	var prodtable=document.getElementById(table_azon).rows;
 	if (prodtable.length<2) return;
 	var tavok=new Array(); var sorok=new Array(); var indexek=new Array();
-	
 	for (var i=1;i<prodtable.length;i++) {
+		let cellText = prodtable[i].cells[oszlopNo].textContent.trim();
 		switch (tipus) {
-			case "szoveg": tavok[i-1]=prodtable[i].cells[oszlop].textContent; break;
+			case "szoveg": tavok[i-1]=cellText; break;
 			case "szam":
-				let tc = prodtable[i].cells[oszlop].textContent.trim();
+				let tc = cellText;
 				if (!tc || tc == '')
 					tavok[i-1] = -0.1;
 				else
 					tavok[i-1]=parseInt(tc.replace(".",""));
 				break;
-			case "datum": if (prodtable[i].cells[oszlop].textContent.trim() == '') tavok[i-1]=getServerTime(); else tavok[i-1]=new Date(prodtable[i].cells[oszlop].textContent.trim()); break;
+			case "datum": if (cellText == '' || cellText == '---') tavok[i-1]=getServerTime(); else tavok[i-1]=new Date(cellText); break;
 			case "datum2": var honap=new Array("Jan","Febr","March","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
 				var d=new Date();
-				var s=prodtable[i].cells[oszlop].textContent.trim();
+				var s=cellText;
 				d.setMonth(honap.indexOf(s.split(" ")[0]));
 				d.setDate(s.split(" ")[1].replace(",",""));
 				d.setHours(s.split(" ")[2].split(":")[0]);
 				d.setMinutes(s.split(" ")[2].split(":")[1]);
 				d.setSeconds(s.split(" ")[2].split(":")[2]);
 				tavok[i-1]=d; break;
-			case "lista": tavok[i-1]=prodtable[i].cells[oszlop].getElementsByTagName("select")[0].value; break;
-			default: throw("Nem értelmezhető mi szerint kéne rendezni."); return;
+			case "lista": tavok[i-1]=prodtable[i].cells[oszlopNo].getElementsByTagName("select")[0].value; break;
+			case "tanya": tavok[i-1]=parseInt(cellText.split('/')[0]); break;
+			default: throw("Nem értelmezhető mi szerint kéne rendezni.");
 		}
 		sorok[i-1]=prodtable[i];
 		indexek[i-1]=i-1;
@@ -1100,7 +1138,7 @@ function rendez(tipus, isAsc, thislink, table_azon, oszlop){try{
 		OBJ.appendChild(sorok[indexek[i]]);
 	}
 	
-	thislink.setAttribute("onclick","rendez(\""+tipus+"\","+!isAsc+",this,\""+table_azon+"\","+oszlop+")");
+	thislink.setAttribute("onclick","rendez(\""+tipus+"\","+!isAsc+",this,\""+table_azon+"\","+oszlopNo+")");
 	hideFarms();
 	return;
 }catch(e){alert2("Hiba rendezéskor:\n"+e);}}
@@ -3123,23 +3161,23 @@ function szem4_EPITO_csopDelete(ezt){try{
 
 function szem4_EPITO_ujFalu(){try{
 	var adat=document.getElementById("epit_ujfalu_adat");
-	var f_nev=adat.getElementsByTagName("input")[0].value;
-	if (f_nev=="" || f_nev==null) return;
-	f_nev=f_nev.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);
+	var faluCoord=adat.getElementsByTagName("input")[0].value;
+	if (faluCoord=="" || faluCoord==null) return;
+	faluCoord=faluCoord.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);
 	var Z=document.getElementById("epit_lista"); var str="";
 	var lista=szem4_EPITO_getlista();
-	for (var i=0;i<f_nev.length;i++) {
+	for (var i=0;i<faluCoord.length;i++) {
 		var vane=false;
 		for (var j=1;j<Z.rows.length;j++) {
-			if (Z.rows[j].cells[0].textContent==f_nev[i]) vane=true;
-		} if (vane) {str+="DUP:"+f_nev[i]+", "; continue;}
-		if (!KTID[f_nev[i]]) {str+="NL: "+f_nev[i]+", "; continue;}
+			if (Z.rows[j].cells[0].textContent==faluCoord[i]) vane=true;
+		} if (vane) {str+="DUP:"+faluCoord[i]+", "; continue;}
+		if (!KTID[faluCoord[i]]) {str+="NL: "+faluCoord[i]+", "; continue;}
 		
 		var ZR=Z.insertRow(-1);
-		var ZC=ZR.insertCell(0); ZC.innerHTML=f_nev[i]; ZC.setAttribute("ondblclick","sortorol(this)");
+		var ZC=ZR.insertCell(0); ZC.innerHTML=`${ID_TO_INFO[KTID[faluCoord[i]]].name} (${faluCoord[i]})`; ZC.setAttribute("ondblclick","sortorol(this)");
 			ZC=ZR.insertCell(1); ZC.innerHTML=lista; ZC.getElementsByTagName("select")[0].value=adat.getElementsByTagName("select")[0].value;
 			ZC=ZR.insertCell(2); ZC.style.fontSize="x-small"; var d=getServerTime(); ZC.innerHTML=d.toLocaleString(); ZC.setAttribute("ondblclick","szem4_EPITO_most(this)");
-			ZC=ZR.insertCell(3); ZC.innerHTML="<i>Feldolgozás alatt...</i>"+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+KTID[f_nev[i]]).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';; ZC.setAttribute("ondblclick",'szem4_EPITO_infoCell(this.parentNode,\'alap\',"")');
+			ZC=ZR.insertCell(3); ZC.innerHTML="<i>Feldolgozás alatt...</i>"+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+KTID[faluCoord[i]]).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';; ZC.setAttribute("ondblclick",'szem4_EPITO_infoCell(this.parentNode,\'alap\',"")');
 	}
 	if (str!="") alert2("Dupla megadások/nem létező faluk kiszűrve: "+str);
 	adat.getElementsByTagName("input")[0].value="";
@@ -3217,6 +3255,7 @@ function szem4_EPITO_addIdo(sor, perc){try{
 		document.getElementById("epit_lista").deleteRow(sor.rowIndex);
 	} else {
 		if (perc === 0) perc = 30;
+		if (isNaN(perc)) perc = 5;
 		var d=getServerTime();
 		d.setSeconds(d.getMinutes() + (perc * 60));
 		sor.cells[2].innerHTML=d.toLocaleString();
@@ -3263,9 +3302,11 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 			buildList+=";";
 		}catch(e){}}
 
-		allBuildTime=Math.round(allBuildTime);
-
+		allBuildTime = Math.round(allBuildTime);
 		firstBuildTime = Math.ceil(firstBuildTime);
+
+		if (isNaN(allBuildTime)) allBuildTime = 5;
+		if (isNaN(firstBuildTime)) firstBuildTime = 5;
 		if (firstBuildTime>180) firstBuildTime=180;
 	}catch(e){var buildList=";"; var allBuildTime=0; var firstBuildTime=0;}
 	
@@ -3432,7 +3473,7 @@ try{
 }catch(e){debug('epit', 'Worker engine error: ' + e);setTimeout(function(){szem4_EPITO_motor();}, 3000);}}
 
 ujkieg_hang("Építő","epites;falu_kesz;kritikus_hiba");
-ujkieg("epit","Építő",'<tr><td><h2 align="center">Építési listák</h2><table align="center" class="vis" style="border:1px solid black;color: black;"><tr><th onmouseover=\'sugo(this,"Építési lista neve, amire később hivatkozhatunk")\'>Csoport neve</th><th onmouseover=\'sugo(this,"Az építési sorrend megadása. Saját lista esetén ellenőrizzük az OK? linkre kattintva annak helyességét!")\' style="width:800px">Építési lista</th></tr><tr><td>Alapértelmezett</td><td><input type="text" disabled="disabled" value="main 10;storage 10;wall 10;main 15;wall 15;storage 15;farm 10;main 20;wall 20;MINES 10;smith 5;barracks 5;stable 5;storage 20;farm 20;market 10;main 22;smith 12;farm 25;storage 28;farm 26;MINES 24;market 19;barracks 15;stable 10;garage 5;MINES 26;farm 28;storage 30;barracks 20;stable 15;farm 30;barracks 25;stable 20;MINES 30;smith 20;snob 1" size="125"><a onclick="szem4_EPITO_cscheck(this)" style="color:blue; cursor:pointer;"> OK?</a></td></tr></table><p align="center">Csoportnév: <input type="text" value="" size="30" id="epit_ujcsopnev" placeholder="Nem tartalmazhat . _ ; karaktereket"> <a href="javascript: szem4_EPITO_ujCsop()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+' " height="17px"> Új csoport</a></p></td></tr><tr><td><h2 align="center">Építendő faluk</h2><table align="center" class="vis" style="border:1px solid black;color: black;width:900px" id="epit_lista"><tr><th style="width: 75px; cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",0)\' onmouseover=\'sugo(this,"Rendezhető. Itt építek. Dupla klikk a falura = sor törlése")\'>Falu koord.</th><th onclick=\'rendez("lista",false,this,"epit_lista",1)\' onmouseover=\'sugo(this,"Rendezhető. Felső táblázatban használt lista közül választhatsz egyet, melyet később bármikor megváltoztathatsz.")\' style="width: 135px; cursor: pointer">Használt lista</th><th style="width: 220px; cursor: pointer;" onclick=\'rendez("datum",false,this,"epit_lista",2)\' onmouseover=\'sugo(this,"Rendezhető. Ekkor fogom újranézni a falut, hogy lehet e már építeni.<br>Dupla klikk=idő azonnalira állítása.")\'>Return</th><th style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",3)\' onmouseover=\'sugo(this,"Rendezhető. Szöveges információ a faluban zajló építésről. Sárga hátterű szöveg orvosolható; kék jelentése hogy nem tud haladni; piros pedig kritikus hibát jelöl; a szín nélküli a normális működést jelzi.<br>Dupla klikk=alaphelyzet")\'><u>Infó</u></th></tr></table><p align="center" id="epit_ujfalu_adat">Csoport: <select><option value="Alapértelmezett">Alapértelmezett</option> </select> \Faluk: <input type="text" value="" placeholder="Koordináták: 123|321 123|322 ..." size="50"> \<a href="javascript: szem4_EPITO_ujFalu()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+'" height="17px"> Új falu(k)</a></p></td></tr>');
+ujkieg("epit","Építő",'<tr><td><h2 align="center">Építési listák</h2><table align="center" class="vis" style="border:1px solid black;color: black;"><tr><th onmouseover=\'sugo(this,"Építési lista neve, amire később hivatkozhatunk")\'>Csoport neve</th><th onmouseover=\'sugo(this,"Az építési sorrend megadása. Saját lista esetén ellenőrizzük az OK? linkre kattintva annak helyességét!")\' style="width:800px">Építési lista</th></tr><tr><td>Alapértelmezett</td><td><input type="text" disabled="disabled" value="main 10;storage 10;wall 10;main 15;wall 15;storage 15;farm 10;main 20;wall 20;MINES 10;smith 5;barracks 5;stable 5;storage 20;farm 20;market 10;main 22;smith 12;farm 25;storage 28;farm 26;MINES 24;market 19;barracks 15;stable 10;garage 5;MINES 26;farm 28;storage 30;barracks 20;stable 15;farm 30;barracks 25;stable 20;MINES 30;smith 20;snob 1" size="125"><a onclick="szem4_EPITO_cscheck(this)" style="color:blue; cursor:pointer;"> OK?</a></td></tr></table><p align="center">Csoportnév: <input type="text" value="" size="30" id="epit_ujcsopnev" placeholder="Nem tartalmazhat . _ ; karaktereket"> <a href="javascript: szem4_EPITO_ujCsop()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+' " height="17px"> Új csoport</a></p></td></tr><tr><td><h2 align="center">Építendő faluk</h2><table align="center" class="vis" style="border:1px solid black;color: black;width:950px" id="epit_lista"><tr><th style="width: 250px;" onclick=\'rendez("szoveg",false,this,"epit_lista",0)\' onmouseover=\'sugo(this,"Rendezhető. Itt építek. Dupla klikk a falura = sor törlése")\'>Falu</th><th onclick=\'rendez("lista",false,this,"epit_lista",1)\' onmouseover=\'sugo(this,"Rendezhető. Felső táblázatban használt lista közül választhatsz egyet, melyet később bármikor megváltoztathatsz.")\' style="width: 135px;">Használt lista</th><th style="width: 130px; cursor: pointer;" onclick=\'rendez("datum",false,this,"epit_lista",2)\' onmouseover=\'sugo(this,"Rendezhető. Ekkor fogom újranézni a falut, hogy lehet e már építeni.<br>Dupla klikk=idő azonnalira állítása.")\'>Return</th><th style="cursor: pointer;" onclick=\'rendez("szoveg",false,this,"epit_lista",3)\' onmouseover=\'sugo(this,"Rendezhető. Szöveges információ a faluban zajló építésről. Sárga hátterű szöveg orvosolható; kék jelentése hogy nem tud haladni; piros pedig kritikus hibát jelöl; a szín nélküli a normális működést jelzi.<br>Dupla klikk=alaphelyzet")\'><u>Infó</u></th></tr></table><p align="center" id="epit_ujfalu_adat">Csoport: <select><option value="Alapértelmezett">Alapértelmezett</option> </select> \Faluk: <input type="text" value="" placeholder="Koordináták: 123|321 123|322 ..." size="50"> \<a href="javascript: szem4_EPITO_ujFalu()" style="color:white;text-decoration:none;"><img src="'+pic("plus.png")+'" height="17px"> Új falu(k)</a></p></td></tr>');
 
 var EPIT_LEPES=0;
 var EPIT_REF; var EPIT_HIBA=0; var EPIT_GHIBA=0;
@@ -3444,7 +3485,14 @@ szem4_EPITO_perccsokkento();
 function gyujto_listAllVillages() {
 	let rows = '';
 	for (const key in KTID) {
-		rows += `<tr id="gy_${KTID[key]}"><td>${key}</td><td onclick="gyujto_setVill(${KTID[key]}, this)"><input name="f${KTID[key]}" type="checkbox"></td><td>---</td></tr>`;
+		let faluId = KTID[key];
+		rows += `<tr id="gy_${faluId}">
+			<td>${ID_TO_INFO[faluId].name} (${key})</td>
+			<td>${ID_TO_INFO[faluId].point}</td>
+			<td>${ID_TO_INFO[faluId].pop}</td>
+			<td onclick="gyujto_setVill(${faluId}, this)"><input name="f${faluId}" type="checkbox"></td>
+			<td>---</td>
+		</tr>`;
 	}
 	return rows;
 }
@@ -3499,19 +3547,20 @@ function szem4_GYUJTO_3elindit() { try{
 		const allReturnTimer = GYUJTO_REF.document.querySelectorAll('.return-countdown');
 		let d = getServerTime(GYUJTO_REF);
 		if (allReturnTimer.length == 0) {
-			// Nem lehet gyűjtögetni itt.
-			d = d.setMinutes(d.getMinutes() + 10);
-			return;
+			// Nem lehet gyűjtögetni itt. 20p múlva újra nézi
+			GYUJTO_VILLINFO[GYUJTO_DATA].returned = d.setSeconds(d.getSeconds() + 1200);
+		} else {
+			const timesInSec = [];
+			allReturnTimer.forEach(el => {
+				let [hours, minutes, seconds] = el.textContent.split(":").map(Number);
+				timesInSec.push(hours * 3600 + minutes * 60 + seconds);
+			});
+	
+			const nextTime = SZEM4_GYUJTO.settings.strategy === 'max' ? Math.max(...timesInSec) : Math.min(...timesInSec);
+			GYUJTO_VILLINFO[GYUJTO_DATA].returned = d.setSeconds(d.getSeconds() + nextTime + 60);
 		}
-		const timesInSec = [];
-		allReturnTimer.forEach(el => {
-			let [hours, minutes, seconds] = el.textContent.split(":").map(Number);
-			timesInSec.push(hours * 3600 + minutes * 60 + seconds);
-		});
 
-		const nextTime = SZEM4_GYUJTO.settings.strategy === 'max' ? Math.max(...timesInSec) : Math.min(...timesInSec);
-		GYUJTO_VILLINFO[GYUJTO_DATA].returned = d.setSeconds(d.getSeconds() + nextTime + 60);
-		document.querySelector(`#gy_${GYUJTO_DATA}`).cells[2].innerHTML = new Date(GYUJTO_VILLINFO[GYUJTO_DATA].returned).toLocaleString();
+		document.querySelector(`#gy_${GYUJTO_DATA}`).cells[4].innerHTML = new Date(GYUJTO_VILLINFO[GYUJTO_DATA].returned).toLocaleString();
 		GYUJTO_HIBA = 0;
 		return;
 	}
@@ -3580,10 +3629,16 @@ ujkieg('gyujto','Gyűjtő',`<tr><td>
 	<br><br>
 	Ez a script külön beállítást igényel. Ehhez az alábbi, legálisan is futtható scriptet kell futtatnod a gyülekezőhelyeden, a gyűjtögetésnél:<br>
 	<pre>$.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');</pre><br>
-	SZEM ezt a scriptet fogja automata módban futtatni az alább bejelöld faluidban, az ott beállított módon.
+	SZEM ezt a scriptet fogja automata módban futtatni az alább bejelöld faluidban, az ott beállított módon.<br>
 	<form id="gyujto_form">
-		<table class="vis gyujto_table">
-			<thead><tr><th>Falu</th><th>Gyűjtögetés?</th><th>Gyűjtés eddig</th></thead>
+		<table class="vis gyujto_table" id="gyujto_form_table">
+			<thead><tr>
+				<th onclick="rendez('szoveg', false, this, 'gyujto_form_table', 0)">Falu</th>
+				<th onclick="rendez('szam', false, this, 'gyujto_form_table', 1)">Pont</th>
+				<th onclick="rendez('tanya', false, this, 'gyujto_form_table', 2)">Tanya</th>
+				<th>Gyűjtögetés?</th>
+				<th onclick="rendez('datum', false, this, 'gyujto_form_table', 4)">Gyűjtés eddig</th>
+			</tr></thead>
 			<tbody>${gyujto_listAllVillages()}</tbody>
 		</table>
 		<br><br>
@@ -3952,10 +4007,11 @@ $(document).ready(function(){
 		}
 	});
 	addEventListener("visibilitychange", (event) => {
-		if (document.visibilityState == 'visible')
-			document.querySelectorAll('video').forEach(a => a.play())
+		if (document.visibilityState == 'visible') {
+			const allVidEl = document.querySelectorAll('video');
+			if (allVidEl.length > 0) allVidEl.forEach(a => a.play())
+		}
 	});
-
 });
 /*
 VIJE: Ha kék jeli van ahol nincs sereg, az tegye már "zölddé" a falut
