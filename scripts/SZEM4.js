@@ -3244,7 +3244,8 @@ function szem4_EPITO_Wopen(){try{
 		var datum=new Date(TT[i].cells[2].textContent);
 		if (datum<now) {
 			var lista=szem4_EPITO_csopToList(TT[i].cells[1].getElementsByTagName("select")[0].value);
-			return [KTID[TT[i].cells[0].textContent],lista,TT[i]];
+			let coord = TT[i].cells[0].textContent.trim().match(/\([0-9]+\|[0-9]+\)$/)[0].replace('(','').replace(')','');
+			return [ KTID[coord], lista, TT[i] ];
 		}
 	}
 	return [0,";"];
@@ -3267,8 +3268,9 @@ function szem4_EPITO_infoCell(sor,szin,info){try{
 	if (szin=="blue") szin="#44F";
 	if (szin=="red") setTimeout('playSound("kritikus_hiba")',2000);
 	sor.cells[3].style.backgroundColor=szin;
-	
-	sor.cells[3].innerHTML=info+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+KTID[sor.cells[0].textContent]).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';
+	let coord = sor.cells[0].textContent.split(' ');
+	coord = coord[coord.length-1].replace('(', '').replace(')','');
+	sor.cells[3].innerHTML=info+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+KTID[coord]).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';
 	return;
 }catch(e){debug("építő_infoCell",e);}}
 
@@ -4009,7 +4011,7 @@ $(document).ready(function(){
 	addEventListener("visibilitychange", (event) => {
 		if (document.visibilityState == 'visible') {
 			const allVidEl = document.querySelectorAll('video');
-			if (allVidEl.length > 0) allVidEl.forEach(a => a.play())
+			if (allVidEl.length > 0) allVidEl.forEach(vidEl => {vidEl.src&&vidEl.style.display!=='none'?vidEl.play():''})
 		}
 	});
 });
