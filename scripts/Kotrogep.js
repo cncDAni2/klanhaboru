@@ -22,7 +22,7 @@ var worker = createWorker(function(self){
 	}, false);
 });
 worker.onmessage = function(worker_message) {
-	eloszto();
+	MOTOR_eloszto();
 };
 function createWorker(main){
 	var blob = new Blob(
@@ -106,9 +106,16 @@ for (i = 0; i < tabla.rows.length; i++) {
 	cell = tabla.rows[i].insertCell(0);
 	cell.setAttribute("width", "180px");
 	if (i == 0) {
-		cell.innerHTML = "<b>Online</b>";
+		cell.innerHTML = `<b>Online</b> <button onclick="resetOnline()">Újranézés</button>`;
 		cell.style.backgroundColor = "#AAF";
 	} else cell.innerHTML = 'Ismeretlen';
+}
+
+function resetOnline() {
+	const prodTable = document.querySelector('#production_table');
+	for (let i=1;i<prodTable.rows.length;i++) {
+		if (prodTable.rows[i].style.display !== 'none') prodTable.rows[i].cells[0].innerHTML = 'Ismeretlen';
+	}
 }
 
 function getRapidValue() {
@@ -229,13 +236,13 @@ function wopen(webpage) {
 function set_balance() { /*BE Auto: <20k nép; KI Auto: szokásos_full; ÉRME Diff: szokásos_full, de nem KI*/
 	BALANCE = !BALANCE;
 	if (BALANCE) {
-		tabla.rows[0].cells[0].innerHTML = "<b>Options</b>";
+		// tabla.rows[0].cells[0].innerHTML = "<b>Options</b>";
 		tabla.rows[0].cells[1].innerHTML = '<b>BE</b> <img onclick=pipa(\'auto\',0); title="Azon faluk bepipálása, melyek népességszáma 21500 alatti." src="' + pic("auto") + '"><img onclick=pipa(\'all\',0); title="Összes falu bepipálása." src="' + pic("all") + '"><img onclick=pipa(\'none\',0); title="Kiszedi a pipákat." src="' + pic("none") + '">';
 		tabla.rows[0].cells[1].setAttribute("width", "73px");
 		tabla.rows[0].cells[3].setAttribute("width", "83px");
 		document.getElementsByTagName("img")[0].setAttribute("src", "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/kotrogep/excavator2.gif");
 	} else {
-		tabla.rows[0].cells[0].innerHTML = "<b>Options</b>";
+		// tabla.rows[0].cells[0].innerHTML = "<b>Options</b>";
 		tabla.rows[0].cells[1].innerHTML = '<b>BE</b> <img onclick=pipa("auto",0); title="Azon faluk bepipálása, melyek tanyaszintje max, és betelt." src="' + pic("auto") + '"><img onclick=pipa("all",0);	title="Összes falu bepipálása." src="' + pic("all") + '"><img onclick=pipa("none",0); title="Kiszedi a pipákat." src="' + pic("none") + '"><img onclick=pipa(\'clone\',0); title="Azok falukat pipálja be, amik az ÉRME oszlopnál már be vannak." src="' + pic("clone") + '">';
 		tabla.rows[0].cells[1].setAttribute("width", "84px");
 		tabla.rows[0].cells[3].setAttribute("width", "115px");
@@ -301,7 +308,7 @@ function botriado(bool) {
 		PM4 = false;
 		wopen(document.location.href);
 		document.getElementById("audio1").pause();
-		setTimeout(() => eloszto(), 2000);
+		setTimeout(() => MOTOR_eloszto(), 2000);
 	}
 }
 function nfrissit(sorsz, ures) {
@@ -319,7 +326,7 @@ function nfrissit(sorsz, ures) {
 		//tabla.rows[sorsz].cells[0].innerHTML = newdate.toLocaleString();
 		let tenMin = new Date();
 		tenMin.setMinutes(tenMin.getMinutes() + 10);
-		tabla.rows[PM1].cells[0].innerHTML = tenMin;
+		tabla.rows[sorsz].cells[0].innerHTML = tenMin.toLocaleString();
 		if (!ures) A.document.getElementById("content_value").getElementsByTagName("input")[0].click();
 	} catch (e) {
 		db("nFrissít hiba: " + e);
@@ -440,7 +447,11 @@ function kuld(koord, TID) {
 				}
 			}
 		}
-		if (minK == "0") return; /*Megnyitom a PM-be kapott ID-jű falut, majd meghívom a beillesztő eljárást a minK[0] és [1] PM-el egy kis késleltetéssel*/
+		if (minK == "0") {
+			ALLAPOT = 0;
+			return;
+		}
+		/*Megnyitom a PM-be kapott ID-jű falut, majd meghívom a beillesztő eljárást a minK[0] és [1] PM-el egy kis késleltetéssel*/
 		URL = tabla.rows[1].cells[getOszlopNo("falunev")].getElementsByTagName("a")[0].href.replace("screen=overview", "screen=market&mode=send");
 		URL = URL.replace(/village=[0-9]+/g, 'village='+TID);
 		wopen(URL);
@@ -604,7 +615,7 @@ function balance_munka() {
 				tabla.rows[i].cells[2].getElementsByTagName("input")[0].checked = false;
 				vanebe = true;
 				if (tabla.rows[i].cells[2].getElementsByTagName("input")[0].disabled) {
-					tabla.rows[i].cells[0].innerHTML = CURRTIME;
+					tabla.rows[i].cells[0].innerHTML = CURRTIME.toLocaleString();
 					continue;
 				}
 				koordS = tabla.rows[i].cells[getOszlopNo("falunev")].innerText.match(/[0-9]+(\|)[0-9]+/g);
@@ -664,14 +675,12 @@ function balance_munka() {
 }
 function balance_adatszedo() {
 	try {
-		debugger;
 		if (PM4) { /*BE frissítése*/
 			var allTable = A.document.getElementById("content_value").getElementsByTagName("table")[1].getElementsByTagName("table");
 			var dok = allTable[allTable.length-1];
 			if (dok.rows[0].cells.length !== 4) dok = allTable[allTable.length-2];
-			console.info(dok);
 			var vnyers = new Array(0, 0, 0);
-			try{
+			try {
 				if (dok.rows[0].cells.length == 4) {
 					dok = dok.rows;
 					for (var i = 1; i < dok.length; i++) {
@@ -703,8 +712,8 @@ function balance_adatszedo() {
 			vnyers[2] += parseInt(A.document.getElementById("iron").textContent);
 			document.getElementById("production_table").rows[PM1].cells[getOszlopNo("nyers")].innerHTML = vnyers;
 			var online = new Date();
-			online.setMinutes(online.getMinutes() + 10); /*BALANCE: Felderítés után ennyi perccel nézi újra.*/
-			document.getElementById("production_table").rows[PM1].cells[0].innerHTML = online;
+			online.setMinutes(online.getMinutes() + 15); /*BALANCE: Felderítés után ennyi perccel nézi újra.*/
+			document.getElementById("production_table").rows[PM1].cells[0].innerHTML = online.toLocaleString();
 			ALLAPOT = 0;
 		} else { /*2-es állapotra léphet. PM3=online++ ideje (0, ha keresni kell) PM1=KI-érintett sor; (öröklött) PM2=BE-érintett sor, PM4=küldött nyers*/
 			PM3 = 0;
@@ -833,6 +842,7 @@ function balance_adatszedo() {
 				/*A.document.forms["market"].getElementsByTagName("table")[0].rows[0].cells[1].getElementsByTagName("input")[2].click(); /*VAGY: 6. input*/
 				PM2 = Rsorok[C];
 				PM4 = kuldendo;
+				PM5 = kereskedok;
 				ALLAPOT = 2;
 				return;
 			} /*db("Erre a falura nincs további szükség");*/
@@ -870,14 +880,22 @@ function balance_frissit() {
 		}
 		if (extraido[2] != 0) extraido[2] = (extraido[2] + "").replace(/^0*/g, "");
 		var newdate = new Date();
-		/* x2, mert oda-vissza idő*/
+		/* x2, mert oda-vissza idő, +1 perc*/
 		newdate.setHours(newdate.getHours() + (parseInt(extraido[0]) * 2));
 		newdate.setMinutes(parseInt(newdate.getMinutes()) + (parseInt(extraido[1]) * 2) + 1);
 		newdate.setSeconds(parseInt(newdate.getSeconds()) + (parseInt(extraido[2]) * 2));
 		//tabla.rows[PM1].cells[0].innerHTML = newdate;
-		let tenMin = new Date();
-		tenMin.setMinutes(tenMin.getMinutes() + 10);
-		tabla.rows[PM1].cells[0].innerHTML = tenMin;
+
+		// MOCK: 10p után nézze újra, mert nem tudom mikor lesz ott kereskedő újra. Azonnal, ha tudom h még van kereskedő
+		if (PM4.reduce((a, b) => a + b, 0) < (PM5 - 3000)) {
+			tabla.rows[PM1].cells[0].innerHTML = 'Ismeretlen';
+		} else {
+			let tenMin = new Date();
+			tenMin.setMinutes(tenMin.getMinutes() + 10);
+			tabla.rows[PM1].cells[0].innerHTML = tenMin.toLocaleString();
+		}
+
+
 		if (PM2 == 0) {
 			ALLAPOT = 0;
 			return;
@@ -896,7 +914,7 @@ function balance_frissit() {
 	ALLAPOT = 0;
 	return;
 }
-function eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltődését is. Ha minden rendben, meghívja az aktiális intézkező fg.-t a paraméterekkel.*/
+function MOTOR_eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltődését is. Ha minden rendben, meghívja az aktiális intézkező fg.-t a paraméterekkel.*/
 	try {
 		AUTOUPDATE++;
 		if (AUTOUPDATE > 300) {
@@ -988,6 +1006,7 @@ var PM1 = 0;
 var PM2 = 0;
 var PM3 = 0;
 var PM4 = false;
+var PM5 = 0;
 var ERME = false;
 var AUTOUPDATE = 0;
 var BALANCE = false;
@@ -998,7 +1017,7 @@ wopen(document.location.href);
 document.getElementById("wavhang").src = "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/bot.wav";
 document.getElementById("audio1").load();
 document.getElementById("audio1").pause();
-eloszto();
+MOTOR_eloszto();
 $("#production_table tbody tr td:first-child").dblclick(function () {
 	this.innerHTML = "Ismeretlen";
 });
