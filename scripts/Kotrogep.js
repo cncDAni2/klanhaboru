@@ -10,6 +10,7 @@ try { /*PF-Area*/
 }
 var curr_width = $('#main_layout').width();
 var oz = document.getElementById("production_table").getElementsByTagName("a");
+var BOTSTAGE = 0;
 for (var o = 0; o < oz.length; o++) {
 	try {
 		if (oz[o].href.indexOf("javascript") == -1) oz[o].setAttribute("target", "_BLANK");
@@ -292,23 +293,23 @@ function pipa(tipus, oszlop) {
 }
 function botriado(bool) {
 	if (!bool) {
+		BOTSTAGE++; if (BOTSTAGE > 3) { A.document.location.reload(); BOTSTAGE = 1; }
 		document.getElementsByTagName("h1")[0].innerHTML = '<a href="javascript:botriado(true);">---&gt; BOT VÉDELEM AKTÍV &lt;---</a>';
 		document.getElementById("wavhang").src = "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/bot.wav";
 		document.getElementById("audio1").load();
 		document.getElementById("audio1").play();
 		if (document.getElementById("audio1").volume < 0.2) document.getElementById("audio1").volume = 0.9;
-		alma = setTimeout("botriado(false)", 10000);
 	} else {
-		clearTimeout(alma);
 		document.getElementsByTagName("h1")[0].innerHTML = 'A KOTRÓGÉP';
 		ALLAPOT = 0;
 		PM1 = 0;
 		PM2 = 0;
 		PM3 = 0;
 		PM4 = false;
-		wopen(document.location.href);
+		PM5 = 0;
+		BOTSTAGE = 0;
+		A.document.location.reload();
 		document.getElementById("audio1").pause();
-		setTimeout(() => MOTOR_eloszto(), 2000);
 	}
 }
 function nfrissit(sorsz, ures) {
@@ -860,6 +861,7 @@ function balance_adatszedo() {
 }
 function balance_frissit() {
 	try { /*PM1=KI érintett sora, PM2=BE érintett sora, PM3=idoplusz, PM4=nyers mennyiség*/
+		const tabla = document.querySelector('#production_table');
 		if (A.document.getElementById("error")) {
 			document.getElementById("kot_uzi").innerHTML += "<br><b>(!)</b>Hibaüzenet jött fel nyersküldéskor - " + PM2;
 			PM3 = 30;
@@ -887,7 +889,8 @@ function balance_frissit() {
 		//tabla.rows[PM1].cells[0].innerHTML = newdate;
 
 		// MOCK: 10p után nézze újra, mert nem tudom mikor lesz ott kereskedő újra. Azonnal, ha tudom h még van kereskedő
-		if (PM4.reduce((a, b) => a + b, 0) < (PM5 - 3000)) {
+		let resSend = PM4.reduce((a, b) => a + b, 0);
+		if (resSend > 999 && resSend < (PM5 - 3000)) {
 			tabla.rows[PM1].cells[0].innerHTML = 'Ismeretlen';
 		} else {
 			let tenMin = new Date();
@@ -933,14 +936,13 @@ function MOTOR_eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betö
 			worker.postMessage({'id': 'kotro', 'time': 500});
 			return;
 		}
-		if (A.document.getElementById('bot_check') || A.document.getElementById('popup_box_bot_protection') || A.document.title == "Bot védelem") {
+		if (A.document.getElementById('bot_check') || A.document.getElementById('popup_box_bot_protection') || A.document.getElementById('botprotection_quest') || A.document.title == "Bot védelem") {
 			var date = new Date();
 			botriado(false);
 			document.getElementById("kot_uzi").innerHTML += "<br>BOT RIADÓ! " + date;
-			wopen(document.location.href);
-			worker.postMessage({'id': 'kotro', 'time': 10000});
+			worker.postMessage({'id': 'kotro', 'time': 3000});
 			return;
-		}
+		} else if (BOTSTAGE > 0) botriado(true);
 		tabla = document.getElementById("production_table");
 		if (!ERME) {
 			if (BALANCE) {
