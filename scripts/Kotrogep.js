@@ -940,7 +940,7 @@ function MOTOR_eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betö
 			var date = new Date();
 			botriado(false);
 			document.getElementById("kot_uzi").innerHTML += "<br>BOT RIADÓ! " + date;
-			worker.postMessage({'id': 'kotro', 'time': 3000});
+			worker.postMessage({'id': 'kotro', 'time': 1500});
 			return;
 		} else if (BOTSTAGE > 0) botriado(true);
 		tabla = document.getElementById("production_table");
