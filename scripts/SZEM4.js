@@ -1347,20 +1347,8 @@ function BotvedelemKi(){
 
 function isPageLoaded(ref, faluid, address, elements=[]){try{
 	if (ref.closed) return false;
-	if (ref.document.getElementById('botprotection_quest')) {
-		ref.document.getElementById('botprotection_quest').click();
-		naplo("Globális","Bot védelem aktív!!!");
-		document.getElementById("audio1").volume=0.2;
-		BotvedelemBe();
-		return false;
-	}
-	if (ref.document.getElementById('bot_check')) {
-		naplo("Globális","Bot védelem aktív!!!");
-		document.getElementById("audio1").volume=0.2;
-		BotvedelemBe();
-		return false;
-	}
-	if (ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
+	if (ref.document.getElementById('botprotection_quest') || ref.document.getElementById('bot_check') || ref.document.getElementById('popup_box_bot_protection') || ref.document.title=="Bot védelem") {
+		try{if (ref.document.getElementById('botprotection_quest')) ref.document.getElementById('botprotection_quest').click();}catch(e){}
 		naplo("Globális","Bot védelem aktív!!!");
 		document.getElementById("audio1").volume=0.2;
 		BotvedelemBe();
