@@ -322,7 +322,7 @@ function seregilleszt(kuldhetoSereg, ratio) {
 		if(kuldhetoSereg.unitsDb[i] == 0) continue;
 		d.getElementById("unit_input_sword").value = "";
 		d.getElementById("unit_input_spear").value = "";
-		d.getElementById("unit_input_archer").value = "";
+		if (d.getElementById("unit_input_archer")) d.getElementById("unit_input_archer").value = "";
 		d.getElementById("unit_input_heavy").value = "";
 		switch (kuldhetoSereg.slowest[i]) {
 			case "catapult": if (is[4].checked) { unitToSend=Math.round(currUnits.catapult * ratio); szumm.catapult += unitToSend; d.getElementById("unit_input_catapult").value=unitToSend; }
