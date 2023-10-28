@@ -1079,43 +1079,44 @@ function centerFinder(list){try{
 	rendez(false,"fontos","tav");
 }catch(e){}}
 
-function rendez(bool, oszlopSubSel, oszlopId){try{
+function rendez(bool, oszlopSubSel, oszlopId, tipus=''){try{
 	var OBJ = document.getElementById("production_table");
 	var oszlop = getOszlopNo(oszlopId);
 	var prodtable=OBJ.rows;
 	var tavok=new Array(); var sorok=new Array(); var indexek=new Array();
-	var no=0;
 	var fix=0; if (prodtable[0].cells.length!=prodtable[prodtable.length-1].cells.length) fix=1;
 	var vizsgal=$.trim(prodtable[1].cells[oszlop].innerText).replace(" ","");
-	var tipus="";
 	
-	if (prodtable[1].cells[oszlop].getElementsByClassName("tavolsag").length>0) {
-		if (oszlopSubSel=='fontos') tipus="szoveg"; else tipus="tavolsag";
-	} else if (isNaN(vizsgal) && isNaN(vizsgal.replace(/\./g,''))) {
-		console.info('isNaN');
-		var patt=new RegExp(/^[0-9]+(\/)[0-9]+$/g);
-		var patt2=new RegExp(/^[0-9\.]+(\/)[0-9\|]+$/g);
-		if (patt.test(vizsgal)) {
-			tipus="peres1";
-		} else {
-			if (oszlopSubSel=="falu" && patt2.test(vizsgal)) tipus="falu_peres2";
+	if (tipus == '') {
+		console.warn('DEPRECATED, ADD TIPUS!');
+		if (prodtable[1].cells[oszlop].getElementsByClassName("tavolsag").length > 0) {
+			if (oszlopSubSel=='fontos') tipus="szoveg"; else tipus="tavolsag";
+		} else if (isNaN(vizsgal) && isNaN(vizsgal.replace(/\./g,''))) {
+			console.info('isNaN');
+			var patt=new RegExp(/^[0-9]+(\/)[0-9]+$/g);
+			var patt2=new RegExp(/^[0-9\.]+(\/)[0-9\|]+$/g);
+			if (patt.test(vizsgal)) {
+				tipus="peres1";
+			} else {
+				if (oszlopSubSel=="falu" && patt2.test(vizsgal)) tipus="falu_peres2";
+			}
+			patt=new RegExp(/^[0-9][0-9](\:)[0-9][0-9](\:)[0-9][0-9]$/g);
+			if (patt.test(vizsgal)) tipus="ido";
+		} else { /*szám lesz, a pont is OKÉ*/
+			console.info('szám lesz, a pont is OKÉ');
+			if (vizsgal=="") {
+				tipus="nyersOssz";
+				if (prodtable[1].cells[oszlop].getElementsByTagName("div").length == 0) tipus="szoveg";
+			}
+			if (tipus=="") tipus="szam";
+			if (tipus=='szam' && vizsgal.indexOf(".") == -1 && prodtable[1].cells[oszlop].getElementsByClassName('grey').length == 0) tipus="szam_Float";
+			if (prodtable[1].cells[oszlop].innerHTML.indexOf('class="rename-icon"')>0 || prodtable[1].cells[oszlop].innerHTML.indexOf('screen=info_player')>0) tipus="szoveg";
 		}
-		patt=new RegExp(/^[0-9][0-9](\:)[0-9][0-9](\:)[0-9][0-9]$/g);
-		if (patt.test(vizsgal)) tipus="ido";
-	} else { /*szám lesz, a pont is OKÉ*/
-		console.info('szám lesz, a pont is OKÉ');
-		if (vizsgal=="") {
-			tipus="nyersOssz";
-			if (prodtable[1].cells[oszlop].getElementsByTagName("div").length==0) tipus="szoveg";
-		}
-		if (tipus=="") tipus="szam";
-		if (tipus=='szam' && vizsgal.indexOf(".") == -1 && prodtable[1].cells[oszlop].getElementsByClassName('grey').length == 0) tipus="szam_Float";
-		if (prodtable[1].cells[oszlop].innerHTML.indexOf('class="rename-icon"')>0 || prodtable[1].cells[oszlop].innerHTML.indexOf('screen=info_player')>0) tipus="szoveg";
+		if (oszlopSubSel == "wood") tipus="nyers1";
+		if (oszlopSubSel == "stone") tipus="nyers2";
+		if (oszlopSubSel == "iron") tipus="nyers3";
+		if (tipus == '') tipus='szoveg';
 	}
-	if (oszlopSubSel == "wood") tipus="nyers1";
-	if (oszlopSubSel == "stone") tipus="nyers2";
-	if (oszlopSubSel == "iron") tipus="nyers3";
-	if (tipus=="") tipus="szoveg";
 	console.info('Type:', tipus);
 	for (var i=1;i<prodtable.length-fix;i++){
 		switch (tipus) {
@@ -1127,6 +1128,7 @@ function rendez(bool, oszlopSubSel, oszlopId){try{
 			case "nyers2": tavok[i-1]=parseInt(prodtable[i].cells[oszlop].innerText.replace(/\./g,"").match(/[0-9\-]+/g)[1]); break;
 			case "nyers3": tavok[i-1]=parseInt(prodtable[i].cells[oszlop].innerText.replace(/\./g,"").match(/[0-9\-]+/g)[2]); break;
 			case "nyersOssz": tavok[i-1]=parseFloat(prodtable[i].cells[oszlop].getElementsByTagName("div")[0].style.width.replace("px","")); break;
+			case "nyersOssz2": tavok[i-1]=parseFloat(prodtable[i].cells[oszlop].textContent.match(/\(([^)]+)\)/)[1].replace('%','')); break;
 			case "ido": if (parseInt(prodtable[i].cells[oszlop].innerText.split(":")[0])<10) tavok[i-1]="0"+prodtable[i].cells[oszlop].innerText; else tavok[i-1]=prodtable[i].cells[oszlop].innerText; break;
 			case "szam": tavok[i-1]=parseInt(prodtable[i].cells[oszlop].innerText.replace(/\./g,"")); break;
 			case "szam_Float": tavok[i-1]=parseFloat(prodtable[i].cells[oszlop].innerText); break;
@@ -1150,7 +1152,6 @@ function rendez(bool, oszlopSubSel, oszlopId){try{
 		var Ttemp=indexek[i];
 		indexek[i]=indexek[min];
 		indexek[min]=Ttemp;
-		
 	}
 	
 	for (var i=prodtable.length-1;i>0;i--){
@@ -1171,8 +1172,9 @@ function rendez(bool, oszlopSubSel, oszlopId){try{
 		case 'iron': link=2; break;
 		default: link=getLinkByOszlop(oszlopId);
 	}
+	if (tipus == 'nyersOssz2') link=1;
 	
-	document.getElementById(oszlopId).getElementsByTagName("a")[link].setAttribute("href",'javascript: rendez('+!bool+',"'+oszlopSubSel+'", "'+oszlopId+'");');
+	document.getElementById(oszlopId).getElementsByTagName("a")[link].setAttribute("href",`javascript: rendez(${!bool},"${oszlopSubSel}", "${oszlopId}", "${tipus}");`);
 	
 	function getLinkByOszlop(oszlopId) {
 		if (oszlopId == 'falunev') return 1;
@@ -1437,11 +1439,19 @@ function load(){try{
 	
 	try{
 	var newline=x[0].insertCell(getOszlopNo("gazdType")+1);
-	newline.outerHTML='<th id="nyersdiagam" style="width: 300px"><a href="javascript: rendez(true, \'\', \'nyersdiagam\')"><b>Összes nyersanyag</b></a></th>';
+	newline.outerHTML='\
+		<th id="nyersdiagam" style="width: 300px"><a href="javascript: rendez(true, \'\', \'nyersdiagam\', \'nyersOssz\')"><b>Összes nyersanyag</b></a>\
+		<a href="javascript: rendez(true, \'\', \'nyersdiagam\', \'nyersOssz2\')">(telítettség%)</a></th>';
 	for (i=1;i<nyersG.nyersek.length;i++){
 		newline=x[i].insertCell(getOszlopNo("gazdType")+1);
 		newline.style.position = 'relative';
-		newline.innerHTML = '<div style="background-color: #0C0; height: 10px; width: '+Math.round((nyersG.nyersek[i]/nyersG.osszNyers[3])*300)+'px"></div><div style="position: absolute; top: 4px; left: 7px; text-shadow: 0px 0px 4px black; color:white;">'+prettyNumberPrint(nyersG.nyersek[i])+'</div>';
+		newline.innerHTML = '<div style="background-color: #0C0; height: 10px; width: '
+				+ Math.round((nyersG.nyersek[i]/nyersG.osszNyers[3])*300) + 'px">\
+				</div>\
+				<div style="position: absolute; top: 4px; left: 7px; text-shadow: 0px 0px 4px black; color:white;">' + 
+					prettyNumberPrint(nyersG.nyersek[i]) + ' ' +
+					getPercent(nyersG.raktar[i], nyersG.maxNyers[i])
+				'</div>';
 	}}catch(e){alert(e);}
 	
 	var newNode=document.createElement("div");
@@ -1497,14 +1507,20 @@ function load(){try{
 		displayMessage('Gazdasági analízis nézet', iHTML);
 		document.forms['gazdForm'].gazdType.value = GAZDTYPE;
 	}
+
+	function getPercent(raktar, nyers) {
+		return '(' + Math.round((nyers/raktar) * 100) + '%)';
+	}
 }
 function updateGazdView() {
 	loadGazdView(document.forms['gazdForm'].gazdType.value)
 }
 function loadGazdView(type) {try{
 	var osszNyers = [0, 0, 0, 0];
-	var nyersek=['0'];
-	var fa, agyag, vas, AVG, isRun;
+	var nyersek = ['0'];
+	var maxNyers = [0]
+	var raktar = [1];
+	var AVG, isRun;
 	var no = 0;
 	if (type.indexOf("AGYAG") > -1) no = 1;
 	if (type.indexOf("VAS") > -1) no = 2;
@@ -1520,11 +1536,15 @@ function loadGazdView(type) {try{
 				AVG=Math.round((M.fa+M.agyag+M.vas)/3);
 				x[i].cells[getOszlopNo("gazdType")].innerHTML = convertGCell([M.fa-AVG, M.agyag-AVG, M.vas-AVG], 50000);
 				nyersek[i]=M.fa+M.agyag+M.vas;
+				maxNyers[i] = Math.max(M.fa, M.agyag, M.vas);
+				raktar[i] = parseInt(x[i].cells[getOszlopNo("raktar")].textContent,10);
 				if (nyersek[i]>osszNyers[3]) osszNyers[3]=nyersek[i];
 			}
 			return {
 				osszNyers: osszNyers,
-				nyersek: nyersek
+				nyersek: nyersek,
+				maxNyers: maxNyers,
+				raktar: raktar
 			};
 		case 'G_AVG_RELATIVE':
 			osszNyers = getAllNyers(false);
