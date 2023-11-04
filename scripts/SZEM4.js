@@ -2710,6 +2710,11 @@ function VIJE_IntelliAnalyst_isRequired(koord, jelRow, jelDate) {
 	if (nyers_VIJE > 100) return true;
 	return false;
 }
+function szem4_vije_forgot() {
+	SZEM4_VIJE.ELEMZETT = [];
+	SZEM4_VIJE.ALL_VIJE_SAVED = {};
+	alert2('Elemzett jelentések elfelejtve')
+}
 function szem4_VIJE_1kivalaszt(){try{
 	/*Eredménye: jelentés azon (0=nincs meló);farm koord;jelentés SZÍNe;volt e checkbox-olt jeli*/
 	try{TamadUpdt(VIJE_REF1);}catch(e){}
@@ -3052,7 +3057,8 @@ ujkieg("vije","Jelentés Elemző",`<tr><td>
 			<tr><td>${picBuilding('farm')}</td><td>"Tanya" a szerver jelenlegi nyelvén</td><td><input type="text" size="15" name="farm" value="Tanya"></td></tr>
 			<tr><td>${picBuilding('wall')}</td><td>"Fal" a szerver jelenlegi nyelvén</td><td><input type="text" size="15" name="wall" value="Fal"></td></tr>
 		</table>
-		<input type="checkbox" name="isdelete"> Zöld farmjelentések törlése?<br><br><br>
+		<input type="checkbox" name="isdelete"> Zöld farmjelentések törlése?<br>
+		<button onclick="szem4_vije_forgot()">Jelentések újraelemzése/elfelejtése</button><br><br><br>
 	</form>
 	</td></tr>`);
 
