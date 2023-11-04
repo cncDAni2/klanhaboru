@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.10.22';
+var VERZIO = 'v4.6 Build 23.11.04';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -554,7 +554,6 @@ function init(){try{
 			text-align: center;
 		}
 		.gyujto_table td:nth-child(2) {
-			cursor: pointer;
 			text-align: center;
 		}
 	`;
@@ -1107,7 +1106,8 @@ function rendez(tipus, isAsc, thislink, table_azon, oszlopNo){try{
 				d.setMinutes(s.split(" ")[2].split(":")[1]);
 				d.setSeconds(s.split(" ")[2].split(":")[2]);
 				tavok[i-1]=d; break;
-			case "lista": tavok[i-1]=prodtable[i].cells[oszlopNo].getElementsByTagName("select")[0].value; break;
+			case "lista":    tavok[i-1] = prodtable[i].cells[oszlopNo].getElementsByTagName("select")[0].value; break;
+			case "checkbox": tavok[i-1] = prodtable[i].cells[oszlopNo].querySelector('input[type="checkbox"]').checked?1:0; break;
 			case "tanya": tavok[i-1]=parseInt(cellText.split('/')[0]); break;
 			default: throw("Nem értelmezhető mi szerint kéne rendezni.");
 		}
@@ -1285,6 +1285,9 @@ function addFreezeNotification() {
 		USER_ACTIVITY = false;
 		document.getElementById('global_notifications').innerHTML = '';
 	}, 5000);
+}
+function stopEvent(ev) {
+	ev.stopImmediatePropagation();
 }
 
 var BOTORA, ALTBOT2=false, BOT_VOL=0.0; /*ALTBOT2 --> megnyílt e már 1x az ablak*/
@@ -3492,12 +3495,26 @@ function gyujto_listAllVillages() {
 	}
 	return rows;
 }
-function gyujto_setVill(villId, el) {
-	if (!SZEM4_GYUJTO[villId])
-		SZEM4_GYUJTO[villId] = true;
-	else
-		SZEM4_GYUJTO[villId] = !SZEM4_GYUJTO[villId];
-	el.querySelector('input').checked = SZEM4_GYUJTO[villId];
+function gyujto_setVill(villId, el, isForcedSingle=false, forcedValue) {
+	const isMulti = document.querySelector('#gyujto_ismass').checked;
+	if (!isForcedSingle && isMulti) {
+		const multiOperationVal = !SZEM4_GYUJTO[villId];
+		document.querySelectorAll(`#gyujto_form_table tr:not([style*="display: none"]) td input[type="checkbox"]`).forEach(el => {
+			gyujto_setVill(el.getAttribute('name').replace('f', ''), el.parentElement, true, multiOperationVal);
+		});
+	} else {
+		let newVal = true;
+		if (forcedValue !== undefined) {
+			newVal = forcedValue;
+		} else {
+			if (SZEM4_GYUJTO[villId] == undefined)
+				newVal = true;
+			else
+				newVal= !SZEM4_GYUJTO[villId];
+		}
+		SZEM4_GYUJTO[villId] = newVal;
+		el.querySelector('input').checked = SZEM4_GYUJTO[villId];
+	}
 }
 function rebuildDOM_gyujto() {
 	const f = document.querySelector('#gyujto_form');
@@ -3505,6 +3522,30 @@ function rebuildDOM_gyujto() {
 		if (SZEM4_GYUJTO[villId] === true) f['f' + villId].checked = true;
 	}
 	f.strategy.value = SZEM4_GYUJTO.settings.strategy;
+}
+function szem4_GYUJTO_search(ev) {
+	ev.stopImmediatePropagation();
+	let vills = prompt('Szűrés ezen falukra:\nÜres=minden');
+	const gyujtoTable = document.querySelector('#gyujto_form_table').rows;
+
+	if (vills == '') {
+		for (let i=1;i<gyujtoTable.length;i++) {
+			gyujtoTable[i].style.display = 'table-row';
+		}
+	}
+	if (!vills) return;
+	vills = vills.match(/[0-9]{1,3}\|[0-9]{1,3}/g);
+	if (!vills || vills.length < 1) return;
+
+	
+	for (let i=1;i<gyujtoTable.length;i++) {
+		const tc = gyujtoTable[i].cells[0].textContent;
+		if (vills.some(el => tc.includes(`(${el})`))) {
+			gyujtoTable[i].style.display = 'table-row';
+		} else {
+			gyujtoTable[i].style.display = 'none';
+		}
+	}
 }
 function szem4_GYUJTO_1keres() {try{
 	let d = getServerTime();
@@ -3629,10 +3670,12 @@ ujkieg('gyujto','Gyűjtő',`<tr><td>
 	<form id="gyujto_form">
 		<table class="vis gyujto_table" id="gyujto_form_table">
 			<thead><tr>
-				<th onclick="rendez('szoveg', false, this, 'gyujto_form_table', 0)">Falu</th>
+				<th onclick="rendez('szoveg', false, this, 'gyujto_form_table', 0)">Falu
+					<img src="${pic("search.png")}" alt="Szűrő" title="Szűrés falukra..." onclick="szem4_GYUJTO_search(event)">
+					<input type="checkbox" onclick="stopEvent(event)" id="gyujto_ismass" onmouseover="sugo(this,'Tömeges kezelés: minden látott falura érvényes lesz a további művelet')" title="Tömeges kezelés"></th>
 				<th onclick="rendez('szam', false, this, 'gyujto_form_table', 1)">Pont</th>
 				<th onclick="rendez('tanya', false, this, 'gyujto_form_table', 2)">Tanya</th>
-				<th>Gyűjtögetés?</th>
+				<th onclick="rendez('checkbox', false, this, 'gyujto_form_table', 3)">Gyűjtögetés?</th>
 				<th onclick="rendez('datum', false, this, 'gyujto_form_table', 4)">Gyűjtés eddig</th>
 			</tr></thead>
 			<tbody>${gyujto_listAllVillages()}</tbody>
