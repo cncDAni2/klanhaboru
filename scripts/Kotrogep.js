@@ -36,6 +36,16 @@ function createWorker(main){
 $("#contentContainer").prependTo("body");
 $("body").children(":not(#contentContainer)").remove();
 $("#ds_body").width((curr_width + 200) + 'px').css('margin','auto').css('background', '#363');
+
+var kotroStyle = `
+	#kotrogep-header.pause_mode {
+		border: 5px dotted blue;
+	}
+`;
+let kotroStyle_el = document.createElement('style');
+kotroStyle_el.textContent = kotroStyle;
+document.head.appendChild(kotroStyle_el);
+
 var ELEM=document.createElement("div");
 ELEM.setAttribute('id', 'kotrogep-header');
 ELEM.innerHTML = `<p align="center">
@@ -51,7 +61,9 @@ ELEM.innerHTML = `<p align="center">
 		&nbsp;&nbsp;&nbsp;Feltöltési mód? <input type="checkbox" onclick=set_balance()> <a onclick="javascript: alert(\'Az opció bepipálása után a BE oszlopba megjelölt falukat a script továbbra is feltölti nyersanyaggal, de ügyel arra, hogy ne léphesse túl a raktár kapacitását. Megfelelő pipálással egy jó balance hozható létre.\')">Mi ez?</a>
 		&nbsp;&nbsp;&nbsp; Feltöltés a raktár kapacitásának <input type="text" size="2" id="maxup" value="80">%-áig.
 		Max szállítási távolság: <input type="text" value="30" size="2" id="maxtav"> mező.
-		<input id="rapid_value" size="2" value="10"> perc múlva nézem újra a falut, ha nem volt munkája.
+		<input id="rapid_value" size="2" value="10"> perc múlva nézem újra a falut, ha nem volt munkája.<br>
+		Frissítési időköz: <input type="number" id="refreshtime" value="60"> másodperc. <button type="button" onclick="setRefresh()">Új frissítési idő beállítása</button> (Áttekintés frissítésére szolgál, gyors érmeverés esetén)<br>
+		<button type="button" id="kotro_szunet" onclick="szunet_kotro()">Script szüneteltetése</button>
 	</p>
 	<p id="newrowarea">
 		<b>Új külső falu megadása:</b>
@@ -233,6 +245,18 @@ function addMoreRow() {
 function wopen(webpage) {
 	A = window.open(webpage, KOTROID);
 	return;
+}
+function szunet_kotro() {
+	ISPAUSE = !ISPAUSE;
+	document.querySelector('#kotro_szunet').innerHTML = ISPAUSE?'Script folytatása':'Script szüneteltetése';
+	document.querySelector('#kotrogep-header').classList.remove('pause_mode');
+	if (ISPAUSE) document.querySelector('#kotrogep-header').classList.add('pause_mode');
+}
+function setRefresh() {
+	let newRefresh = parseInt(document.querySelector('#refreshtime').value);
+	if (typeof newRefresh !== 'number' || isNaN(newRefresh) || newRefresh < 10 || newRefresh > 600) newRefresh = 60;
+	REFRESH_TIME = newRefresh;
+	document.querySelector('#refreshtime').value = newRefresh;
 }
 function set_balance() { /*BE Auto: <20k nép; KI Auto: szokásos_full; ÉRME Diff: szokásos_full, de nem KI*/
 	BALANCE = !BALANCE;
@@ -919,78 +943,80 @@ function balance_frissit() {
 }
 function MOTOR_eloszto() { /*Az elosztó figyeli a bot védelmet és a lap betöltődését is. Ha minden rendben, meghívja az aktiális intézkező fg.-t a paraméterekkel.*/
 	try {
-		AUTOUPDATE++;
-		if (AUTOUPDATE > 300) {
-			AUTOUPDATE = 0;
-			wopen(document.location.href);
-			worker.postMessage({'id': 'kotro', 'time': 500});
-			return;
-		}
-		if (A.closed) {
-			wopen(document.location.href);
-			ALLAPOT = 0;
-			worker.postMessage({'id': 'kotro', 'time': 500});
-			return;
-		}
-		if (A.document.readyState != "complete") {
-			worker.postMessage({'id': 'kotro', 'time': 500});
-			return;
-		}
-		if (A.document.getElementById('bot_check') || A.document.getElementById('popup_box_bot_protection') || A.document.getElementById('botprotection_quest') || A.document.title == "Bot védelem") {
-			var date = new Date();
-			botriado(false);
-			document.getElementById("kot_uzi").innerHTML += "<br>BOT RIADÓ! " + date;
-			worker.postMessage({'id': 'kotro', 'time': 1500});
-			return;
-		} else if (BOTSTAGE > 0) botriado(true);
-		tabla = document.getElementById("production_table");
-		if (!ERME) {
-			if (BALANCE) {
-				switch (ALLAPOT) {
-				case 0:
-					balance_munka();
-					break; /*PM4 -> TRUE: a BE oszlop vizsgálata során frissítési szükséglet lépett fel; FALSE: KI-be megérkeztek a kereskedők; PM1->Melyik az érintett sor*/
-				case 1:
-					balance_adatszedo(PM1, PM4);
-					break; /* TRUE: frissíti a falu nyersanyagszintjét a piaci oldalról;online: +2 óra;ALLAPOT=0; FALSE: Küldendő hely&mennyiség számítása, frissítése faluoldalt, illesztése, OKéz;PM2=true ha nem lehet küldeni, false ha lehet.*/
-				case 2:
-					balance_frissit(PM1, PM2);
-					break; /*PM1. sor Online adatának frissítése. PM2=true esetén 20p-et adni rá, ellenben vizsgálni*/
-				default:
-					ALLAPOT = 0;
+		if (!ISPAUSE) {
+			AUTOUPDATE++;
+			if (AUTOUPDATE > REFRESH_TIME && ALLAPOT == 0) {
+				AUTOUPDATE = 0;
+				wopen(document.location.href);
+				worker.postMessage({'id': 'kotro', 'time': 500});
+				return;
+			}
+			if (A.closed) {
+				wopen(document.location.href);
+				ALLAPOT = 0;
+				worker.postMessage({'id': 'kotro', 'time': 500});
+				return;
+			}
+			if (A.document.readyState != "complete") {
+				worker.postMessage({'id': 'kotro', 'time': 500});
+				return;
+			}
+			if (A.document.getElementById('bot_check') || A.document.getElementById('popup_box_bot_protection') || A.document.getElementById('botprotection_quest') || A.document.title == "Bot védelem") {
+				var date = new Date();
+				botriado(false);
+				document.getElementById("kot_uzi").innerHTML += "<br>BOT RIADÓ! " + date;
+				worker.postMessage({'id': 'kotro', 'time': 1500});
+				return;
+			} else if (BOTSTAGE > 0) botriado(true);
+			tabla = document.getElementById("production_table");
+			if (!ERME) {
+				if (BALANCE) {
+					switch (ALLAPOT) {
+					case 0:
+						balance_munka();
+						break; /*PM4 -> TRUE: a BE oszlop vizsgálata során frissítési szükséglet lépett fel; FALSE: KI-be megérkeztek a kereskedők; PM1->Melyik az érintett sor*/
+					case 1:
+						balance_adatszedo(PM1, PM4);
+						break; /* TRUE: frissíti a falu nyersanyagszintjét a piaci oldalról;online: +2 óra;ALLAPOT=0; FALSE: Küldendő hely&mennyiség számítása, frissítése faluoldalt, illesztése, OKéz;PM2=true ha nem lehet küldeni, false ha lehet.*/
+					case 2:
+						balance_frissit(PM1, PM2);
+						break; /*PM1. sor Online adatának frissítése. PM2=true esetén 20p-et adni rá, ellenben vizsgálni*/
+					default:
+						ALLAPOT = 0;
+					}
+				} else {
+					switch (ALLAPOT) {
+					case 0:
+						munka();
+						break; /*megnézi van e aktuális munka, azaz KI-hez online kereskedők vannak e?*/
+					case 1:
+						kuld(PM1, PM2);
+						break; /*BE: KI koord,id-je. megkeresi az első Online KI-hez a legközelebbi BE falut, és megnyitja a KI piacát*/
+					case 2:
+						illeszt(PM1, PM2);
+						break; /*BE: BE koord.-ja (x,y). Kiszámolja mennyi nyersanyagot tud elküldeni, amit beír a piacra és küld.*/
+					case 3:
+						nfrissit(PM3, PM4);
+						break; /*be: KI sora a dok.-ban. A dokumentum Online sorát frissíti */
+					default:
+						ALLAPOT = 0;
+					}
 				}
 			} else {
 				switch (ALLAPOT) {
 				case 0:
-					munka();
-					break; /*megnézi van e aktuális munka, azaz KI-hez online kereskedők vannak e?*/
+					open_attek();
+					break; /*Áttekintés megnyitása*/
 				case 1:
-					kuld(PM1, PM2);
-					break; /*BE: KI koord,id-je. megkeresi az első Online KI-hez a legközelebbi BE falut, és megnyitja a KI piacát*/
+					open_academy();
+					break; /*Vizsgálat, hol lehet érmét verni a pipált faluknál és megnyitja annak akadémiáját*/
 				case 2:
-					illeszt(PM1, PM2);
-					break; /*BE: BE koord.-ja (x,y). Kiszámolja mennyi nyersanyagot tud elküldeni, amit beír a piacra és küld.*/
-				case 3:
-					nfrissit(PM3, PM4);
-					break; /*be: KI sora a dok.-ban. A dokumentum Online sorát frissíti */
+					erme_veres();
+					break; /*Érmét ver, ha van rá link (amíg el nem fogy a nyersanyag) --> ALLAPOT=0;ERME=false;*/
 				default:
 					ALLAPOT = 0;
+					ERME = false;
 				}
-			}
-		} else {
-			switch (ALLAPOT) {
-			case 0:
-				open_attek();
-				break; /*Áttekintés megnyitása*/
-			case 1:
-				open_academy();
-				break; /*Vizsgálat, hol lehet érmét verni a pipált faluknál és megnyitja annak akadémiáját*/
-			case 2:
-				erme_veres();
-				break; /*Érmét ver, ha van rá link (amíg el nem fogy a nyersanyag) --> ALLAPOT=0;ERME=false;*/
-			default:
-				ALLAPOT = 0;
-				ERME = false;
 			}
 		}
 	} catch (e) {
@@ -1014,6 +1040,8 @@ var AUTOUPDATE = 0;
 var BALANCE = false;
 var PROBA = 0;
 var SIMULATION = 0;
+var REFRESH_TIME = 60;
+var ISPAUSE = false;
 var KOTROID = 'kotrogep' + new Date().getTime();
 wopen(document.location.href);
 document.getElementById("wavhang").src = "https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/szem4/bot.wav";
