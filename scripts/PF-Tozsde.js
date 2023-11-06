@@ -431,7 +431,7 @@ function setMinTrans(el) {
 	let val = parseInt(el.value);
 	if (typeof val !== 'Number' || isNaN(val) || val > 200000) val = 1800;
 	el.value = val;
-	MINUMUM_TRANSACTION = val;
+	TOZSDE_DATA.minTransAmount = val;
 }
 function setTabVisibility(id, el) {
 	var x = document.getElementById(id);
@@ -1397,7 +1397,9 @@ $('#h3_1 input, #h3_1 select, #h3_3 input:not([type="checkbox"])').on('change', 
  BUG: Dupla vásárlás van. Néha. (Lehet jobb is?) Nem a kerekítés miatt? BUY-nál FEL kéne kerekítani, de amúgyis a current_price kéne hogy megmondja a kerekítést
  BUG: Nem tudja mennyi kereskedőm van  miután már volt tranzakció, mivel már nem frissít a lapra. Honnan nézi ezt? Nézd má' meg la'
  BUG: Néha 0 <-> 0 az ajánlat. Ez játék-hiba, ilyenkor refresh-page
- FEAT: Alarm: legyen kiiktatható ha csak a capacity miatt olcsó a nyers - ekkor színezze, csak soundplay ne legyen
+ FEAT: Hang csak akkor ha nincs kereskedő; Ha nincs kereskedő: legyen hang/ne legyen
+ 	   Hang csak akkor ha nincs nyersanyag; Ha nincs nyersanyag: legyen hang/ne legyen
+	   [x] Ne legyen hang, ha kereskedő és nyersanyag is van
  FEAT: Lehetséges eladni valamit/Nem lehet: Ezek is pipálhatónak kéne h legyen
  FEAT: Külön hang mikor az automata vesz v elad
  */
