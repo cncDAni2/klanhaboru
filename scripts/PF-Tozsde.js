@@ -8,7 +8,8 @@ document.body.style.backgroundImage="none";
 document.body.style.background="#e3d5b3 url(https://dshu.innogamescdn.com/asset/233cdec1/graphic/index/main_bg.jpg) scroll right top repeat";
 var ID=game_data.world+" - K" + (game_data.village.y+'')[0] + (game_data.village.x+'')[0];
 var CHK_FIELDS = ['minimum', 'maximum', 'any', 'some', 'action', 'keszlet', 'autotrans', 'newMail', 'newAttack'];
-var FIELDS = ['min_wood', 'min_stone', 'min_iron', 'max_wood', 'max_stone', 'max_iron', 'action_wood', 'action_stone', 'action_iron', 'keszlet_wood', 'keszlet_stone', 'keszlet_iron', 'nameOfBeerkezo', 'nameOfElad', 'nameOfVasarolj'];
+var FIELDS = ['min_wood', 'min_stone', 'min_iron', 'max_wood', 'max_stone', 'max_iron', 'action_wood', 'action_stone', 'action_iron', 'keszlet_wood', 'keszlet_stone', 'keszlet_iron', 'nameOfBeerkezo', 'nameOfElad', 'nameOfVasarolj', 'minTransAmount'];
+
 var LANGFIELDS = [];
 var AUTO_FIELDS_SELL = ['minRes','minLimit','maxRes','maxLimit'];
 var AUTO_FIELDS_BUY = ['minRes','minLimit','maxRes','maxLimit'];
@@ -429,7 +430,7 @@ function setAgressiveRefresh2(el) {
 }
 function setMinTrans(el) {
 	let val = parseInt(el.value);
-	if (typeof val !== 'Number' || isNaN(val) || val > 200000) val = 1800;
+	if (typeof val !== 'number' || isNaN(val) || val > 200000) val = 1800;
 	el.value = val;
 	TOZSDE_DATA.minTransAmount = val;
 }
@@ -672,6 +673,7 @@ function setButtonBack(id) {
 }
 function loadData() {
 	try{TOZSDE_DATA = JSON.parse(localStorage.getItem('PF_tozsde'+ID));}catch(e){TOZSDE_DATA=null;}
+	debugger;
 	var myForm = document.getElementById("cnc_tozsde");
 	if (!TOZSDE_DATA || TOZSDE_DATA == null) {
 		// Default érték nem lementett adat esetén
@@ -1080,6 +1082,7 @@ function startAutoProcess() {
 			noInteration++;
 		}
 		if (transactionAmount == 0) return;
+		console.info('RES::', transactionAmount, TOZSDE_DATA.minTransAmount);
 		if (transactionAmount < TOZSDE_DATA.minTransAmount) return;
 		
 		TOZSDE_AUTOINFO.inProgress=true;
