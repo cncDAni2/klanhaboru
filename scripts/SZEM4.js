@@ -3061,7 +3061,7 @@ ujkieg("vije","Jelentés Elemző",`<tr><td>
 			<tr><td>${picBuilding('wall')}</td><td>"Fal" a szerver jelenlegi nyelvén</td><td><input type="text" size="15" name="wall" value="Fal"></td></tr>
 		</table>
 		<input type="checkbox" name="isdelete"> Zöld farmjelentések törlése?<br>
-		<button onclick="szem4_vije_forgot()">Jelentések újraelemzése/elfelejtése</button><br><br><br>
+		<button onclick="szem4_vije_forgot()" type="button">Jelentések újraelemzése/elfelejtése</button><br><br><br>
 	</form>
 	</td></tr>`);
 

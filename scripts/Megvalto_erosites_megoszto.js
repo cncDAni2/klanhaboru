@@ -314,6 +314,7 @@ function seregilleszt(kuldhetoSereg, ratio) {
 	var is = document.getElementById("Utypes").getElementsByTagName("input");
 	
 	for (var i=0;i<kuldhetoSereg.unitsDb.length;i++) {
+		console.info(i);
 		var unitToSend;
 		var d = refarray[i].document;
 		var currUnits = getCurrUnit(d);

@@ -23,7 +23,8 @@ var STATS = {
 };
 var SOUND_LOC = 'https://raw.githubusercontent.com/cncDAni2/klanhaboru/main/images/tozsde/';
 var defaultSound = 'bot2.wav';
-var TOZSDE_DATA = {};
+var TOZSDE_DATA = {
+};
 var TOZSDE_DATA_DEFAULT = {
 	minimum: true,
 	maximum: false,
@@ -49,6 +50,7 @@ var TOZSDE_DATA_DEFAULT = {
 	nameOfBeerkezo: 'Beérkező',
 	nameOfElad: 'Elad',
 	nameOfVasarolj: 'Vásárolj',
+	minTransAmount: 1800,
 	sound: {
 		minimum: defaultSound,
 		maximum: defaultSound,
@@ -134,7 +136,7 @@ function generateSoundSelector(id) {
 }
 function generateAutoOptions(mode) {
 	var res=['wood', 'stone', 'iron'];
-	var str='<div class="autoChk">';
+	var str = `<div class="autoChk mode-${mode}">`;
 	for (var i=0;i<res.length;i++){
 		str+='<span class="icon header '+res[i]+'"> </span> <input type="checkbox" onclick="stopStartAuto(this,\''+mode+'\', \''+res[i]+'\')"><br>';
 	}
@@ -295,6 +297,12 @@ let tozsdeStyle = `
 	#allapot .item-incoming-warning {
 		background-image: linear-gradient(to right, rgba(255,0,0,0.8), transparent 24%, transparent 76%, rgba(255,0,0,0.8)) 
 	}
+	.quickAction {
+		border-bottom: 2px dashed blue;
+		margin-bottom: 5px;
+		display: inline-block;
+		cursor: pointer;
+	}
 	#tozsde_save:not([disabled]), #auto_save:not([disabled]) {
 		background: rgb(236,236,236);
 		animation-name: flash;
@@ -343,12 +351,12 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <span class="auto-sugo"><a target="_BLANK" href="https://github.com/cncDAni2/klanhaboru/blob/main/images/tozsde/automata_sugo.png?raw=true">Súgó/példakép betanításhoz</a></span>\
 <table class="vis" style="margin: auto; border-collapse: collapse;" id="tozsde_auto">\
 <tr><th colspan="2">Automatika tanítása</th><th><span class="icon header wood"> </span> <button type="button" onclick="copyAuto(0)">=</button></th><th><span class="icon header stone"> </span>  <button type="button" onclick="copyAuto(1)">=</button></th><th><span class="icon header iron"> </span> <button type="button" onclick="copyAuto(2)">=</button></th></tr>\
-<tr><td rowspan="4" style="text-align:center; border-right: 2px solid #F88">Nyerseladás '+generateAutoOptions('sell')+'</td><td><span class="icon header premium"> </span> Minimum limit '+generatePlusMinus("sell","minLimit")+'</td><td><input type="number" name="auto_sell_wood_minLimit"></td><td><input type="number" name="auto_sell_stone_minLimit"></td><td><input type="number" name="auto_sell_iron_minLimit"></td></tr>\
+<tr><td rowspan="4" style="text-align:center; border-right: 2px solid #F88"><span class="quickAction" onclick="quickAuto(\'sell\')">Nyerseladás</span> '+generateAutoOptions('sell')+'</td><td><span class="icon header premium"> </span> Minimum limit '+generatePlusMinus("sell","minLimit")+'</td><td><input type="number" name="auto_sell_wood_minLimit"></td><td><input type="number" name="auto_sell_stone_minLimit"></td><td><input type="number" name="auto_sell_iron_minLimit"></td></tr>\
 <tr><td><span class="icon header ressources"> </span> Minimum nyers a faluban</td><td><input type="number" name="auto_sell_wood_minRes"></td><td><input type="number" name="auto_sell_stone_minRes"></td><td><input type="number" name="auto_sell_iron_minRes"></td></tr>\
 <tr><td><span class="icon header premium"> </span> Maximum limit '+generatePlusMinus("sell","maxLimit")+'</td><td><input type="number" name="auto_sell_wood_maxLimit"></td><td><input type="number" name="auto_sell_stone_maxLimit"></td><td><input type="number" name="auto_sell_iron_maxLimit"></td></tr>\
 <tr><td><span class="icon header ressources"> </span> Maximum nyers a faluban</td><td><input type="number" name="auto_sell_wood_maxRes"></td><td><input type="number" name="auto_sell_stone_maxRes"></td><td><input type="number" name="auto_sell_iron_maxRes"></td></tr>\
 \
-<tr style="border-top: 2px solid #F88"><td rowspan="4" style="text-align:center; border-right: 2px solid #F88">Nyersvásárlás '+generateAutoOptions('buy')+'</td><td><span class="icon header premium"> </span> Minimum limit '+generatePlusMinus("buy","minLimit")+'</td><td><input type="number" name="auto_buy_wood_minLimit"></td><td><input type="number" name="auto_buy_stone_minLimit"></td><td><input type="number" name="auto_buy_iron_minLimit"></td></tr>\
+<tr style="border-top: 2px solid #F88"><td rowspan="4" style="text-align:center; border-right: 2px solid #F88"><span class="quickAction" onclick="quickAuto(\'buy\')">Nyersvásárlás</span> '+generateAutoOptions('buy')+'</td><td><span class="icon header premium"> </span> Minimum limit '+generatePlusMinus("buy","minLimit")+'</td><td><input type="number" name="auto_buy_wood_minLimit"></td><td><input type="number" name="auto_buy_stone_minLimit"></td><td><input type="number" name="auto_buy_iron_minLimit"></td></tr>\
 <tr><td><span class="icon header ressources"> </span> Minimum limit tartása</td><td><input type="number" name="auto_buy_wood_minRes"></td><td><input type="number" name="auto_buy_stone_minRes"></td><td><input type="number" name="auto_buy_iron_minRes"></td></tr>\
 <tr><td><span class="icon header premium"> </span> Maximum limit '+generatePlusMinus("buy","maxLimit")+'</td><td><input type="number" name="auto_buy_wood_maxLimit"></td><td><input type="number" name="auto_buy_stone_maxLimit"></td><td><input type="number" name="auto_buy_iron_maxLimit"></td></tr>\
 <tr><td><span class="icon header ressources"> </span> Maximum nyers a faluban</td><td><input type="number" name="auto_buy_wood_maxRes"></td><td><input type="number" name="auto_buy_stone_maxRes"></td><td><input type="number" name="auto_buy_iron_maxRes"></td></tr>\
@@ -363,7 +371,8 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <tr><td>"Vásárolj"</td><td><input name="nameOfVasarolj"></td></tr></table>\
 <p style="width: 500px;margin: 10px auto;text-align: center;">\
 	<input type="checkbox" onclick="setAgressiveRefresh(this)"><strong>AGRESSZÍV LAPFRISSÍTÉS</strong> (nem ajánlott)<br>\
-	<input type="checkbox" onclick="setAgressiveRefresh2(this)"><strong>GYORS REAGÁLÁS</strong> (nem ajánlott)\
+	<input type="checkbox" onclick="setAgressiveRefresh2(this)"><strong>GYORS REAGÁLÁS</strong> (nem ajánlott)<br>\
+	Minimum tranzakció / kereskedés: <input type="integer" name="minTransAmount" onblur="setMinTrans(this)" value="1800"> nyersanyag \
 </p></div>\
 <div style="width:800px; text-align:center;margin:10px auto"><button type="button" disabled onclick="saveTozsdeData()" id="tozsde_save">Hangbeállítások alkalmazása</button> <button type="button" onclick="loadData(); loadSoundData();">Visszaállítás</button> <button type="button" id="auto_save" onclick="saveAuto()">Automata beállításainak alkalmazása</button></div></form>\
 <h3 align="center" class="openedH3" onclick="setTabVisibility(\'h3_4\', this)">Árfolyam alakulása</h3>\
@@ -409,11 +418,20 @@ function stopSound(butt) {
 function stopSoundIf(el) {
 	EVENT.noSoundIf = el.checked;
 }
+function quickAuto(type) {
+	document.querySelectorAll(`.mode-${type} input[type="checkbox"]`).forEach(el => el.click());
+}
 function setAgressiveRefresh(el) {
 	EVENT.agressiveRefresh_win = el.checked;
 }
 function setAgressiveRefresh2(el) {
 	EVENT.agressiveRefresh = el.checked;
+}
+function setMinTrans(el) {
+	let val = parseInt(el.value);
+	if (typeof val !== 'Number' || isNaN(val) || val > 200000) val = 1800;
+	el.value = val;
+	MINUMUM_TRANSACTION = val;
 }
 function setTabVisibility(id, el) {
 	var x = document.getElementById(id);
@@ -461,7 +479,7 @@ function roundDown2(val) {
 }
 
 // notificationClass: info, sell, buy, incoming-warning
-function addEvent(data, notificationClass) {try{
+function addEvent(htmlText, notificationClass) {try{
 	var myTable = document.getElementById("allapot").getElementsByTagName("tbody")[0];
 	var row = myTable.insertRow(0);
 	var dateCell = row.insertCell(0); dateCell.innerHTML = prettyDatePrint(new Date());
@@ -469,17 +487,17 @@ function addEvent(data, notificationClass) {try{
 	
 	if (notificationClass) {
 		cell = row.insertCell(1); cell.setAttribute("colspan", "7");
-		cell.innerHTML = data;
+		cell.innerHTML = htmlText;
 		cell.setAttribute("class","item-"+notificationClass);
 	} else {
 		for (var i=1;i<4;i++) {
 			cell = row.insertCell(i);
-			cell.innerHTML = convertToArrow(data[2][i-1]) + ' ' + data[0][i-1];
+			cell.innerHTML = convertToArrow(htmlText[2][i-1]) + ' ' + htmlText[0][i-1];
 		}
 		for (var i=4;i<7;i++) {
-			cell = row.insertCell(i); cell.innerHTML = data[3][i-4];
+			cell = row.insertCell(i); cell.innerHTML = htmlText[3][i-4];
 		}
-		cell = row.insertCell(7); cell.innerHTML = new Array(...data[1]).join('<br>');
+		cell = row.insertCell(7); cell.innerHTML = new Array(...htmlText[1]).join('<br>');
 	}
 	
 	function convertToArrow(sign) {
@@ -528,7 +546,7 @@ function BotvedelemKi() {
 	clearInterval(BOTTIME);
 }
 function isPageLoaded(ref){try{
-	if (ref.closed) {STATUS = 1; return false;}
+	if (ref.closed) { addEvent('Ablak bezárva, újranyitom', 'info'); STATUS = 1; return false;}
 	try{
 		ref.status;
 	} catch(e) {
@@ -565,6 +583,7 @@ function isPageLoaded(ref){try{
 	
 
 	if (ref.document.location.href.indexOf("exchange") == -1) {
+		addEvent('Ablak elnavigált, újranyitom', 'info');
 		STATUS = 1;
 		return false;
 	}
@@ -1049,28 +1068,29 @@ function startAutoProcess() {
 		}
 
 		var currPrice=startPrice,
-			result=0,
+			transactionAmount=0,
 			lastCurrPrice,
 			helper=true
 			noInteration=0;
 		while (helper) {
-			if (typeof helper == "number") result += helper; else result += currPrice;
+			if (typeof helper == "number") transactionAmount += helper; else transactionAmount += currPrice;
 			lastCurrPrice = currPrice;
-			currPrice = getClearValue(type, mode=='sell' ? REF.PremiumExchange.data.stock[type] + result:REF.PremiumExchange.data.stock[type] - result, mode);
-			helper = autoAdd(currPrice, result, type, mode)
+			currPrice = getClearValue(type, mode=='sell' ? REF.PremiumExchange.data.stock[type] + transactionAmount:REF.PremiumExchange.data.stock[type] - transactionAmount, mode);
+			helper = autoAdd(currPrice, transactionAmount, type, mode)
 			noInteration++;
 		}
-		if (result==0) return;
+		if (transactionAmount == 0) return;
+		if (transactionAmount < TOZSDE_DATA.minTransAmount) return;
 		
 		TOZSDE_AUTOINFO.inProgress=true;
 		TOZSDE_AUTOINFO.startProgress=new Date();
 		TOZSDE_AUTOINFO.mode=mode;
 		TOZSDE_AUTOINFO.type=type;
 		TOZSDE_AUTOINFO.minMaxPrice=lastCurrPrice;
-		if (noInteration == 1) result = 1;
+		if (noInteration == 1) transactionAmount = 1;
 		
-		console.info(`Eredmény (${mode}/${noInteration}pp):`, result, '-->', limitMech(roundDown2(Math.floor(result)), mode));
-		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = limitMech(roundDown2(Math.floor(result)));
+		console.info(`Eredmény (${mode}/${noInteration}pp):`, transactionAmount, '-->', limitMech(roundDown2(Math.floor(transactionAmount)), mode));
+		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = limitMech(roundDown2(Math.floor(transactionAmount)));
 		REF.$('#premium_exchange_sell_'+type+' input').trigger('input');
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 		
@@ -1242,7 +1262,8 @@ function tozsdekereses() {try{
 		}
 
 		let currentSellPrice = getClearValue(nyersIDs[k], REF.PremiumExchange.data.stock[nyersIDs[k]], 'sell');
-		if (TOZSDE_DATA.minimum && (currentSellPrice <= TOZSDE_DATA['min_'+nyersIDs[k]] || (capacity[k] - onStock[k] > 0 && capacity[k] - onStock[k] < TOZSDE_DATA['min_'+nyersIDs[k]]))) {
+		// Hiányzó miatt: (capacity[k] - onStock[k] > 0 && capacity[k] - onStock[k] < TOZSDE_DATA['min_'+nyersIDs[k]])
+		if (TOZSDE_DATA.minimum && ( currentSellPrice <= TOZSDE_DATA['min_'+nyersIDs[k]])) {
 			notification.add('Limit alatti ár');
 			soundID='minimum';
 			isNeedSell = true;
@@ -1302,7 +1323,7 @@ function tozsdekereses() {try{
 	if (notification.size > 0 && new Date() > EVENT.hangSzunet && !(EVENT.noSoundIf && isNeedSell && REF.PremiumExchange.data.merchants < 1)) {
 		csengess(soundID);
 	}
-}catch(e){STATUS = 1; console.error(e);}}
+}catch(e){STATUS = 1; addEvent('Hiba történt/tozsdekereses, újranyitom a lapot: ' + e, 'info'); console.error(e);}}
 function main() {try{
 	next = 1000;
 	if (EVENT.agressiveRefresh) next = 150 + (Math.random() * 100);
@@ -1319,7 +1340,12 @@ function main() {try{
 				else EVENT.agressiveRefreshTime++;
 			} 
 		} else {
-			next = 1000; HIBA++; if (HIBA>6) STATUS=1;
+			next = 1000;
+			HIBA++;
+			if (HIBA>6) {
+				STATUS=1;
+				addEvent('Sok a hiba valamiért, újratöltöm a lapot', 'info');
+			}
 		} break;
 	}}
 }catch(e){console.error(e);}
@@ -1348,7 +1374,7 @@ function autoMotor() {try{
 }catch(e) {console.error(e); resetAutoState(); }}
 
 loadData();	
-main();
+setTimeout(() => main(), 100);
 loadSoundData();
 window.onbeforeunload = function() {return true;}
 $('#h3_2').on('change', 'input:not([type="checkbox"])', function() { //Automata
