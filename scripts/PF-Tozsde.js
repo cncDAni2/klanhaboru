@@ -673,7 +673,6 @@ function setButtonBack(id) {
 }
 function loadData() {
 	try{TOZSDE_DATA = JSON.parse(localStorage.getItem('PF_tozsde'+ID));}catch(e){TOZSDE_DATA=null;}
-	debugger;
 	var myForm = document.getElementById("cnc_tozsde");
 	if (!TOZSDE_DATA || TOZSDE_DATA == null) {
 		// Default érték nem lementett adat esetén
@@ -1028,8 +1027,10 @@ function startAutoProcess() {
 		REF.document.getElementById("premium_exchange_form")[mode+'_'+type].value = val;
 		REF.$('#premium_exchange_form .btn.btn-premium-exchange-buy').click();
 	} else {
-		var sellType = {};
+		const sellType = {};
+		const allGoodSellOffer = [];
 		for (var i=0;i<resources.length;i++) {
+			sellType[resources[i]] = {};
 			keszlet=REF.PremiumExchange.data.stock[resources[i]];
 			if (ISTOZSDE_AUTO[resources[i]].sell) {
 				currPrice = getClearValue(resources[i], keszlet, "sell", true);
@@ -1039,15 +1040,27 @@ function startAutoProcess() {
 						sellType.type = resources[i];
 						sellType.amount = currPrice;
 						sellType.currPrice = currPrice;
+						allGoodSellOffer.push({
+							type: resources[i],
+							amount: currPrice,
+							currPrice: currPrice
+						});
 					}
 				} else if (typeof temp == "number" && temp > 0) { 
 					if ((sellType.type && sellType.currPrice > currPrice) || !sellType.type) {
 						sellType.type = resources[i];
 						sellType.amount = temp;
 						sellType.currPrice = currPrice;
+						allGoodSellOffer.push({
+							type: resources[i],
+							amount: temp,
+							currPrice: currPrice
+						});
 					}
 				}
 			}
+			
+			// Eladni nem jó. Venni?
 			if ( !sellType.type && ISTOZSDE_AUTO[resources[i]].buy ) {
 				currPrice = getClearValue(resources[i], keszlet, "buy");
 				if (currPrice > TOZSDE_AUTO[resources[i]].buy.minLimit && autoAdd(currPrice, 0, resources[i], 'buy')) {
@@ -1057,8 +1070,11 @@ function startAutoProcess() {
 				}
 			}
 		}
+		if (allGoodSellOffer.length > 0) console.info('All good sell offer: ',allGoodSellOffer);
 		if (sellType.type) {
-			startAutoInsert(sellType.type, 'sell', sellType.amount);
+			for (let off=0;off<allGoodSellOffer.length;off++) {
+				if (startAutoInsert(allGoodSellOffer[off].type, 'sell', allGoodSellOffer[off].amount) === false) continue; else break;
+			}
 		}
 	}
 	
@@ -1066,7 +1082,7 @@ function startAutoProcess() {
 		// DELAYER
 		if (!EVENT.agressiveRefresh && new Date() - TOZSDE_AUTOINFO.lastSuccess > 60000) {
 			TOZSDE_AUTOINFO.lastSuccess = new Date();
-			return;
+			return false;
 		}
 
 		var currPrice=startPrice,
@@ -1081,9 +1097,9 @@ function startAutoProcess() {
 			helper = autoAdd(currPrice, transactionAmount, type, mode)
 			noInteration++;
 		}
-		if (transactionAmount == 0) return;
+		if (transactionAmount == 0) return false;
 		console.info('RES::', transactionAmount, TOZSDE_DATA.minTransAmount);
-		if (transactionAmount < TOZSDE_DATA.minTransAmount) return;
+		if (transactionAmount < TOZSDE_DATA.minTransAmount) return false;
 		
 		TOZSDE_AUTOINFO.inProgress=true;
 		TOZSDE_AUTOINFO.startProgress=new Date();
@@ -1347,7 +1363,7 @@ function main() {try{
 			HIBA++;
 			if (HIBA>6) {
 				STATUS=1;
-				addEvent('Sok a hiba valamiért, újratöltöm a lapot', 'info');
+				addEvent('Nem tölt az oldal, újratöltöm', 'info');
 			}
 		} break;
 	}}
