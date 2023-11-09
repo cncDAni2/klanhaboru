@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.11.04';
+var VERZIO = 'v4.6 Build 23.11.09';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -3156,30 +3156,33 @@ function szem4_EPITO_csopDelete(ezt){try{
 	}
 }catch(e){alert2("Hiba:\n"+e);}}
 
-function szem4_EPITO_ujFalu(){try{
-	var adat=document.getElementById("epit_ujfalu_adat");
-	var faluCoord=adat.getElementsByTagName("input")[0].value;
-	if (faluCoord=="" || faluCoord==null) return;
-	faluCoord=faluCoord.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);
-	var Z=document.getElementById("epit_lista"); var str="";
-	var lista=szem4_EPITO_getlista();
-	for (var i=0;i<faluCoord.length;i++) {
-		var vane=false;
-		for (var j=1;j<Z.rows.length;j++) {
-			if (Z.rows[j].cells[0].textContent==faluCoord[i]) vane=true;
-		} if (vane) {str+="DUP:"+faluCoord[i]+", "; continue;}
-		if (!KTID[faluCoord[i]]) {str+="NL: "+faluCoord[i]+", "; continue;}
-		
-		var ZR=Z.insertRow(-1);
-		var ZC=ZR.insertCell(0); ZC.innerHTML=`${ID_TO_INFO[KTID[faluCoord[i]]].name} (${faluCoord[i]})`; ZC.setAttribute("ondblclick","sortorol(this)");
-			ZC=ZR.insertCell(1); ZC.innerHTML=lista; ZC.getElementsByTagName("select")[0].value=adat.getElementsByTagName("select")[0].value;
-			ZC=ZR.insertCell(2); ZC.style.fontSize="x-small"; var d=getServerTime(); ZC.innerHTML=d.toLocaleString(); ZC.setAttribute("ondblclick","szem4_EPITO_most(this)");
-			ZC=ZR.insertCell(3); ZC.innerHTML="<i>Feldolgozás alatt...</i>"+' <a href="'+VILL1ST.replace(/(village=)[0-9]+/g,"village="+KTID[faluCoord[i]]).replace('screen=overview','screen=main')+'" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="'+pic("link.png")+'"></a>';; ZC.setAttribute("ondblclick",'szem4_EPITO_infoCell(this.parentNode,\'alap\',"")');
-	}
-	if (str!="") alert2("Dupla megadások/nem létező faluk kiszűrve: "+str);
-	adat.getElementsByTagName("input")[0].value="";
-	return;
-}catch(e){alert2("Új falu(k) felvételekori hiba:\n"+e);}}
+function szem4_EPITO_ujFalu() {
+	try {
+		var adat = document.getElementById("epit_ujfalu_adat");
+		var faluCoord = adat.getElementsByTagName("input")[0].value;
+		if (faluCoord == "" || faluCoord == null) return;
+		faluCoord = faluCoord.match(/[0-9]{1,3}(\|)[0-9]{1,3}/g);
+		var Z = document.getElementById("epit_lista");
+		var str = "";
+		var lista = szem4_EPITO_getlista();
+		for (var i = 0; i < faluCoord.length; i++) {
+			var vane = false;
+			for (var j = 1; j < Z.rows.length; j++) {
+				if (Z.rows[j].cells[0].textContent.includes(`(${faluCoord[i]})`)) vane = true;
+			} if (vane) { str += "DUP:" + faluCoord[i] + ", "; continue; }
+			if (!KTID[faluCoord[i]]) { str += "NL: " + faluCoord[i] + ", "; continue; }
+
+			var ZR = Z.insertRow(-1);
+			var ZC = ZR.insertCell(0); ZC.innerHTML = `${ID_TO_INFO[KTID[faluCoord[i]]].name} (${faluCoord[i]})`; ZC.setAttribute("ondblclick", "sortorol(this)");
+			ZC = ZR.insertCell(1); ZC.innerHTML = lista; ZC.getElementsByTagName("select")[0].value = adat.getElementsByTagName("select")[0].value;
+			ZC = ZR.insertCell(2); ZC.style.fontSize = "x-small"; var d = getServerTime(); ZC.innerHTML = d.toLocaleString(); ZC.setAttribute("ondblclick", "szem4_EPITO_most(this)");
+			ZC = ZR.insertCell(3); ZC.innerHTML = "<i>Feldolgozás alatt...</i>" + ' <a href="' + VILL1ST.replace(/(village=)[0-9]+/g, "village=" + KTID[faluCoord[i]]).replace('screen=overview', 'screen=main') + '" target="_BLANK"><img alt="Nyit" title="Falu megnyitása" src="' + pic("link.png") + '"></a>';; ZC.setAttribute("ondblclick", 'szem4_EPITO_infoCell(this.parentNode,\'alap\',"")');
+		}
+		if (str != "") alert2("Dupla megadások/nem létező faluk kiszűrve: " + str);
+		adat.getElementsByTagName("input")[0].value = "";
+		return;
+	} catch (e) { alert2("Új falu(k) felvételekori hiba:\n" + e); }
+}
 
 function szem4_EPITO_ujCsop(){try{
 	var cs_nev=document.getElementById("epit_ujcsopnev").value.replace(/[;\._]/g,"").replace(/( )+/g," ");;
@@ -3433,7 +3436,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 }catch(e){debug("epit_IntelliB",e);}}
 
 function szem4_EPITO_motor(){try{
-	var nexttime=2000;
+	var nexttime=750;
 	if (BOT||EPIT_PAUSE||USER_ACTIVITY) {nexttime=5000;} else {
 	if (EPIT_HIBA>10) {EPIT_HIBA=0; EPIT_GHIBA++; if(EPIT_GHIBA>3) {if (EPIT_GHIBA>5) {naplo("Globál","Nincs internet? Folyamatos hiba az építőnél"); nexttime=60000; playSound("bot2");} EPIT_REF.close();} EPIT_LEPES=0;}
 	switch (EPIT_LEPES) {
@@ -3451,8 +3454,8 @@ function szem4_EPITO_motor(){try{
 				}
 				if (EPIT_REF && EPIT_REF.document) EPIT_REF.document.title = 'szem4/építő';
 				break;
-		case 1: if (isPageLoaded(EPIT_REF,PMEP[0],"screen=main")) {EPIT_HIBA=0; EPIT_GHIBA=0;
-					/*PMEP=*/szem4_EPITO_IntettiBuild(PMEP[1]);
+		case 1: if (isPageLoaded(EPIT_REF,PMEP[0],"screen=main", ['#buildings'])) {EPIT_HIBA=0; EPIT_GHIBA=0;
+					szem4_EPITO_IntettiBuild(PMEP[1]);
 				} else {EPIT_HIBA++;}
 				EPIT_LEPES=0;
 				break;
@@ -3606,12 +3609,12 @@ function szem4_GYUJTO_3elindit() { try{
 	startButton.click();
 } catch(e) { GYUJTO_HIBA++; console.error(e); debug('szem4_GYUJTO_3elindit', e); }}
 function szem4_GYUJTO_motor() {
-	let nexttime = 2000;
+	let nexttime = 500;
 	try {
 		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
 			nexttime=5000;
 		} else {
-			if (GYUJTO_HIBA > 5) {
+			if (GYUJTO_HIBA > 15) {
 				naplo('szem4_GYUJTO_motor', 'Valami baj van a gyűjtögetőnél - újraindítom...');
 				GYUJTO_REF.close();
 				GYUJTO_STATE = 0;
@@ -3628,14 +3631,14 @@ function szem4_GYUJTO_motor() {
 					break;
 				case 1:
 					// run 3rdparty script
-					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge')) {
+					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge', ['#scavenge_screen .scavenge-option'])) {
 						GYUJTO_REF.$.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');
 						GYUJTO_STATE = 2;
 					} else GYUJTO_HIBA++;
 					break;
 				case 2:
 					// Check, click, store
-					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge', ['#twcheese-sidebar'])) {
+					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge', ['#twcheese-sidebar', '#content_value > h3 > a'])) {
 						szem4_GYUJTO_3elindit();
 					} else GYUJTO_HIBA++;
 					break;
@@ -3714,7 +3717,7 @@ function szem4_ADAT_loadNow(tipus) {try{
 			debug('szem4_ADAT_loadNow', 'Loading debug: FROM = ' + JSON.stringify(SZEM4_FARM.DOMINFO_FROM));
 			debug('szem4_ADAT_loadNow', 'Loading debug: FROM original = ' + JSON.stringify(dataObj));
 			if (Object.keys(SZEM4_FARM.DOMINFO_FROM) == 0) {
-				alert('Nem található a model-ben farmoló falu. Hiba? Lehet újra hozzá kell adnod.')
+				naplo('Farm', 'Nem található a model-ben farmoló falu. Hiba? Lehet újra hozzá kell adnod.')
 			}
 			rebuildDOM_farm();
 			break;
