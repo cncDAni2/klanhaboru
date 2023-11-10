@@ -48,6 +48,7 @@ var TOZSDE_DATA_DEFAULT = {
 	autotrans: true,
 	newMail: false,
 	newAttack: true,
+	left_merch: 0,
 	nameOfBeerkezo: 'Beérkező',
 	nameOfElad: 'Elad',
 	nameOfVasarolj: 'Vásárolj',
@@ -362,7 +363,7 @@ Hangjelzés szüneteltetése <input value="5" type="number" id="stoptime"> percr
 <tr><td><span class="icon header premium"> </span> Maximum limit '+generatePlusMinus("buy","maxLimit")+'</td><td><input type="number" name="auto_buy_wood_maxLimit"></td><td><input type="number" name="auto_buy_stone_maxLimit"></td><td><input type="number" name="auto_buy_iron_maxLimit"></td></tr>\
 <tr><td><span class="icon header ressources"> </span> Maximum nyers a faluban</td><td><input type="number" name="auto_buy_wood_maxRes"></td><td><input type="number" name="auto_buy_stone_maxRes"></td><td><input type="number" name="auto_buy_iron_maxRes"></td></tr>\
 </table>\
-<div style="width:500px; text-align:center;margin:10px auto"><img src="/graphic/buildings/market.png"> Automata által meghagyott kereskedők: <input type="number" name="left_merch"></div></div>\
+<div style="width:500px; text-align:center;margin:10px auto"><img src="/graphic/buildings/market.png"> Automata által meghagyott kereskedők: <input type="number" name="left_merch" value="0"></div></div>\
 \
 <h3 align="center" onclick="setTabVisibility(\'h3_3\', this)">Egyéb beállítások</h3>\
 <div id="h3_3" style="display:none"><table class="vis" style="margin: auto; border-collapse: collapse;" id="tozsde_nyelv">\
@@ -972,6 +973,7 @@ function autoAdd(currPrice, result, type, mode) {try{
 	}
 	
 	// SELL - feltételek
+	if (isNaN(TOZSDE_AUTO.left_merch)) TOZSDE_AUTO.left_merch = 0;
 	if (mode=='sell' && ISTOZSDE_AUTO[type].sell) {
 		cache = TOZSDE_AUTO[type].sell;
 		
