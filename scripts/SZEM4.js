@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.11.09';
+var VERZIO = 'v4.6 Build 23.11.13';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
@@ -3415,7 +3415,7 @@ function szem4_EPITO_IntettiBuild(buildOrder){try{
 
 	if (EPIT_REF.game_data.village.wood < resNeed.wood || EPIT_REF.game_data.village.stone < resNeed.stone || EPIT_REF.game_data.village.iron < resNeed.iron) {
 		szem4_EPITO_infoCell(PMEP[2],"yellow","Nyersanyag hiány lépett fel. " + writeAllBuildTime(allBuildTime));
-		szem4_EPITO_addIdo(PMEP[2],firstBuildTime>0?Math.min(firstBuildTime, 60):60);
+		szem4_EPITO_addIdo(PMEP[2],firstBuildTime>0?Math.min(firstBuildTime, 60):20);
 		return;
 	} 
 
@@ -3614,7 +3614,7 @@ function szem4_GYUJTO_motor() {
 		if (BOT||GYUJTO_PAUSE||USER_ACTIVITY) {
 			nexttime=5000;
 		} else {
-			if (GYUJTO_HIBA > 15) {
+			if (GYUJTO_HIBA > 30) {
 				naplo('szem4_GYUJTO_motor', 'Valami baj van a gyűjtögetőnél - újraindítom...');
 				GYUJTO_REF.close();
 				GYUJTO_STATE = 0;
@@ -3640,7 +3640,10 @@ function szem4_GYUJTO_motor() {
 					// Check, click, store
 					if (isPageLoaded(GYUJTO_REF, GYUJTO_DATA, 'screen=place&mode=scavenge', ['#twcheese-sidebar', '#content_value > h3 > a'])) {
 						szem4_GYUJTO_3elindit();
-					} else GYUJTO_HIBA++;
+					} else {
+						GYUJTO_HIBA++;
+						if (GYUJTO_HIBA == 15) GYUJTO_REF.$.getScript('https://media.innogames.com/com_DS_HU/scripts/scavenging.js');
+					}
 					break;
 			}
 		}
@@ -3721,7 +3724,7 @@ function szem4_ADAT_loadNow(tipus) {try{
 			}
 			rebuildDOM_farm();
 			break;
-		case "epit": szem4_ADAT_epito_load(); break; // FIXME! Hiányzik!!
+		case "epit": szem4_ADAT_epito_load(); break; // FIXME! MVC Hiányzik!!
 		case "vije":
 			SZEM4_VIJE = Object.assign({}, SZEM4_VIJE, dataObj);
 			rebuildDOM_VIJE();
