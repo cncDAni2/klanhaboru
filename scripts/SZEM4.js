@@ -2871,6 +2871,63 @@ function VIJE_adatbeir(koord,nyers,banya,fal,szin, hungarianDate){try{
 	}
 	drawWagons(koord);
 }catch(e){debug("VIJE_adatbeir","Hiba: "+e);}}
+function getSpyResourceCell(doc) {
+	var spyTable = doc.getElementById('attack_spy_resources');
+	if (!spyTable) return null;
+	for (var i = 0; i < spyTable.rows.length; i++) {
+		var row = spyTable.rows[i];
+		if (!row.cells || row.cells.length < 2) continue;
+		var valueCell = row.cells[1];
+		if (valueCell.querySelector('.farm_icon')) continue;
+		if (valueCell.querySelector('.icon.header.wood, .icon.header.stone, .icon.header.iron')) return valueCell;
+	}
+	return null;
+}
+function getSpyBuildingLevels(doc) {
+	const spyLevels = {
+		main: 1,
+		barracks: 0,
+		stable: 0,
+		garage: 0,
+		smith: 0,
+		market: 0,
+		wood: 0,
+		stone: 0,
+		iron: 0,
+		farm: 0,
+		wall: 0
+	};
+
+	var buildingDataInput = doc.getElementById('attack_spy_building_data');
+	if (buildingDataInput && buildingDataInput.value) {
+		try {
+			var buildingData = JSON.parse(buildingDataInput.value);
+			for (var i = 0; i < buildingData.length; i++) {
+				var building = buildingData[i];
+				if (!(building.id in spyLevels)) continue;
+				spyLevels[building.id] = parseInt(building.level, 10);
+			}
+			return spyLevels;
+		} catch (e) {
+			debug('getSpyBuildingLevels', 'JSON parse error: ' + e);
+		}
+	}
+
+	if (!doc.getElementById('attack_spy_buildings_left') || !doc.getElementById('attack_spy_buildings_right')) return null;
+
+	var i18nBuildings = document.getElementById('vije_opts');
+	var spyBuildingRows_left = doc.getElementById('attack_spy_buildings_left').rows;
+	var spyBuildingRows_right = doc.getElementById('attack_spy_buildings_right').rows;
+	for (var rowNo = 1; rowNo < spyBuildingRows_left.length; rowNo++) {
+		let buildingName_l = spyBuildingRows_left[rowNo].cells[0].textContent.toUpperCase().trim();
+		let buildingName_r = spyBuildingRows_right[rowNo].cells[0].textContent.toUpperCase().trim();
+		for (const key in spyLevels) {
+			if (buildingName_l.includes(i18nBuildings[key].value.toUpperCase())) spyLevels[key] = parseInt(spyBuildingRows_left[rowNo].cells[1].textContent,10);
+			if (buildingName_r.includes(i18nBuildings[key].value.toUpperCase())) spyLevels[key] = parseInt(spyBuildingRows_right[rowNo].cells[1].textContent,10);
+		}
+	}
+	return spyLevels;
+}
 function szem4_VIJE_2elemzes(adatok){try{
 	/*Adatok: [0]jelentés azon;[1]célpont koord;[2]jelentés SZÍNe;[3]volt e checkbox-olt jeli;[4]régi jeli e? (igen->nincs nyerselem)*/
 	var nyersossz=0;
@@ -2885,12 +2942,13 @@ function szem4_VIJE_2elemzes(adatok){try{
 	hungarianDate = new Date(Date.parse(hungarianDate.replace(/jan\./g, "Jan").replace(/febr?\./g, "Feb").replace(/márc\./g, "Mar").replace(/ápr\./g, "Apr").replace(/máj\./g, "May").replace(/jún\./g, "Jun").replace(/júl\./g, "Jul").replace(/aug\./g, "Aug").replace(/szept\./g, "Sep").replace(/okt\./g, "Oct").replace(/nov\./g, "Nov").replace(/dec\./g, "Dec")));
 	hungarianDate = hungarianDate.getTime();
 	if (SZEM4_VIJE.ALL_VIJE_SAVED[adatok[1]] >= hungarianDate) isOld = true;
-	if (!isOld && VIJE_REF2.document.querySelector('#attack_spy_resources') !== null && VIJE_REF2.document.querySelector('#attack_spy_resources').rows[0].cells[1].querySelector('a') == null) {
-		var x=VIJE_REF2.document.getElementById("attack_spy_resources").rows[0].cells[1];
+	var spyResourcesCell = getSpyResourceCell(VIJE_REF2.document);
+	if (!isOld && VIJE_REF2.document.querySelector('#attack_spy_resources') !== null) {
+		var x = spyResourcesCell;
 
 		if (adatok[4]) { var nyersossz=''; debug("VIJE2","Nem kell elemezni (régi)"); } else {
 			try{
-				if (/\d/.test(x.textContent)) {
+				if (x && /\d/.test(x.textContent)) {
 					var nyers=x.textContent.replace(/\./g,"").match(/[0-9]+/g); 
 					var nyersossz=0;
 					for (var i=0;i<nyers.length;i++) nyersossz+=parseInt(nyers[i],10);
@@ -2901,32 +2959,8 @@ function szem4_VIJE_2elemzes(adatok){try{
 		}
 	
 		// Épületek
-		if (VIJE_REF2.document.getElementById("attack_spy_buildings_left")) {
-			var i18nBuildings=document.getElementById("vije_opts");
-			const spyLevels = {
-				main: 1,
-				barracks: 0,
-				stable: 0,
-				garage: 0,
-				smith: 0,
-				market: 0,
-				wood: 0,
-				stone: 0,
-				iron: 0,
-				farm: 0,
-				wall: 0
-			};
-			
-			var spyBuildingRows_left=VIJE_REF2.document.getElementById("attack_spy_buildings_left").rows;
-			var spyBuildingRows_right=VIJE_REF2.document.getElementById("attack_spy_buildings_right").rows;
-			for (var i=1;i<spyBuildingRows_left.length;i++) {
-				let buildingName_l = spyBuildingRows_left[i].cells[0].textContent.toUpperCase().trim();
-				let buildingName_r = spyBuildingRows_right[i].cells[0].textContent.toUpperCase().trim();
-				for (const key in spyLevels) {
-					if (buildingName_l.includes(i18nBuildings[key].value.toUpperCase())) spyLevels[key] = parseInt(spyBuildingRows_left[i].cells[1].textContent,10);
-					if (buildingName_r.includes(i18nBuildings[key].value.toUpperCase())) spyLevels[key] = parseInt(spyBuildingRows_right[i].cells[1].textContent,10);
-				}
-			}
+			var spyLevels = getSpyBuildingLevels(VIJE_REF2.document);
+		if (spyLevels) {
 			SZEM4_FARM.DOMINFO_FARMS[adatok[1]].buildings = JSON.parse(JSON.stringify(spyLevels));
 			if (spyLevels.wall === 0) {
 				if (spyLevels.barracks === 0) {
