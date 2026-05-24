@@ -13,7 +13,7 @@ function loadXMLDoc(dname) {
 }
 
 if (typeof(AZON)!="undefined") { alert("Itt már fut SZEM. \n Ha ez nem igaz, nyitsd meg új lapon a játékot, és próbáld meg ott futtatni"); exit();}
-var VERZIO = 'v4.6 Build 23.11.13';
+var VERZIO = 'v4.6 Build 26.05.25';
 var SZEM4_SETTINGS = {
 	selectedProfile: 1,
 	profile1: {},
