@@ -1378,7 +1378,9 @@ function isPageLoaded(ref, faluid, address, elements=[]){try{
 	return false;
 }catch(e){return false;}}
 function windowOpener(id, url, windowId) {
-	return window.open(url, windowId);
+	var openedWindow = window.open(url, windowId);
+	if (!openedWindow) naplo('Globál', 'Vélhetőleg nem engedélyezted a felugró ablakokat.');
+	return openedWindow;
 }
 function addTooltip(el, text) {
 	removeTooltip(el.closest('.tooltip-wrapper'));
@@ -3027,7 +3029,7 @@ function szem4_VIJE_motor(){try{
 			var csoport="";
 			if (game_data.player.premium) csoport="group_id=-1&";
 			VIJE_REF1=windowOpener('vije', VILL1ST.replace("screen=overview","mode=attack&"+csoport+"screen=report"), AZON+"_SZEM4VIJE_1");
-			VIJE_LEPES=1;
+			if (VIJE_REF1) VIJE_LEPES=1;
 			} else nexttime=10000;
 			break;
 		case 1: /*Megnyitandó jelentés kiválasztás(+bepipálás)*/
@@ -3045,7 +3047,7 @@ function szem4_VIJE_motor(){try{
 					}
 				} else {
 					VIJE_REF2=windowOpener('vije2', VILL1ST.replace("screen=overview","mode=attack&view="+PM2[0]+"&screen=report"), AZON+"_SZEM4VIJE_2");
-					VIJE_LEPES=2;
+					if (VIJE_REF2) VIJE_LEPES=2;
 				}
 				VIJE_REF1.document.title = 'Szem4/vije1';
 			} else { VIJE_HIBA++; }
